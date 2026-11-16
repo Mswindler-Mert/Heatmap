@@ -26,6 +26,24 @@ Henüz yapılmayanlar:
 - Zaman motorlara parametre olarak verilir (`simdi`), bu yüzden testler beklemeden çalışır.
 - Geliştirme ortamı: Windows 11, Python 3.14, komut `py` (`python` komutu yok).
 
+## Asıl hedef (proje sahibinin notu)
+
+Amaç yalnızca "ders" süresi değil: **bilgisayar başında aktif/verimli geçen süreyi** ölçmek,
+bu sürenin **hangi uygulamalardan geldiğini** görmek ve sonucu **paylaşılabilir** hale getirmek
+(Strava'nın etkinlik kartı gibi, Instagram hikâyesine atılabilecek bir görsel). Bu yüzden
+kişisel ayarda Teams, Unity, Outlook, yapay zekâ asistanları da "ders" (= çalışma) sayılıyor.
+
+Bu hedefe giden işler:
+
+- **Uygulama bazında döküm:** `oturumlar` tablosunda `uygulama` sütunu zaten var. Gün/hafta için
+  uygulamaya göre toplam süre veren bir uç (`/api/dokum?baslangic=&bitis=`) ve arayüzde bir
+  "nereden geldi" bölümü eklenmeli. Tarayıcı oturumlarında site/başlık bazında gruplama da düşünülmeli.
+- **Kategori:** tek bir "ders" hükmü yerine süreçlere kategori (kod, not, toplantı, video…) atamak.
+- **Adlandırma:** kodda ve arayüzde "ders" yerine "çalışma/aktif süre" demek daha doğru olabilir.
+- **Paylaşım kartı:** günlük/haftalık özeti dikey (1080×1920) bir PNG olarak üreten uç
+  (Pillow zaten kurulu). Kartta pencere başlığı gibi kişisel ayrıntı OLMAMALI; yalnızca toplam
+  süre, uygulama dökümü ve seri gibi özet bilgiler.
+
 ## 1. Kamera modülü
 
 Hedef: yüz var mı, kafa uzun süre aşağı eğik mi, telefona mı bakılıyor.
