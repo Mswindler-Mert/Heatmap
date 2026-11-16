@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Başlıkta bilerek "Ders" kelimesi yok: yoksa bu sayfaya bakmak da ders sayılırdı.
+       "Takip Paneli" ayar dosyasında ders dışı kelimeler listesinde. -->
+  <title>Takip Paneli</title>
+  <link rel="stylesheet" href="/static/stil.css">
+</head>
+<body>
+  <header class="ust">
+    <h1>Ders Takip</h1>
+    <div class="ust-sag">
+      <span id="baglanti" class="soluk">bağlanıyor…</span>
+      <button id="duraklat-dugme" class="dugme">Takibi duraklat</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- 1) Şu an -->
+    <section class="kart simdi">
+      <div class="sayac-kutu">
+        <div class="etiket">Bugün çalışılan süre</div>
+        <div id="sayac" class="sayac">00:00:00</div>
+        <div id="durum-rozet" class="rozet">—</div>
+        <div id="bekleyen" class="soluk bekleyen"></div>
+      </div>
+      <div class="algilanan">
+        <div class="etiket">Şu an algılanan</div>
+        <div id="algilanan-uygulama" class="uygulama">—</div>
+        <div id="algilanan-baslik" class="baslik-metin"></div>
+        <div id="algilanan-aciklama" class="soluk"></div>
+        <div class="etiket ara">Modül sinyalleri</div>
+        <ul id="sinyaller" class="sinyaller"></ul>
+      </div>
+    </section>
+
+    <!-- 2) Bu hafta -->
+    <section class="kart">
+      <div class="kart-baslik">
+        <h2>Bu hafta</h2>
+        <span id="hafta-toplam" class="soluk"></span>
+      </div>
+      <div id="hafta" class="hafta"></div>
+    </section>
+
+    <!-- 3) Oturumlar ve düzeltme -->
+    <section class="kart">
+      <div class="kart-baslik">
+        <h2>Oturumlar</h2>
+        <div class="araclar">
+          <button id="onceki-gun" class="dugme kucuk" aria-label="Önceki gün">◀</button>
+          <input id="tarih" type="date">
+          <button id="sonraki-gun" class="dugme kucuk" aria-label="Sonraki gün">▶</button>
+          <select id="filtre">
+            <option value="belirsiz">Karar bekleyenler</option>
+            <option value="hepsi">Hepsi</option>
+          </select>
+        </div>
+      </div>
+      <p class="soluk ipucu">
+        Program karar veremediği süreyi saymaz. Aşağıdan “Dersti” ya da “Ders değildi” diye işaretle;
+        “bundan sonra da böyle say” seçiliyse aynı uygulama/başlık bir dahaki sefere otomatik tanınır.
+      </p>
+      <div id="oturumlar" class="oturumlar"></div>
+    </section>
+
+    <!-- 4) Öğrenilen kurallar -->
+    <section class="kart">
+      <div class="kart-baslik"><h2>Öğrenilen kurallar</h2></div>
+      <div id="kurallar" class="kurallar"></div>
+    </section>
+  </main>
+
+  <footer class="soluk">
+    Her şey bu bilgisayarda çalışır ve saklanır · <a href="/api/docs">JSON API</a>
+  </footer>
+
+  <script src="/static/uygulama.js"></script>
+</body>
+</html>
