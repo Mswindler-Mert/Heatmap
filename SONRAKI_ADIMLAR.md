@@ -3,14 +3,15 @@
 Bu dosya, projeye başka bir oturumda ya da başka bir modelle devam edebilmek için yazıldı.
 Önce "Şu anki durum"u oku, sonra listeden bir iş seç.
 
-## Şu anki durum (v0.1)
+## Şu anki durum (v0.2)
 
 Çalışan ve test edilen kısımlar:
 
 - Modül 1, 2, 3 (aktif pencere, sekme başlığı, boşta kalma) ve karar motoru.
 - SQLite kaydı, düzeltme ve kural öğrenme (tam başlık, süreç, anahtar kelime).
 - FastAPI JSON API, koyu temalı arayüz, sistem tepsisi ikonu, `baslat.bat`.
-- 32 birim/uçtan uca test (`.venv\Scripts\python -m unittest -v`).
+- Uygulama/site dökümü, günlük hedef ve seri, 1080x1920 paylaşım kartı.
+- 49 birim/uçtan uca test (`.venv\Scripts\python -m unittest -v`).
 
 Henüz yapılmayanlar:
 
@@ -35,14 +36,25 @@ kişisel ayarda Teams, Unity, Outlook, yapay zekâ asistanları da "ders" (= ça
 
 Bu hedefe giden işler:
 
-- **Uygulama bazında döküm:** YAPILDI (`/api/dokum` ucu ve arayüzde "Süre nereden geldi?" bölümü).
-  Eksikler: tarayıcıda geçen sürenin tamamı tek satırda (`brave.exe`) toplanıyor; site/başlık
-  bazında gruplama ve süreç adı yerine okunur uygulama adı ("Code" yerine "VS Code") eklenebilir.
+- **Uygulama bazında döküm:** YAPILDI (`/api/dokum`, arayüzde "Süre nereden geldi?"). Süreç adları
+  `[adlar]`, tarayıcı sekmeleri `[siteler]` ayar bölümleriyle okunabilir ada çevrilir
+  (`ders_takip/ozet.py`); tanınmayan sekmeler "Diğer web" olur.
+- **Paylaşım kartı:** YAPILDI (`ders_takip/kart.py`, `/api/kart?tur=gunluk|haftalik`, arayüzde buton).
+  Günlük hedef `[hedef] gunluk_dk`, seri `/api/seri`.
+- **Arayüz metinleri:** YAPILDI ("ders" yerine "çalışma / aktif süre"). Kod adları (`DERS`,
+  `ders_sn`, `ders_surecleri`…), uygulamanın adı ("Ders Takip") ve API alan adları değişmedi.
+
+Kalanlar:
+
+- **Site tespiti başlığa dayanıyor:** başlığında site adı geçmeyen sayfalar "Diğer web"e düşer.
+  Kesin çözüm, sekmenin adresini veren tarayıcı eklentisi (aşağıda "Tespit doğruluğu").
 - **Kategori:** tek bir "ders" hükmü yerine süreçlere kategori (kod, not, toplantı, video…) atamak.
-- **Adlandırma:** kodda ve arayüzde "ders" yerine "çalışma/aktif süre" demek daha doğru olabilir.
-- **Paylaşım kartı:** günlük/haftalık özeti dikey (1080×1920) bir PNG olarak üreten uç
-  (Pillow zaten kurulu). Kartta pencere başlığı gibi kişisel ayrıntı OLMAMALI; yalnızca toplam
-  süre, uygulama dökümü ve seri gibi özet bilgiler.
+- **Kart için güvenli alan:** Instagram hikâyede üst ve alt ~250 piksel arayüzle örtülür; üstteki
+  logo/tarih satırı ve alttaki imza bu alana düşüyor. Gerekirse içerik ortaya doğru sıkıştırılabilir.
+- **Kart seçenekleri:** geçmiş bir gün/hafta için kart (`?tarih=`), renk teması, uygulama adı yerine
+  kullanıcı adı, karttaki uygulama listesini gizleme seçeneği.
+- **Kartı panoya kopyalama** ve telefona kolay aktarma (örn. QR kod ya da paylaşılan klasör).
+- **Proje adı:** hedef artık "ders"ten geniş; ad ve kod adları İngilizce/genel bir ada taşınabilir.
 
 ## 1. Kamera modülü
 

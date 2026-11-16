@@ -7,6 +7,8 @@ sekmesinin başlığına ve klavye/fare hareketine bakar; sayacı kendisi başla
 - **Tamamen yerel:** hiçbir veri bilgisayarınızdan çıkmaz, hesap ya da internet gerekmez.
 - **Takılıp çıkarılabilir modüller:** her tespit kaynağı ayrı bir dosyadır ve ayardan kapatılabilir.
 - **Öğrenir:** karar veremediği oturumları siz işaretlersiniz, bir dahaki sefere kendisi tanır.
+- **Paylaşım kartı:** günlük/haftalık özeti hikâye boyutunda bir görsele çevirir; kartta pencere
+  başlıkları yer almaz, yalnızca uygulama ve site adları görünür.
 - **JSON API:** veriyi başka araçlardan (masaüstü dashboard'u, sağlık verisi birleştirme) okuyabilirsiniz.
 
 ## Nasıl çalışır?
@@ -64,15 +66,16 @@ ve paketleri yükler; sonraki açılışlarda doğrudan başlatır.
 - İkon rengi: **yeşil** = sayaç çalışıyor, **sarı** = belirsiz, **gri** = sayaç durdu.
 - İkona sağ tıklayınca: arayüzü aç, takibi duraklat, ayar dosyasını aç, çıkış.
 
-Arayüzde beş bölüm vardır:
+Arayüzde altı bölüm vardır:
 
 1. **Şu an:** bugünkü toplam süre, sayacın durumu, algılanan uygulama ve her modülün sinyali.
 2. **Bu hafta:** gün gün çalışma süresi.
-3. **Süre nereden geldi?:** bugünkü ya da bu haftaki sürenin uygulamalara dağılımı.
-4. **Oturumlar:** kayıtlı zaman dilimleri. Her birini “Dersti” / “Ders değildi” diye düzeltebilirsiniz.
+3. **Süre nereden geldi?:** bugünkü ya da bu haftaki sürenin uygulamalara ve sitelere dağılımı.
+4. **Paylaşım kartı:** günlük ya da haftalık özeti 1080×1920 PNG olarak üretir ve indirir.
+5. **Oturumlar:** kayıtlı zaman dilimleri. Her birini “Dersti” / “Ders değildi” diye düzeltebilirsiniz.
    “Bundan sonra da böyle say” seçiliyse aynı uygulama ya da başlık artık otomatik tanınır.
    Tarayıcı oturumlarında isterseniz bir anahtar kelime (örn. kanal adı) de öğretebilirsiniz.
-5. **Öğrenilen kurallar:** düzeltmelerden oluşan kurallar; buradan silinebilir.
+6. **Öğrenilen kurallar:** düzeltmelerden oluşan kurallar; buradan silinebilir.
 
 ## Ayarlar
 
@@ -86,6 +89,9 @@ sonra uygulamayı yeniden başlatın.
 | `[pencere]` | Ders / ders dışı / tarayıcı süreç adları, bilinmeyen uygulamaların hükmü |
 | `[baslik]` | Ders ve ders dışı anahtar kelimeler, video sitesi işaretleri, sayacı hiç etkilemeyen sekmeler |
 | `[bosta]` | Boşta kalma eşiği ve video izlerken geçerli eşik |
+| `[adlar]` | Süreç adı → dökümde görünen ad (`"Code.exe" = "VS Code"`) |
+| `[siteler]` | Site adı → sekme başlığında aranan kelimeler; tanınmayanlar "Diğer web" olur |
+| `[hedef]` | Günlük hedef (dakika); seri hesabında kullanılır |
 | `[kamera]` | Kamera modülü (henüz geliştirilmedi) |
 
 Her modül `etkin = false` ile kapatılabilir.
@@ -101,7 +107,9 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `GET /api/ozet/bugun` | Bugünkü ders süresi |
 | `GET /api/ozet/hafta` | Bu haftanın gün gün süreleri |
 | `GET /api/gunluk?baslangic=2026-11-01&bitis=2026-11-30` | Tarih aralığı için gün gün süre |
-| `GET /api/dokum?baslangic=2026-11-16&bitis=2026-11-22` | Sürenin uygulamalara dağılımı (tarih verilmezse bugün) |
+| `GET /api/dokum?baslangic=2026-11-16&bitis=2026-11-22` | Sürenin uygulamalara ve sitelere dağılımı (tarih verilmezse bugün) |
+| `GET /api/seri` | Günlük hedef ve üst üste hedefe ulaşılan gün sayısı |
+| `GET /api/kart?tur=gunluk` | Paylaşım kartı (PNG); `tur=haftalik`, `indir=true` seçenekleri |
 | `GET /api/oturumlar?tarih=2026-11-16` | Bir günün oturumları |
 | `POST /api/oturumlar/{id}/duzelt` | Oturumu düzelt (`{"hukum": "ders", "ogren": true, "kelime": null}`) |
 | `GET /api/kurallar` · `DELETE /api/kurallar/{id}` | Öğrenilen kurallar |
@@ -133,6 +141,8 @@ ders-takip/
 │   ├── motor.py              # karar motoru
 │   ├── takipci.py            # saniyelik takip döngüsü
 │   ├── depo.py               # SQLite
+│   ├── ozet.py               # okunabilir adlar, site ayırma, seri hesabı
+│   ├── kart.py               # paylaşım kartı (PNG) çizimi
 │   ├── tepsi.py              # sistem tepsisi ikonu
 │   └── web/                  # api.py + static/ (HTML, CSS, JS)
 └── tests/                    # motor, sınıflandırıcı ve uçtan uca testler
@@ -153,6 +163,9 @@ Yeni bir tespit modülü eklemek için `ders_takip/sinyal.py` içindeki `Dedekto
 `oku()` metodunu yazın ve `main.py` içindeki `dedektorleri_kur()` fonksiyonuna ekleyin.
 
 ## Bilinen sınırlar
+
+- Tarayıcıda site ayrımı sekme başlığına dayanır; başlığında site adı geçmeyen sayfalar
+  "Diğer web" olarak toplanır.
 
 - Sekme başlığından videonun oynayıp oynamadığı anlaşılamaz; duraklatılmış bir ders videosu,
   video eşiği dolana kadar ders sayılır.
