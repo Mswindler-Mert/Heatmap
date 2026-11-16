@@ -151,6 +151,40 @@ video_isaretleri = ["YouTube", "Udemy", "Coursera"]
 "notepad.exe" = "Not Defteri"
 
 # ---------------------------------------------------------------------
+#  Siteler: tarayıcıda geçen süre dökümde siteye göre ayrılır.
+#  Sol taraf dökümde görünecek site adı, sağ taraf sekme başlığında aranacak
+#  kelimeler (tam kelime, büyük/küçük harf önemsiz). Başlıkta birden çok site
+#  kelimesi geçerse en SONDA geçen kazanır ("GitHub Tutorial - YouTube" -> YouTube).
+#  Hiçbiri tutmayan sekmeler "Diğer web" olarak toplanır.
+#  Not: Bu bölüm sadece ADLANDIRMA içindir; sayılıp sayılmayacağına [baslik] karar verir.
+# ---------------------------------------------------------------------
+[siteler]
+"YouTube" = ["YouTube"]
+"claude.ai" = ["Claude"]
+"ChatGPT" = ["ChatGPT"]
+"Gemini" = ["Gemini", "Google Gemini"]
+"Copilot" = ["Copilot", "Microsoft Copilot"]
+"GitHub" = ["GitHub"]
+"Stack Overflow" = ["Stack Overflow"]
+"GeeksforGeeks" = ["GeeksforGeeks"]
+"Coursera" = ["Coursera"]
+"Udemy" = ["Udemy"]
+"Khan Academy" = ["Khan Academy"]
+"Wikipedia" = ["Wikipedia", "Vikipedi"]
+"Google Docs" = ["Google Docs", "Google Dokümanlar", "Google Slides", "Google Slaytlar", "Google Sheets", "Google E-Tablolar"]
+"Google Drive" = ["Google Drive"]
+"DeepL" = ["DeepL"]
+"Teams" = ["Microsoft Teams"]
+"Outlook" = ["Outlook"]
+"Google Arama" = ["Google Search", "Google'da Ara"]
+
+# ---------------------------------------------------------------------
+#  Günlük hedef: seri (üst üste kaç gün hedefe ulaşıldı) hesabında kullanılır.
+# ---------------------------------------------------------------------
+[hedef]
+gunluk_dk = 120
+
+# ---------------------------------------------------------------------
 #  Modül 3 - Klavye/fare boşta kalma
 # ---------------------------------------------------------------------
 [bosta]
