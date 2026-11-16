@@ -134,6 +134,22 @@ async function haftayiYenile() {
     kutu.append(gun);
   }
   $("hafta-toplam").textContent = `Toplam: ${sureBicimi(h.toplam_sn)}`;
+
+  // Seri: günlük hedefe üst üste kaç gündür ulaşıldı
+  const s = await api("/api/seri");
+  $("seri").textContent = s.hedef_sn
+    ? `Seri: ${s.seri_gun} gün · Günlük hedef: ${sureBicimi(s.hedef_sn)} · `
+    : "";
+}
+
+// ---------- Paylaşım kartı ----------
+
+function kartiOlustur() {
+  const tur = $("kart-tur").value;
+  // Sondaki zaman damgası, tarayıcının eski resmi önbellekten göstermesini engeller.
+  $("kart-resim").src = `/api/kart?tur=${tur}&t=${Date.now()}`;
+  $("kart-indir").href = `/api/kart?tur=${tur}&indir=true`;
+  $("kart-onizleme").hidden = false;
 }
 
 // ---------- Süre nereden geldi? (uygulama dökümü) ----------
@@ -301,6 +317,7 @@ $("tarih").value = tarihMetni(new Date());
 $("tarih").addEventListener("change", () => oturumlariYenile(true));
 $("filtre").addEventListener("change", () => oturumlariYenile(true));
 $("dokum-aralik").addEventListener("change", dokumuYenile);
+$("kart-olustur").addEventListener("click", kartiOlustur);
 $("onceki-gun").addEventListener("click", () => gunKaydir(-1));
 $("sonraki-gun").addEventListener("click", () => gunKaydir(1));
 $("duraklat-dugme").addEventListener("click", async () => {

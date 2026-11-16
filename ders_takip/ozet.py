@@ -11,6 +11,7 @@ from datetime import date, timedelta
 
 from ders_takip.dedektorler.baslik import son_gecis_yeri
 
+GUN_ADLARI = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
 DIGER_WEB = "Diğer web"
 BILGISAYAR_DISI = "Bilgisayar dışı"
 

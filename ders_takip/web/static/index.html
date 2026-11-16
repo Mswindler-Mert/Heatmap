@@ -40,7 +40,7 @@
     <section class="kart">
       <div class="kart-baslik">
         <h2>Bu hafta</h2>
-        <span id="hafta-toplam" class="soluk"></span>
+        <span class="soluk"><span id="seri"></span><span id="hafta-toplam"></span></span>
       </div>
       <div id="hafta" class="hafta"></div>
     </section>
@@ -55,6 +55,28 @@
         </select>
       </div>
       <div id="dokum" class="dokum"></div>
+    </section>
+
+    <!-- Paylaşım kartı -->
+    <section class="kart">
+      <div class="kart-baslik">
+        <h2>Paylaşım kartı</h2>
+        <div class="araclar">
+          <select id="kart-tur" aria-label="Kart türü">
+            <option value="gunluk">Günlük</option>
+            <option value="haftalik">Haftalık</option>
+          </select>
+          <button id="kart-olustur" class="dugme vurgu">Paylaşım kartı oluştur</button>
+        </div>
+      </div>
+      <p class="soluk ipucu">
+        Instagram hikâyesi boyutunda (1080×1920) bir özet görseli üretir. Kartta pencere başlıkları
+        ve video adları yer almaz; yalnızca uygulama ve site adları görünür.
+      </p>
+      <div id="kart-onizleme" class="kart-onizleme" hidden>
+        <img id="kart-resim" alt="Paylaşım kartı önizlemesi">
+        <a id="kart-indir" class="dugme vurgu" href="#">PNG olarak indir</a>
+      </div>
     </section>
 
     <!-- 3) Oturumlar ve düzeltme -->
