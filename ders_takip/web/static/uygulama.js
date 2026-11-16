@@ -136,6 +136,39 @@ async function haftayiYenile() {
   $("hafta-toplam").textContent = `Toplam: ${sureBicimi(h.toplam_sn)}`;
 }
 
+// ---------- Süre nereden geldi? (uygulama dökümü) ----------
+
+async function dokumuYenile() {
+  const bugun = new Date();
+  let ilk = bugun;
+  if ($("dokum-aralik").value === "hafta") {
+    // Haftanın pazartesisi. getDay(): Pazar=0, Pazartesi=1 ... olduğu için (gün+6)%7 = pazartesiden uzaklık.
+    ilk = new Date(bugun);
+    ilk.setDate(bugun.getDate() - ((bugun.getDay() + 6) % 7));
+  }
+  const d = await api(`/api/dokum?baslangic=${tarihMetni(ilk)}&bitis=${tarihMetni(bugun)}`);
+
+  const kutu = $("dokum");
+  kutu.replaceChildren();
+  if (!d.uygulamalar.length) {
+    kutu.append(el("div", "bos", "Bu aralıkta sayılan süre yok."));
+    return;
+  }
+  // Çubuklar en çok kullanılan uygulamaya göre oranlanır; yüzde ise toplam içindeki paydır.
+  const enUzun = d.uygulamalar[0].sure_sn || 1;
+  for (const u of d.uygulamalar) {
+    const satir = el("div", "dokum-satir");
+    const ad = el("span", "ad", u.uygulama ? u.uygulama.replace(/\.exe$/i, "") : "Bilgisayar dışı");
+    ad.title = u.uygulama;
+    const ray = el("div", "ray");
+    const dolgu = el("div", "dolgu");
+    dolgu.style.width = `${(u.sure_sn / enUzun) * 100}%`;
+    ray.append(dolgu);
+    satir.append(ad, ray, el("span", "deger soluk", `${sureBicimi(u.sure_sn)} · %${Math.round(u.oran * 100)}`));
+    kutu.append(satir);
+  }
+}
+
 // ---------- 3) Oturumlar ve düzeltme ----------
 
 // Kullanıcı bir kutuya yazı yazarken liste yenilenip yazdığını silmesin.
@@ -250,7 +283,7 @@ async function kurallariYenile() {
 
 async function hepsiniYenile(zorla) {
   try {
-    await Promise.all([durumuYenile(), haftayiYenile(), oturumlariYenile(zorla), kurallariYenile()]);
+    await Promise.all([durumuYenile(), haftayiYenile(), dokumuYenile(), oturumlariYenile(zorla), kurallariYenile()]);
   } catch (hata) {
     console.error(hata);
   }
@@ -266,6 +299,7 @@ function gunKaydir(fark) {
 $("tarih").value = tarihMetni(new Date());
 $("tarih").addEventListener("change", () => oturumlariYenile(true));
 $("filtre").addEventListener("change", () => oturumlariYenile(true));
+$("dokum-aralik").addEventListener("change", dokumuYenile);
 $("onceki-gun").addEventListener("click", () => gunKaydir(-1));
 $("sonraki-gun").addEventListener("click", () => gunKaydir(1));
 $("duraklat-dugme").addEventListener("click", async () => {

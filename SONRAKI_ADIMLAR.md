@@ -35,9 +35,9 @@ kişisel ayarda Teams, Unity, Outlook, yapay zekâ asistanları da "ders" (= ça
 
 Bu hedefe giden işler:
 
-- **Uygulama bazında döküm:** `oturumlar` tablosunda `uygulama` sütunu zaten var. Gün/hafta için
-  uygulamaya göre toplam süre veren bir uç (`/api/dokum?baslangic=&bitis=`) ve arayüzde bir
-  "nereden geldi" bölümü eklenmeli. Tarayıcı oturumlarında site/başlık bazında gruplama da düşünülmeli.
+- **Uygulama bazında döküm:** YAPILDI (`/api/dokum` ucu ve arayüzde "Süre nereden geldi?" bölümü).
+  Eksikler: tarayıcıda geçen sürenin tamamı tek satırda (`brave.exe`) toplanıyor; site/başlık
+  bazında gruplama ve süreç adı yerine okunur uygulama adı ("Code" yerine "VS Code") eklenebilir.
 - **Kategori:** tek bir "ders" hükmü yerine süreçlere kategori (kod, not, toplantı, video…) atamak.
 - **Adlandırma:** kodda ve arayüzde "ders" yerine "çalışma/aktif süre" demek daha doğru olabilir.
 - **Paylaşım kartı:** günlük/haftalık özeti dikey (1080×1920) bir PNG olarak üreten uç

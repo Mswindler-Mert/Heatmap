@@ -150,6 +150,31 @@ class Depo:
             toplam += min(satir["bitis"], bitis) - max(satir["baslangic"], baslangic)
         return toplam
 
+    def uygulama_dokumu(self, baslangic: float, bitis: float) -> list[dict]:
+        """Verilen aralıktaki ders süresinin uygulamalara dağılımı, çoktan aza.
+
+        Örn: [{"uygulama": "Code.exe", "sure_sn": 5400}, {"uygulama": "brave.exe", "sure_sn": 1800}]
+        """
+        with self._baglan() as vt:
+            satirlar = vt.execute(
+                f"SELECT uygulama, baslangic, bitis FROM oturumlar"
+                f" WHERE {_ETKIN_HUKUM} = ? AND bitis > ? AND baslangic < ?",
+                (DERS, baslangic, bitis),
+            ).fetchall()
+
+        toplamlar: dict[str, float] = {}
+        gorunen_ad: dict[str, str] = {}
+        for satir in satirlar:
+            ad = satir["uygulama"] or ""
+            anahtar = ad.lower()               # "Code.exe" ile "code.exe" aynı uygulama
+            gorunen_ad.setdefault(anahtar, ad)
+            sure = min(satir["bitis"], bitis) - max(satir["baslangic"], baslangic)
+            toplamlar[anahtar] = toplamlar.get(anahtar, 0.0) + sure
+
+        dokum = [{"uygulama": gorunen_ad[a], "sure_sn": round(s)} for a, s in toplamlar.items()]
+        dokum.sort(key=lambda kayit: kayit["sure_sn"], reverse=True)
+        return dokum
+
     def gunluk_sureler(self, ilk_gun: date, son_gun: date) -> list[dict]:
         """İki tarih arasındaki (ikisi de dahil) her gün için ders süresi."""
         sonuc = []

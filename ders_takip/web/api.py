@@ -97,6 +97,29 @@ def uygulama_olustur(takipci: Takipci, depo: Depo) -> FastAPI:
             raise HTTPException(400, "En fazla 366 günlük aralık istenebilir")
         return depo.gunluk_sureler(baslangic, bitis)
 
+    @app.get("/api/dokum")
+    def dokum(baslangic: date | None = None, bitis: date | None = None):
+        """Ders süresinin uygulamalara dağılımı. Tarih verilmezse bugün; iki tarih de dahildir.
+
+        Örn: /api/dokum?baslangic=2026-11-16&bitis=2026-11-22
+        """
+        ilk = baslangic or date.today()
+        son = bitis or ilk
+        if son < ilk:
+            raise HTTPException(400, "bitis, baslangic tarihinden önce olamaz")
+        bas, _ = gun_araligi(ilk)
+        _, bit = gun_araligi(son)
+        uygulamalar = depo.uygulama_dokumu(bas, bit)
+        toplam = sum(u["sure_sn"] for u in uygulamalar)
+        for u in uygulamalar:
+            u["oran"] = round(u["sure_sn"] / toplam, 3) if toplam else 0  # 0-1 arası pay
+        return {
+            "baslangic": ilk.isoformat(),
+            "bitis": son.isoformat(),
+            "toplam_sn": toplam,
+            "uygulamalar": uygulamalar,
+        }
+
     @app.get("/api/oturumlar")
     def oturumlar(tarih: date | None = None):
         """Bir güne ait oturumlar (varsayılan: bugün), yeniden eskiye."""

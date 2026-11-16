@@ -64,14 +64,15 @@ ve paketleri yükler; sonraki açılışlarda doğrudan başlatır.
 - İkon rengi: **yeşil** = sayaç çalışıyor, **sarı** = belirsiz, **gri** = sayaç durdu.
 - İkona sağ tıklayınca: arayüzü aç, takibi duraklat, ayar dosyasını aç, çıkış.
 
-Arayüzde dört bölüm vardır:
+Arayüzde beş bölüm vardır:
 
 1. **Şu an:** bugünkü toplam süre, sayacın durumu, algılanan uygulama ve her modülün sinyali.
 2. **Bu hafta:** gün gün çalışma süresi.
-3. **Oturumlar:** kayıtlı zaman dilimleri. Her birini “Dersti” / “Ders değildi” diye düzeltebilirsiniz.
+3. **Süre nereden geldi?:** bugünkü ya da bu haftaki sürenin uygulamalara dağılımı.
+4. **Oturumlar:** kayıtlı zaman dilimleri. Her birini “Dersti” / “Ders değildi” diye düzeltebilirsiniz.
    “Bundan sonra da böyle say” seçiliyse aynı uygulama ya da başlık artık otomatik tanınır.
    Tarayıcı oturumlarında isterseniz bir anahtar kelime (örn. kanal adı) de öğretebilirsiniz.
-4. **Öğrenilen kurallar:** düzeltmelerden oluşan kurallar; buradan silinebilir.
+5. **Öğrenilen kurallar:** düzeltmelerden oluşan kurallar; buradan silinebilir.
 
 ## Ayarlar
 
@@ -100,6 +101,7 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `GET /api/ozet/bugun` | Bugünkü ders süresi |
 | `GET /api/ozet/hafta` | Bu haftanın gün gün süreleri |
 | `GET /api/gunluk?baslangic=2026-11-01&bitis=2026-11-30` | Tarih aralığı için gün gün süre |
+| `GET /api/dokum?baslangic=2026-11-16&bitis=2026-11-22` | Sürenin uygulamalara dağılımı (tarih verilmezse bugün) |
 | `GET /api/oturumlar?tarih=2026-11-16` | Bir günün oturumları |
 | `POST /api/oturumlar/{id}/duzelt` | Oturumu düzelt (`{"hukum": "ders", "ogren": true, "kelime": null}`) |
 | `GET /api/kurallar` · `DELETE /api/kurallar/{id}` | Öğrenilen kurallar |

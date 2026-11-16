@@ -117,6 +117,20 @@ class TakipciTesti(unittest.TestCase):
         self.assertFalse(self.takipci.durum()["calisiyor"])
         self.assertEqual(self.depo.oturumlari_getir(T0, self.t + 1), [])
 
+    def test_uygulama_dokumu(self):
+        self.ilerle(60)                                              # 60 sn VS Code
+        self.pencere = ("chrome.exe", "OS Lecture 4 - YouTube - Google Chrome")
+        self.ilerle(40)                                              # 40 sn ders videosu
+        self.pencere = ("Discord.exe", "Sohbet")
+        self.ilerle(40)                                              # sayılmaz
+        self.pencere = ("code.exe", "main.py")                       # farklı harfle aynı uygulama
+        self.ilerle(30)
+
+        dokum = self.depo.uygulama_dokumu(T0, self.t + 1)
+        self.assertEqual([d["uygulama"] for d in dokum], ["Code.exe", "chrome.exe"])
+        self.assertAlmostEqual(dokum[0]["sure_sn"], 90, delta=7)
+        self.assertAlmostEqual(dokum[1]["sure_sn"], 40, delta=2)
+
     def test_uykudan_donus_araya_sure_eklemez(self):
         self.ilerle(30)
         self.t += 3600                           # bilgisayar 1 saat uyudu
