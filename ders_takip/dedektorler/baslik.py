@@ -12,7 +12,7 @@ Bu modül başlığı temizler ve şu sırayla karar verir:
 
 import re
 
-from ders_takip.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK, Dedektor, Sinyal
+from ders_takip.sinyal import BELIRSIZ, DERS, DERS_DEGIL, DEVAM, FIKRIM_YOK, Dedektor, Sinyal
 
 # Başlığın sonundaki " - Google Chrome" gibi tarayıcı adını yakalar.
 # (Edge, adının içine görünmez bir karakter koyduğu için "Microsoft.{0,3}Edge".)
@@ -80,6 +80,8 @@ class BaslikDedektoru(Dedektor):
         self.ders_kelimeleri = bolum["ders_kelimeleri"]
         self.ders_degil_kelimeleri = bolum["ders_degil_kelimeleri"]
         self.video_isaretleri = bolum["video_isaretleri"]
+        # Bu başlıklar sayacı hiç etkilemez (örn. takip panelinin kendi sekmesi).
+        self.yok_sayilanlar = bolum.get("yok_sayilan_basliklar", [])
         self.kural_kaynagi = kural_kaynagi or (lambda: [])
 
     def siniflandir(self, temiz_baslik: str) -> tuple[str, str]:
@@ -116,6 +118,12 @@ class BaslikDedektoru(Dedektor):
             return Sinyal(self.ad, FIKRIM_YOK, "Önde tarayıcı yok")
 
         temiz = basligi_temizle(pencere.detay.get("baslik", ""))
+
+        # Yok sayılan sekme: "önceki durum neyse o sürsün" de.
+        if any(kelime_gecer_mi(temiz, yok) for yok in self.yok_sayilanlar):
+            return Sinyal(self.ad, DEVAM, "Yok sayılan sekme: önceki durum sürüyor",
+                          {"temiz_baslik": temiz, "video": False})
+
         video = any(_kucult(isaret) in _kucult(temiz) for isaret in self.video_isaretleri)
         hukum, aciklama = self.siniflandir(temiz)
         return Sinyal(self.ad, hukum, aciklama, {"temiz_baslik": temiz, "video": video})

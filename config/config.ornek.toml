@@ -104,8 +104,11 @@ ders_degil_kelimeleri = [
     "Gameplay", "Oynanış", "Let's Play", "Highlights", "Maç Özeti",
     "Fragman", "Trailer", "Official Music Video", "Lyrics", "Vlog",
     "Netflix", "Twitch", "Instagram", "TikTok", "Reddit",
-    "Takip Paneli",   # Bu uygulamanın kendi arayüzü: ona bakmak ders sayılmasın
 ]
+
+# Başlığında bunlar geçen sekmeler sayacı HİÇ etkilemez: o sekmeye bakarken
+# sayaç az önce ne durumdaysa öyle kalır. "Takip Paneli" bu uygulamanın kendi arayüzüdür.
+yok_sayilan_basliklar = ["Takip Paneli"]
 
 # Başlıkta bunlardan biri varsa "video izleniyor" kabul edilir ve
 # klavye/fare boşta olsa bile sayaç durmaz (aşağıdaki video eşiğine kadar).

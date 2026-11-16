@@ -118,6 +118,10 @@ class Takipci:
 
             # 5) Arayüz için özet
             mevcut = self.motor.mevcut
+            if mevcut is None:
+                # Program açılır açılmaz yok sayılan bir sekmeye bakılıyor: henüz durum yok.
+                self._goruntu = {}
+                return
             self._goruntu = {
                 "hukum": mevcut.hukum,
                 "kaynak": mevcut.kaynak,

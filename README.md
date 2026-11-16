@@ -83,7 +83,7 @@ sonra uygulamayı yeniden başlatın.
 |---|---|
 | `[tolerans]` | Sayacın başlama ve durma tolerans süreleri |
 | `[pencere]` | Ders / ders dışı / tarayıcı süreç adları, bilinmeyen uygulamaların hükmü |
-| `[baslik]` | Ders ve ders dışı anahtar kelimeler, video sitesi işaretleri |
+| `[baslik]` | Ders ve ders dışı anahtar kelimeler, video sitesi işaretleri, sayacı hiç etkilemeyen sekmeler |
 | `[bosta]` | Boşta kalma eşiği ve video izlerken geçerli eşik |
 | `[kamera]` | Kamera modülü (henüz geliştirilmedi) |
 

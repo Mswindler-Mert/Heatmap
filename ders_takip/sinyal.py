@@ -13,6 +13,8 @@ DERS = "ders"                # "Bence şu an ders çalışıyor"
 DERS_DEGIL = "ders_degil"    # "Bence şu an ders çalışmıyor"
 BELIRSIZ = "belirsiz"        # "Baktım ama karar veremedim" (kullanıcı sonra düzeltebilir)
 FIKRIM_YOK = "fikrim_yok"    # "Bu durum benim alanım değil, beni sayma"
+DEVAM = "devam"              # "Bunu yok say: sayaç az önce ne durumdaysa öyle kalsın"
+                             # (örn. takip panelinin kendi sekmesine bakarken)
 
 
 @dataclass

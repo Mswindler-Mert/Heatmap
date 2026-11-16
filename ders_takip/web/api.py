@@ -56,7 +56,8 @@ def _oturum_json(oturum: dict, acik_oturum_id) -> dict:
 
 
 def uygulama_olustur(takipci: Takipci, depo: Depo) -> FastAPI:
-    app = FastAPI(title="Ders Takip", docs_url="/api/docs", openapi_url="/api/openapi.json")
+    # Başlık "Takip Paneli" ile başlıyor ki API dokümantasyon sekmesi de yok sayılsın.
+    app = FastAPI(title="Takip Paneli API", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
     # Güvenlik: sadece bu bilgisayardan, 127.0.0.1/localhost adresiyle gelen
     # istekleri kabul et. (Kötü niyetli bir web sitesinin tarayıcın üzerinden

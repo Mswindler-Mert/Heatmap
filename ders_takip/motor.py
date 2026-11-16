@@ -13,14 +13,14 @@ beklemeden deneyebiliyoruz.
 
 from dataclasses import dataclass
 
-from ders_takip.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK, Sinyal
+from ders_takip.sinyal import BELIRSIZ, DERS, DERS_DEGIL, DEVAM, FIKRIM_YOK, Sinyal
 
 
 @dataclass(frozen=True)
 class Durum:
     """Motorun bir an için vardığı sonuç. Veritabanındaki bir oturum = bir Durum'un sürdüğü zaman dilimi."""
 
-    hukum: str          # DERS / DERS_DEGIL / BELIRSIZ
+    hukum: str          # DERS / DERS_DEGIL / BELIRSIZ (anlık kararda ayrıca DEVAM olabilir)
     baglam: str         # Oturumları birbirinden ayıran anahtar (uygulama ya da sekme)
     kaynak: str = ""    # Kararı hangi modül verdi
     aciklama: str = ""  # Neden bu karar verildi
@@ -129,6 +129,13 @@ class KararMotoru:
 
     def guncelle(self, anlik: Durum, simdi: float) -> Gecis | None:
         """Her taramada çağrılır. Durum değiştiyse Gecis, değişmediyse None döndürür."""
+        # Yok sayılan bir şeye bakılıyor (örn. takip paneli): hiçbir şey olmamış gibi
+        # davran, yani "anlık durum = mevcut durum" kabul et. Henüz bir durum yoksa bekle.
+        if anlik.hukum == DEVAM:
+            if self.mevcut is None:
+                return None
+            anlik = self.mevcut
+
         # İlk çağrı: beklemeden mevcut durumu kabul et.
         if self.mevcut is None:
             return self._gecis_yap(anlik, simdi)
@@ -176,7 +183,7 @@ class KararMotoru:
 
     def bekleyen(self, anlik: Durum, simdi: float) -> dict | None:
         """Arayüz için: tolerans süresi dolmayı bekleyen bir hüküm değişikliği var mı?"""
-        if self.mevcut is None or self._aday_hukum is None:
+        if self.mevcut is None or self._aday_hukum is None or anlik.hukum == DEVAM:
             return None
         if anlik.hukum == DERS:
             kalan = self.baslatma_sn - (simdi - self._aday_hukum_ani)

@@ -9,6 +9,7 @@ const HUKUM_ADI = {
   ders_degil: "DERS DEĞİL",
   belirsiz: "BELİRSİZ",
   fikrim_yok: "fikri yok",
+  devam: "yok sayılıyor",
 };
 const KAYNAK_ADI = { pencere: "Pencere", baslik: "Başlık", bosta: "Boşta", kamera: "Kamera", motor: "Motor" };
 const KURAL_TURU = { surec: "Uygulama", baslik: "Tam başlık", kelime: "Kelime" };

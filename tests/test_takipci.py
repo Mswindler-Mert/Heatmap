@@ -19,7 +19,8 @@ AYARLAR = {
         "tarayici_surecleri": ["chrome.exe"],
         "bilinmeyen_hukum": "belirsiz",
     },
-    "baslik": {"ders_kelimeleri": ["Lecture"], "ders_degil_kelimeleri": [], "video_isaretleri": ["YouTube"]},
+    "baslik": {"ders_kelimeleri": ["Lecture"], "ders_degil_kelimeleri": [], "video_isaretleri": ["YouTube"],
+               "yok_sayilan_basliklar": ["Takip Paneli"]},
     "bosta": {"esik_sn": 120, "video_esik_sn": 1800},
 }
 
@@ -91,6 +92,30 @@ class TakipciTesti(unittest.TestCase):
 
         self.ilerle(10)                          # aynı video artık doğrudan ders
         self.assertTrue(self.takipci.durum()["calisiyor"])
+
+    def test_takip_paneline_bakmak_onceki_durumu_surdurur(self):
+        panel = ("chrome.exe", "Takip Paneli - Google Chrome")
+
+        # Ders çalışırken panele bakmak: sayaç çalışmaya devam eder, oturum bölünmez
+        self.ilerle(30)
+        self.pencere = panel
+        self.ilerle(60)
+        self.assertTrue(self.takipci.durum()["calisiyor"])
+        self.assertEqual(len(self.depo.oturumlari_getir(T0, self.t + 1)), 1)
+
+        # Ders dışındayken panele bakmak: sayaç durmuş kalır
+        self.pencere = ("Discord.exe", "Sohbet")
+        self.ilerle(30)
+        self.pencere = panel
+        self.ilerle(60)
+        self.assertFalse(self.takipci.durum()["calisiyor"])
+        self.assertAlmostEqual(self.ders_sn(), 90, delta=2)
+
+    def test_program_panel_acikken_baslarsa_cokmez(self):
+        self.pencere = ("chrome.exe", "Takip Paneli - Google Chrome")
+        self.ilerle(5)
+        self.assertFalse(self.takipci.durum()["calisiyor"])
+        self.assertEqual(self.depo.oturumlari_getir(T0, self.t + 1), [])
 
     def test_uykudan_donus_araya_sure_eklemez(self):
         self.ilerle(30)
