@@ -54,8 +54,8 @@ class PencereDedektoru(Dedektor):
                 return Sinyal(self.ad, kural["hukum"], f"{surec}: senin düzeltmenden öğrenildi", detay)
 
         if kucuk in self.ders:
-            return Sinyal(self.ad, DERS, f"{surec}: ders uygulamaları listesinde", detay)
+            return Sinyal(self.ad, DERS, f"{surec}: çalışma uygulamaları listesinde", detay)
         if kucuk in self.ders_degil:
-            return Sinyal(self.ad, DERS_DEGIL, f"{surec}: ders dışı uygulamalar listesinde", detay)
+            return Sinyal(self.ad, DERS_DEGIL, f"{surec}: çalışma dışı uygulamalar listesinde", detay)
 
         return Sinyal(self.ad, self.bilinmeyen_hukum, f"{surec}: hiçbir listede yok", detay)

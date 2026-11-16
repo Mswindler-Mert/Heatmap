@@ -5,8 +5,8 @@
 // koyarken HER ZAMAN textContent kullanıyoruz, asla innerHTML değil.
 
 const HUKUM_ADI = {
-  ders: "DERS",
-  ders_degil: "DERS DEĞİL",
+  ders: "ÇALIŞMA",
+  ders_degil: "ÇALIŞMA DEĞİL",
   belirsiz: "BELİRSİZ",
   fikrim_yok: "fikri yok",
   devam: "yok sayılıyor",
@@ -233,8 +233,8 @@ function oturumSatiri(o) {
 
   // Düzeltme araçları
   const islemler = el("div", "islemler");
-  const dersti = el("button", "dugme ders" + (o.duzeltme === "ders" ? " secili" : ""), "Dersti");
-  const degildi = el("button", "dugme degil" + (o.duzeltme === "ders_degil" ? " secili" : ""), "Ders değildi");
+  const dersti = el("button", "dugme ders" + (o.duzeltme === "ders" ? " secili" : ""), "Çalışmaydı");
+  const degildi = el("button", "dugme degil" + (o.duzeltme === "ders_degil" ? " secili" : ""), "Çalışma değildi");
   islemler.append(dersti, degildi);
 
   // Kural öğrenme sadece uygulama ve tarayıcı oturumlarında anlamlı (boşta kalma için değil).
@@ -255,7 +255,7 @@ function oturumSatiri(o) {
     kelimeKutusu.type = "text";
     kelimeKutusu.maxLength = 80;
     kelimeKutusu.placeholder = "anahtar kelime ekle (isteğe bağlı)";
-    kelimeKutusu.title = "Örn. kanal ya da ders adı. Bu kelime geçen bütün başlıklar aynı şekilde sayılır.";
+    kelimeKutusu.title = "Örn. kanal ya da konu adı. Bu kelime geçen bütün başlıklar aynı şekilde sayılır.";
     islemler.append(kelimeKutusu);
   }
 
