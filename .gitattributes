@@ -1,0 +1,3 @@
+# Satır sonlarını Git yönetsin; .bat dosyaları Windows'ta CRLF olmak zorunda.
+* text=auto
+*.bat text eol=crlf

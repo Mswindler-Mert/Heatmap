@@ -1,0 +1,48 @@
+# ---------------------------------------------------------------
+# KİŞİSEL VERİLER - bunlar ASLA GitHub'a gitmemeli
+# ---------------------------------------------------------------
+
+# Veritabanı ve günlük (log) dosyaları: hangi uygulamayı ne zaman
+# kullandığın ve pencere başlıkların burada durur.
+data/*
+!data/.gitkeep
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.log
+
+# Kişisel ayarların (kendi uygulama listen, ders adların).
+# Depoda sadece config.ornek.toml bulunur.
+config/config.toml
+
+# ---------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---------------------------------------------------------------
+# Editör / işletim sistemi / araçlar
+# ---------------------------------------------------------------
+.vscode/
+.idea/
+.claude/
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Olası gizli anahtar dosyaları (ileride API anahtarı eklersen)
+.env
+.env.*

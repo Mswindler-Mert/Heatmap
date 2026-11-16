@@ -1,0 +1,7 @@
+# Yerel web arayüzü ve JSON API
+fastapi>=0.115
+uvicorn>=0.32
+
+# Sistem tepsisi ikonu (Pillow ikonun resmini çizmek için gerekli)
+pystray>=0.19
+Pillow>=11.3

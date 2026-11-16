@@ -1,0 +1,125 @@
+# =====================================================================
+#  Ders Takip - ÖRNEK ayar dosyası
+# =====================================================================
+#  Bu dosya GitHub'a giden örnek/varsayılan ayarlardır. Uygulama ilk
+#  açılışta bunu "config.toml" adıyla kopyalar. SEN "config.toml"
+#  dosyasını düzenle; o dosya .gitignore'da olduğu için kişisel
+#  listelerin GitHub'a gitmez.
+#
+#  Değişiklikten sonra uygulamayı kapatıp yeniden aç.
+#  config.toml'da bulunmayan bir ayar olursa buradaki değer kullanılır.
+# =====================================================================
+
+[genel]
+port = 8765                  # Arayüz adresi: http://127.0.0.1:8765
+tarama_araligi_sn = 1        # Kaç saniyede bir "şu an ne yapıyor?" diye bakılsın
+acilista_arayuzu_ac = true   # Uygulama açılınca tarayıcıda arayüz açılsın mı
+
+# ---------------------------------------------------------------------
+#  Tolerans: ani değişiklikler sayacı hemen etkilemesin
+# ---------------------------------------------------------------------
+[tolerans]
+baslatma_sn = 5     # "Ders" durumu bu kadar kesintisiz sürerse sayaç başlar
+durdurma_sn = 15    # Dersten bu kadar uzun süre ayrılırsan sayaç durur
+
+# ---------------------------------------------------------------------
+#  Modül 1 - Aktif pencere / süreç
+#  Süreç adlarını Görev Yöneticisi > Ayrıntılar sekmesinden görebilirsin.
+#  Büyük/küçük harf önemli değil.
+# ---------------------------------------------------------------------
+[pencere]
+etkin = true
+
+ders_surecleri = [
+    "Code.exe",            # VS Code
+    "devenv.exe",          # Visual Studio
+    "pycharm64.exe",
+    "idea64.exe",
+    "clion64.exe",
+    "AcroRd32.exe",        # Adobe Reader
+    "Acrobat.exe",
+    "SumatraPDF.exe",
+    "FoxitPDFReader.exe",
+    "WINWORD.EXE",
+    "POWERPNT.EXE",
+    "EXCEL.EXE",
+    "ONENOTE.EXE",
+    "Obsidian.exe",
+    "Notion.exe",
+    "WindowsTerminal.exe",
+]
+
+ders_degil_surecleri = [
+    "steam.exe",
+    "steamwebhelper.exe",
+    "Discord.exe",
+    "EpicGamesLauncher.exe",
+    "RiotClientServices.exe",
+    "LeagueClient.exe",
+    "VALORANT-Win64-Shipping.exe",
+    "Spotify.exe",
+    "WhatsApp.exe",
+    "Telegram.exe",
+    "LockApp.exe",         # Windows kilit ekranı
+]
+
+# Bu uygulamalarda karar pencere başlığına (sekme adına) göre verilir.
+tarayici_surecleri = [
+    "chrome.exe",
+    "msedge.exe",
+    "firefox.exe",
+    "brave.exe",
+    "opera.exe",
+    "vivaldi.exe",
+]
+
+# Hiçbir listede olmayan uygulama için: "belirsiz" ya da "ders_degil".
+# "belirsiz" seçersen düzeltme ekranından öğretebilirsin.
+bilinmeyen_hukum = "belirsiz"
+
+# ---------------------------------------------------------------------
+#  Modül 2 - Tarayıcı / YouTube başlık sınıflandırıcı
+#  Kelimeler başlıkta "tam kelime" olarak aranır: "ML" kelimesi "HTML"
+#  içinde eşleşmez. Büyük/küçük harf önemli değil.
+# ---------------------------------------------------------------------
+[baslik]
+etkin = true
+
+ders_kelimeleri = [
+    # Ders adları
+    "ML", "Machine Learning", "Makine Öğrenmesi",
+    "ACN", "Advanced Computer Networks", "Computer Networks",
+    "Database", "Veritabanı", "SQL",
+    "OOAD", "Object Oriented", "UML",
+    "Computer Organization", "Bilgisayar Organizasyonu",
+    # Genel ders işaretleri
+    "Lecture", "Ders", "Tutorial", "Course", "Konu Anlatımı",
+    "Algorithm", "Algoritma", "Data Structures",
+    # Sık kullanılan ders siteleri
+    "Stack Overflow", "GeeksforGeeks", "Coursera", "Khan Academy",
+]
+
+ders_degil_kelimeleri = [
+    "Gameplay", "Oynanış", "Let's Play", "Highlights", "Maç Özeti",
+    "Fragman", "Trailer", "Official Music Video", "Lyrics", "Vlog",
+    "Netflix", "Twitch", "Instagram", "TikTok", "Reddit",
+    "Takip Paneli",   # Bu uygulamanın kendi arayüzü: ona bakmak ders sayılmasın
+]
+
+# Başlıkta bunlardan biri varsa "video izleniyor" kabul edilir ve
+# klavye/fare boşta olsa bile sayaç durmaz (aşağıdaki video eşiğine kadar).
+video_isaretleri = ["YouTube", "Udemy", "Coursera"]
+
+# ---------------------------------------------------------------------
+#  Modül 3 - Klavye/fare boşta kalma
+# ---------------------------------------------------------------------
+[bosta]
+etkin = true
+esik_sn = 120          # Bu kadar süre klavye/fare kullanılmazsa "bilgisayar başında değil"
+video_esik_sn = 1800   # Video izlerken eşik (30 dk). Ders videosunda fareye dokunmazsın.
+
+# ---------------------------------------------------------------------
+#  Modül 4 - Kamera (şimdilik sadece iskelet, kapalı kalsın)
+# ---------------------------------------------------------------------
+[kamera]
+etkin = false
