@@ -59,6 +59,7 @@ ders_degil_surecleri = [
     "VALORANT-Win64-Shipping.exe",
     "Spotify.exe",
     "WhatsApp.exe",
+    "WhatsApp.Root.exe",
     "Telegram.exe",
     "LockApp.exe",         # Windows kilit ekranı
 ]
