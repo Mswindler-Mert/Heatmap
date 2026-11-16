@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from ders_takip.depo import Depo, gun_araligi
+from ders_takip.ozet import Adlandirici
 from ders_takip.takipci import Takipci
 
 STATIK_KLASOR = Path(__file__).parent / "static"
@@ -55,7 +56,9 @@ def _oturum_json(oturum: dict, acik_oturum_id) -> dict:
     }
 
 
-def uygulama_olustur(takipci: Takipci, depo: Depo) -> FastAPI:
+def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict) -> FastAPI:
+    adlandirici = Adlandirici(ayarlar)  # Süreç adı / sekme başlığı -> okunabilir ad
+
     # Başlık "Takip Paneli" ile başlıyor ki API dokümantasyon sekmesi de yok sayılsın.
     app = FastAPI(title="Takip Paneli API", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
@@ -109,7 +112,7 @@ def uygulama_olustur(takipci: Takipci, depo: Depo) -> FastAPI:
             raise HTTPException(400, "bitis, baslangic tarihinden önce olamaz")
         bas, _ = gun_araligi(ilk)
         _, bit = gun_araligi(son)
-        uygulamalar = depo.uygulama_dokumu(bas, bit)
+        uygulamalar = depo.uygulama_dokumu(bas, bit, adlandirici.etiket)
         toplam = sum(u["sure_sn"] for u in uygulamalar)
         for u in uygulamalar:
             u["oran"] = round(u["sure_sn"] / toplam, 3) if toplam else 0  # 0-1 arası pay

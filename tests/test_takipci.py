@@ -9,6 +9,7 @@ from ders_takip.dedektorler.bosta import BostaDedektoru
 from ders_takip.dedektorler.pencere import PencereDedektoru
 from ders_takip.depo import Depo
 from ders_takip.motor import KararMotoru
+from ders_takip.ozet import Adlandirici
 from ders_takip.takipci import Takipci
 
 AYARLAR = {
@@ -126,8 +127,10 @@ class TakipciTesti(unittest.TestCase):
         self.pencere = ("code.exe", "main.py")                       # farklı harfle aynı uygulama
         self.ilerle(30)
 
-        dokum = self.depo.uygulama_dokumu(T0, self.t + 1)
-        self.assertEqual([d["uygulama"] for d in dokum], ["Code.exe", "chrome.exe"])
+        # Küçük/büyük harf farkı aynı ada çevrilip tek satırda toplanmalı
+        adlandirici = Adlandirici({"adlar": {"Code.exe": "VS Code"}})
+        dokum = self.depo.uygulama_dokumu(T0, self.t + 1, adlandirici.etiket)
+        self.assertEqual([d["ad"] for d in dokum], ["VS Code", "Diğer web"])
         self.assertAlmostEqual(dokum[0]["sure_sn"], 90, delta=7)
         self.assertAlmostEqual(dokum[1]["sure_sn"], 40, delta=2)
 

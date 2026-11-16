@@ -158,8 +158,9 @@ async function dokumuYenile() {
   const enUzun = d.uygulamalar[0].sure_sn || 1;
   for (const u of d.uygulamalar) {
     const satir = el("div", "dokum-satir");
-    const ad = el("span", "ad", u.uygulama ? u.uygulama.replace(/\.exe$/i, "") : "Bilgisayar dışı");
-    ad.title = u.uygulama;
+    // u.ad: okunabilir ad (ayar dosyasındaki [adlar] ve [siteler] bölümlerinden gelir)
+    const ad = el("span", "ad", u.ad);
+    ad.title = u.tur === "site" ? `${u.ad} (web sitesi)` : u.ad;
     const ray = el("div", "ray");
     const dolgu = el("div", "dolgu");
     dolgu.style.width = `${(u.sure_sn / enUzun) * 100}%`;

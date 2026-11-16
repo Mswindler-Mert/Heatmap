@@ -54,6 +54,18 @@ def kelime_gecer_mi(metin: str, kelime: str) -> bool:
     return re.search(desen, _kucult(metin)) is not None
 
 
+def son_gecis_yeri(metin: str, kelime: str) -> int:
+    """`kelime`nin `metin` içinde tam kelime olarak geçtiği SON yerin konumu; geçmiyorsa -1."""
+    kelime = kelime.strip()
+    if not kelime:
+        return -1
+    desen = r"(?<!\w)" + re.escape(_kucult(kelime)) + r"(?!\w)"
+    yer = -1
+    for eslesme in re.finditer(desen, _kucult(metin)):
+        yer = eslesme.start()
+    return yer
+
+
 def _kelimelerle_karar(metin: str, ders_kelimeleri, ders_degil_kelimeleri):
     """Kelime listelerine göre (hüküm, eşleşen kelimeler) döndürür.
 

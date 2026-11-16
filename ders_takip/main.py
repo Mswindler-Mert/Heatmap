@@ -86,7 +86,7 @@ def main() -> None:
     # --- Web sunucusu (ayrı thread'de) ---
     # host="127.0.0.1": sadece bu bilgisayardan erişilebilir, ağdaki diğer cihazlardan değil.
     sunucu = uvicorn.Server(uvicorn.Config(
-        uygulama_olustur(takipci, depo), host="127.0.0.1", port=port, log_level="warning",
+        uygulama_olustur(takipci, depo, ayarlar), host="127.0.0.1", port=port, log_level="warning",
     ))
     sunucu_thread = threading.Thread(target=sunucu.run, name="web", daemon=True)
     sunucu_thread.start()

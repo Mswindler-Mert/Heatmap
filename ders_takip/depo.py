@@ -150,28 +150,32 @@ class Depo:
             toplam += min(satir["bitis"], bitis) - max(satir["baslangic"], baslangic)
         return toplam
 
-    def uygulama_dokumu(self, baslangic: float, bitis: float) -> list[dict]:
-        """Verilen aralıktaki ders süresinin uygulamalara dağılımı, çoktan aza.
+    def uygulama_dokumu(self, baslangic: float, bitis: float, etiketle=None) -> list[dict]:
+        """Verilen aralıktaki ders süresinin uygulamalara/sitelere dağılımı, çoktan aza.
 
-        Örn: [{"uygulama": "Code.exe", "sure_sn": 5400}, {"uygulama": "brave.exe", "sure_sn": 1800}]
+        `etiketle`: bir oturum satırını (görünen ad, tür) ikilisine çeviren fonksiyon
+        (bkz. ozet.Adlandirici.etiket). Verilmezse süreç adı olduğu gibi kullanılır.
+
+        Örn: [{"ad": "VS Code", "tur": "uygulama", "sure_sn": 5400},
+              {"ad": "YouTube", "tur": "site", "sure_sn": 1800}]
         """
+        if etiketle is None:
+            etiketle = lambda oturum: (oturum["uygulama"] or "", "uygulama")  # noqa: E731
+
         with self._baglan() as vt:
             satirlar = vt.execute(
-                f"SELECT uygulama, baslangic, bitis FROM oturumlar"
+                f"SELECT uygulama, baslik, kaynak, baslangic, bitis FROM oturumlar"
                 f" WHERE {_ETKIN_HUKUM} = ? AND bitis > ? AND baslangic < ?",
                 (DERS, baslangic, bitis),
             ).fetchall()
 
-        toplamlar: dict[str, float] = {}
-        gorunen_ad: dict[str, str] = {}
+        toplamlar: dict[tuple[str, str], float] = {}
         for satir in satirlar:
-            ad = satir["uygulama"] or ""
-            anahtar = ad.lower()               # "Code.exe" ile "code.exe" aynı uygulama
-            gorunen_ad.setdefault(anahtar, ad)
+            anahtar = etiketle(dict(satir))    # (ad, tür): aynı ada sahip oturumlar toplanır
             sure = min(satir["bitis"], bitis) - max(satir["baslangic"], baslangic)
             toplamlar[anahtar] = toplamlar.get(anahtar, 0.0) + sure
 
-        dokum = [{"uygulama": gorunen_ad[a], "sure_sn": round(s)} for a, s in toplamlar.items()]
+        dokum = [{"ad": ad, "tur": tur, "sure_sn": round(sure)} for (ad, tur), sure in toplamlar.items()]
         dokum.sort(key=lambda kayit: kayit["sure_sn"], reverse=True)
         return dokum
 

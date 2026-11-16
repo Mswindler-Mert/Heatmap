@@ -115,6 +115,42 @@ yok_sayilan_basliklar = ["Takip Paneli"]
 video_isaretleri = ["YouTube", "Udemy", "Coursera"]
 
 # ---------------------------------------------------------------------
+#  Okunabilir adlar: dökümde ve paylaşım kartında süreç adı yerine
+#  gösterilecek ad. Sol taraf süreç adı (tırnak içinde), sağ taraf görünen ad.
+#  Burada olmayan süreçler ".exe" atılarak gösterilir (Discord.exe -> Discord).
+#  config.toml'a yazdıkların buradakilere EKLENİR; aynı süreç varsa seninki geçerli olur.
+# ---------------------------------------------------------------------
+[adlar]
+"Code.exe" = "VS Code"
+"devenv.exe" = "Visual Studio"
+"idea64.exe" = "IntelliJ IDEA"
+"pycharm64.exe" = "PyCharm"
+"clion64.exe" = "CLion"
+"netbeans64.exe" = "NetBeans"
+"Antigravity.exe" = "Antigravity"
+"Unity.exe" = "Unity"
+"Unity Hub.exe" = "Unity Hub"
+"GitHubDesktop.exe" = "GitHub Desktop"
+"WindowsTerminal.exe" = "Terminal"
+"powershell.exe" = "PowerShell"
+"mintty.exe" = "Git Bash"
+"WINWORD.EXE" = "Word"
+"POWERPNT.EXE" = "PowerPoint"
+"EXCEL.EXE" = "Excel"
+"ONENOTE.EXE" = "OneNote"
+"MSACCESS.EXE" = "Access"
+"OUTLOOK.EXE" = "Outlook"
+"olk.exe" = "Outlook"
+"ms-teams.exe" = "Teams"
+"claude.exe" = "Claude"
+"AcroRd32.exe" = "Adobe Reader"
+"Acrobat.exe" = "Adobe Acrobat"
+"SumatraPDF.exe" = "SumatraPDF"
+"FoxitPDFReader.exe" = "Foxit Reader"
+"explorer.exe" = "Dosya Gezgini"
+"notepad.exe" = "Not Defteri"
+
+# ---------------------------------------------------------------------
 #  Modül 3 - Klavye/fare boşta kalma
 # ---------------------------------------------------------------------
 [bosta]
