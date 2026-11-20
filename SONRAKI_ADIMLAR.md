@@ -294,13 +294,21 @@ Dosyalar: `ozet.py`, `depo.py` (`uygulama_dokumu`), `dedektorler/baslik.py` (`so
 
 ### Kalan işler 🔲
 
-- **Site tespiti başlığa dayanıyor.** Başlığında site adı geçmeyen sayfalar "Diğer web"e düşer.
-  Kalıcı çözüm: sekmenin adresini (alan adı), YouTube kanalını ve videonun oynayıp oynamadığını
-  yerel API'ye bildiren küçük bir tarayıcı eklentisi (Brave = Chromium, Manifest V3).
-  Dokunulacaklar: yeni `eklenti/` klasörü, `web/api.py` (`POST /api/tarayici`), yeni
-  `dedektorler/tarayici.py` (son bildirimi tutar), `baslik.py`/`ozet.py` (alan adı varsa onu kullan).
-  ⚠️ Eklenti isteği başka bir kökenden gelir: CORS ve `TrustedHostMiddleware` ayarı gerekir;
-  yalnızca eklentinin kökenine izin ver. ⚠️ Adresin tamamını değil **yalnızca alan adını** sakla.
+- ✅ **Tarayıcı eklentisi** (`eklenti/`, Manifest V3): öndeki sekmenin alan adını, `audible`
+  (ses çalıyor mu) ve pencere odağını olaylarda + 30 sn'de bir `POST /api/tarayici`'ye yollar.
+  `dedektorler/tarayici.py` son raporu tutar (75 sn tazelik); `baslik.py` alan adını
+  `ders_alanlari`/`ders_degil_alanlari` ile sınıflandırır ve `video` bilgisini sesten alır;
+  `oturumlar.alan_adi` sütununa kaydedilir (eski DB'lere `Depo._semayi_guncelle` ekler);
+  `Adlandirici` alan adını `[siteler]`'deki noktalı öğelerle eşler, eşleşmezse alan adını gösterir.
+  Eklenti `host_permissions` ile istek attığı için CORS gerekmez.
+  Kalanlar: 🔲 YouTube kanal adı (içerik betiği gerekir; ⚠️ yeni izin ister, gizliliği düşün),
+  🔲 öğrenilen kural türü "alan" (düzeltme ekranından "bu siteyi hep çalışma say"),
+  🔲 eklentinin portu sabit (8765); ayardan değişirse eklentide de değişmeli,
+  🔲 eklenti gerçek Brave'de kullanıcı tarafından denenmedi (yalnızca sunucu tarafı test edildi).
+- ✅ **Sahte istek koruması:** `api.py` içindeki ara katman, `GET/HEAD/OPTIONS` dışındaki her
+  istekte `X-Heatmap: 1` başlığı ister (özel başlık CORS ön kontrolünü tetikler; sunucu CORS
+  izni vermediği için yabancı siteler bu isteği gönderemez). ⚠️ Yeni bir `POST` ucu ya da yeni
+  bir istemci (dashboard, telefon) yazarken bu başlığı eklemeyi unutma.
 - **Arayüzden düzenleme:** "Diğer web"deki başlıklardan site kuralı, bilinmeyen süreçten ad
   eşlemesi eklemek. ⚠️ Program `config.toml`'u yeniden yazarsa kullanıcının yorumları silinir
   (`tomllib` yalnızca okur). Programın yazdığı eşlemeleri veritabanında ayrı bir tabloda tut

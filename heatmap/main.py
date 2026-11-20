@@ -21,6 +21,7 @@ from heatmap.dedektorler.baslik import BaslikDedektoru
 from heatmap.dedektorler.bosta import BostaDedektoru
 from heatmap.dedektorler.kamera import KameraDedektoru
 from heatmap.dedektorler.pencere import PencereDedektoru
+from heatmap.dedektorler.tarayici import TarayiciDedektoru
 from heatmap.depo import Depo
 from heatmap.motor import KararMotoru
 from heatmap.takipci import Takipci
@@ -72,12 +73,15 @@ def _port_dolu_mu(port: int) -> bool:
 def dedektorleri_kur(ayarlar: dict, depo: Depo) -> list:
     """Ayar dosyasında etkin olan modülleri oluşturur.
 
-    SIRA ÖNEMLİ: başlık dedektörü, pencere dedektörünün okuduğu başlığı kullanır.
+    SIRA ÖNEMLİ: başlık dedektörü hem pencere dedektörünün okuduğu başlığı hem de
+    tarayıcı dedektörünün (eklentiden gelen) site adını kullanır; ikisinden sonra gelmeli.
     Yeni bir modül eklemek için buraya bir satır eklemen yeterli.
     """
     dedektorler = []
     if ayarlar["pencere"]["etkin"]:
         dedektorler.append(PencereDedektoru(ayarlar, depo.ogrenilen_kurallar))
+    if ayarlar.get("tarayici", {}).get("etkin", True):
+        dedektorler.append(TarayiciDedektoru())
     if ayarlar["baslik"]["etkin"]:
         dedektorler.append(BaslikDedektoru(ayarlar, depo.ogrenilen_kurallar))
     if ayarlar["bosta"]["etkin"]:
@@ -121,13 +125,16 @@ def main() -> None:
     # --- Parçaları kur ---
     depo = Depo(VERI_KLASORU / VERITABANI_ADI)
     motor = KararMotoru(ayarlar["tolerans"]["baslatma_sn"], ayarlar["tolerans"]["durdurma_sn"])
-    takipci = Takipci(ayarlar, depo, dedektorleri_kur(ayarlar, depo), motor)
+    dedektorler = dedektorleri_kur(ayarlar, depo)
+    takipci = Takipci(ayarlar, depo, dedektorler, motor)
+    # Eklenti raporlarını web sunucusu bu dedektöre bırakır (modül kapalıysa None).
+    tarayici = next((d for d in dedektorler if isinstance(d, TarayiciDedektoru)), None)
     takipci.baslat()
 
     # --- Web sunucusu (ayrı thread'de) ---
     # host="127.0.0.1": sadece bu bilgisayardan erişilebilir, ağdaki diğer cihazlardan değil.
     sunucu = uvicorn.Server(uvicorn.Config(
-        uygulama_olustur(takipci, depo, ayarlar), host="127.0.0.1", port=port, log_level="warning",
+        uygulama_olustur(takipci, depo, ayarlar, tarayici), host="127.0.0.1", port=port, log_level="warning",
     ))
     sunucu_thread = threading.Thread(target=sunucu.run, name="web", daemon=True)
     sunucu_thread.start()

@@ -110,6 +110,22 @@ ders_degil_kelimeleri = [
 # sayaç az önce ne durumdaysa öyle kalır. "Takip Paneli" bu uygulamanın kendi arayüzüdür.
 yok_sayilan_basliklar = ["Takip Paneli"]
 
+# Siteye göre karar: yalnızca tarayıcı eklentisi (eklenti/ klasörü) kuruluysa kullanılır.
+# Alt alan adları da eşleşir: "github.com" -> "gist.github.com". Listede olmayan sitelerde
+# karar yine başlıktaki kelimelere göre verilir (YouTube bu yüzden listede yok: videoya göre değişir).
+ders_alanlari = [
+    "claude.ai", "chatgpt.com", "gemini.google.com", "copilot.microsoft.com",
+    "github.com", "stackoverflow.com", "geeksforgeeks.org", "w3schools.com",
+    "coursera.org", "udemy.com", "khanacademy.org", "leetcode.com",
+    "docs.python.org", "developer.mozilla.org", "deepl.com", "overleaf.com",
+    "teams.microsoft.com", "teams.live.com",
+]
+ders_degil_alanlari = [
+    "instagram.com", "tiktok.com", "twitch.tv", "netflix.com", "reddit.com",
+    "x.com", "twitter.com", "facebook.com", "web.whatsapp.com", "discord.com",
+    "web.telegram.org", "open.spotify.com", "primevideo.com", "disneyplus.com",
+]
+
 # Başlıkta bunlardan biri varsa "video izleniyor" kabul edilir ve
 # klavye/fare boşta olsa bile sayaç durmaz (aşağıdaki video eşiğine kadar).
 video_isaretleri = ["YouTube", "Udemy", "Coursera"]
@@ -159,30 +175,38 @@ video_isaretleri = ["YouTube", "Udemy", "Coursera"]
 #  Not: Bu bölüm sadece ADLANDIRMA içindir; sayılıp sayılmayacağına [baslik] karar verir.
 # ---------------------------------------------------------------------
 [siteler]
-"YouTube" = ["YouTube"]
-"claude.ai" = ["Claude"]
-"ChatGPT" = ["ChatGPT"]
-"Gemini" = ["Gemini", "Google Gemini"]
-"Copilot" = ["Copilot", "Microsoft Copilot"]
-"GitHub" = ["GitHub"]
-"Stack Overflow" = ["Stack Overflow"]
-"GeeksforGeeks" = ["GeeksforGeeks"]
-"Coursera" = ["Coursera"]
-"Udemy" = ["Udemy"]
-"Khan Academy" = ["Khan Academy"]
-"Wikipedia" = ["Wikipedia", "Vikipedi"]
-"Google Docs" = ["Google Docs", "Google Dokümanlar", "Google Slides", "Google Slaytlar", "Google Sheets", "Google E-Tablolar"]
-"Google Drive" = ["Google Drive"]
-"DeepL" = ["DeepL"]
-"Teams" = ["Microsoft Teams"]
-"Outlook" = ["Outlook"]
-"Google Arama" = ["Google Search", "Google'da Ara"]
-
+# Noktalı öğeler ("youtube.com") eklentinin bildirdiği site adıyla, diğerleri başlıkla eşleşir.
+# Eklenti kuruluysa listede olmayan siteler "Diğer web" yerine kendi adıyla görünür.
+"YouTube" = ["YouTube", "youtube.com", "youtu.be"]
+"claude.ai" = ["Claude", "claude.ai"]
+"ChatGPT" = ["ChatGPT", "chatgpt.com"]
+"Gemini" = ["Gemini", "Google Gemini", "gemini.google.com"]
+"Copilot" = ["Copilot", "Microsoft Copilot", "copilot.microsoft.com"]
+"GitHub" = ["GitHub", "github.com"]
+"Stack Overflow" = ["Stack Overflow", "stackoverflow.com"]
+"GeeksforGeeks" = ["GeeksforGeeks", "geeksforgeeks.org"]
+"Coursera" = ["Coursera", "coursera.org"]
+"Udemy" = ["Udemy", "udemy.com"]
+"Khan Academy" = ["Khan Academy", "khanacademy.org"]
+"Wikipedia" = ["Wikipedia", "Vikipedi", "wikipedia.org"]
+"Google Docs" = ["Google Docs", "Google Dokümanlar", "Google Slides", "Google Slaytlar", "Google Sheets", "Google E-Tablolar", "docs.google.com"]
+"Google Drive" = ["Google Drive", "drive.google.com"]
+"DeepL" = ["DeepL", "deepl.com"]
+"Teams" = ["Microsoft Teams", "teams.microsoft.com", "teams.live.com"]
+"Outlook" = ["Outlook", "outlook.office.com", "outlook.live.com"]
+"Google Arama" = ["Google Search", "Google'da Ara", "google.com"]
 # ---------------------------------------------------------------------
 #  Günlük hedef: seri (üst üste kaç gün hedefe ulaşıldı) hesabında kullanılır.
 # ---------------------------------------------------------------------
 [hedef]
 gunluk_dk = 120
+
+# ---------------------------------------------------------------------
+#  Modül 5 - Tarayıcı eklentisi (eklenti/ klasörü; kurulumu eklenti/README.md)
+#  Eklenti kurulu değilse bu modül zararsızdır: "eklentiden haber yok" der.
+# ---------------------------------------------------------------------
+[tarayici]
+etkin = true
 
 # ---------------------------------------------------------------------
 #  Modül 3 - Klavye/fare boşta kalma

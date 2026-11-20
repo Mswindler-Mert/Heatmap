@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Heatmap Bağlantısı",
+  "version": "0.1.0",
+  "description": "Öndeki sekmenin site adını ve ses çalıp çalmadığını bilgisayardaki Heatmap uygulamasına (127.0.0.1) bildirir. Adres, başlık ya da sayfa içeriği gönderilmez.",
+  "permissions": ["tabs", "alarms"],
+  "host_permissions": ["http://127.0.0.1:8765/*"],
+  "background": {
+    "service_worker": "arkaplan.js"
+  }
+}

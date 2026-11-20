@@ -10,12 +10,13 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from heatmap import otomatik_baslatma
+from heatmap.dedektorler.tarayici import TarayiciDedektoru
 from heatmap.depo import Depo, gun_araligi
 from heatmap.kart import kart_ciz, kart_verisi
 from heatmap.ozet import GUN_ADLARI, Adlandirici, isi_haritasi, seri_hesapla
@@ -39,6 +40,13 @@ class OtomatikBaslatmaIstegi(BaseModel):
     acik: bool
 
 
+class TarayiciRaporu(BaseModel):
+    """Tarayıcı eklentisinin gönderdiği rapor (bkz. eklenti/arkaplan.js)."""
+    alan_adi: str = Field(default="", max_length=253)
+    sesli: bool = False
+    odakta: bool = True
+
+
 def _saat(epoch: float) -> str:
     """Epoch saniyesini okunur ISO metnine çevirir: 2026-11-16T14:05:00"""
     return datetime.fromtimestamp(epoch).isoformat(timespec="seconds")
@@ -58,10 +66,13 @@ def _oturum_json(oturum: dict, acik_oturum_id) -> dict:
         "uygulama": oturum["uygulama"],
         "baslik": oturum["baslik"],
         "suruyor": oturum["id"] == acik_oturum_id,
+        "alan_adi": oturum.get("alan_adi") or "",  # eklenti kuruluysa site adı
     }
 
 
-def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict) -> FastAPI:
+def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
+                     tarayici: TarayiciDedektoru | None = None) -> FastAPI:
+    """tarayici: eklenti raporlarının bırakılacağı dedektör (modül kapalıysa None)."""
     adlandirici = Adlandirici(ayarlar)  # Süreç adı / sekme başlığı -> okunabilir ad
     hedef_sn = int(ayarlar.get("hedef", {}).get("gunluk_dk", 0) * 60)  # Günlük hedef (saniye)
 
@@ -72,6 +83,17 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict) -> FastAPI:
     # istekleri kabul et. (Kötü niyetli bir web sitesinin tarayıcın üzerinden
     # bu API'ye ulaşmasını zorlaştırır.)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost"])
+
+    # Güvenlik: veri DEĞİŞTİREN istekler "X-Heatmap" başlığı taşımak zorunda.
+    # Neden? Açtığın herhangi bir web sitesi, tarayıcın üzerinden 127.0.0.1'e
+    # gizlice form/istek gönderebilir. Ama özel bir başlık eklemeye çalışırsa
+    # tarayıcı önce izin sorar (CORS) ve bu sunucu izin vermediği için istek
+    # hiç gönderilmez. Kendi arayüzümüz ve eklentimiz bu başlığı ekler.
+    @app.middleware("http")
+    async def degistiren_istekleri_koru(istek, sonraki):
+        if istek.method not in ("GET", "HEAD", "OPTIONS") and istek.headers.get("x-heatmap") != "1":
+            return JSONResponse({"detail": "X-Heatmap başlığı eksik"}, status_code=403)
+        return await sonraki(istek)
 
     # ------------------------------------------------------------------
     #  Okuma uçları
@@ -217,6 +239,14 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict) -> FastAPI:
     def kural_sil(kural_id: int):
         if not depo.kural_sil(kural_id):
             raise HTTPException(404, "Kural bulunamadı")
+        return {"tamam": True}
+
+    @app.post("/api/tarayici")
+    def tarayici_raporu(rapor: TarayiciRaporu):
+        """Tarayıcı eklentisi buraya öndeki sekmenin site adını ve ses durumunu bildirir."""
+        if tarayici is None:
+            return {"tamam": False, "neden": "Tarayıcı modülü ayarlardan kapatılmış"}
+        tarayici.rapor_al(rapor.alan_adi, rapor.sesli, rapor.odakta)
         return {"tamam": True}
 
     @app.post("/api/duraklat")

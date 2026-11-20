@@ -9,7 +9,7 @@ Dökümde ve paylaşım kartında bunların yerine okunabilir adlar gösteririz:
 import re
 from datetime import date, timedelta
 
-from heatmap.dedektorler.baslik import son_gecis_yeri
+from heatmap.dedektorler.baslik import alan_eslesir_mi, son_gecis_yeri
 
 GUN_ADLARI = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
 DIGER_WEB = "Diğer web"
@@ -49,6 +49,14 @@ class Adlandirici:
                     en_iyi_site, en_iyi_yer = site, yer
         return en_iyi_site
 
+    def alan_adindan_site(self, alan_adi: str) -> str:
+        """'www.youtube.com' -> 'YouTube' ([siteler] içinde nokta içeren öğelerle eşleşirse),
+        eşleşmezse site adının kendisi ('geeksforgeeks.org')."""
+        for site, kelimeler in self._siteler.items():
+            if any("." in k and alan_eslesir_mi(alan_adi, k) for k in kelimeler):
+                return site
+        return alan_adi
+
     def etiket(self, oturum: dict) -> tuple[str, str]:
         """Bir oturum satırı için (görünen ad, tür) döndürür. Tür: 'site' ya da 'uygulama'.
 
@@ -56,6 +64,8 @@ class Adlandirici:
         yalnızca ayar dosyasındaki site/uygulama adlarından biridir.
         """
         if oturum.get("kaynak") == "baslik":  # Tarayıcı oturumu
+            if oturum.get("alan_adi"):  # Eklenti site adını bildirmişse en güvenilir bilgi o
+                return self.alan_adindan_site(oturum["alan_adi"]), "site"
             return self.site_adi(oturum.get("baslik") or ""), "site"
         return self.uygulama_adi(oturum.get("uygulama") or ""), "uygulama"
 

@@ -86,6 +86,13 @@ Arayüzde yedi bölüm vardır:
    Tarayıcı oturumlarında isterseniz bir anahtar kelime (örn. kanal adı) de öğretebilirsiniz.
 7. **Öğrenilen kurallar:** düzeltmelerden oluşan kurallar; buradan silinebilir.
 
+## Tarayıcı eklentisi (önerilir)
+
+`eklenti/` klasöründeki küçük Brave/Chrome eklentisi, Heatmap'e öndeki sekmenin **site adını** ve
+**ses çalıp çalmadığını** bildirir. Böylece siteler başlıktan tahmin edilmek yerine doğru tanınır
+(`claude.ai`, `geeksforgeeks.org`...) ve duraklatılmış bir video artık izleniyor sayılmaz.
+Adresin tamamı, başlık ya da sayfa içeriği gönderilmez. Kurulum: [eklenti/README.md](eklenti/README.md).
+
 ## Ayarlar
 
 İlk açılışta `config/config.ornek.toml` dosyası `config/config.toml` adıyla kopyalanır.
@@ -96,10 +103,11 @@ sonra uygulamayı yeniden başlatın.
 |---|---|
 | `[tolerans]` | Sayacın başlama ve durma tolerans süreleri |
 | `[pencere]` | Ders / ders dışı / tarayıcı süreç adları, bilinmeyen uygulamaların hükmü |
-| `[baslik]` | Ders ve ders dışı anahtar kelimeler, video sitesi işaretleri, sayacı hiç etkilemeyen sekmeler |
+| `[baslik]` | Çalışma / çalışma dışı anahtar kelimeler ve siteler (`ders_alanlari`), video işaretleri, sayacı hiç etkilemeyen sekmeler |
 | `[bosta]` | Boşta kalma eşiği ve video izlerken geçerli eşik |
 | `[adlar]` | Süreç adı → dökümde görünen ad (`"Code.exe" = "VS Code"`) |
-| `[siteler]` | Site adı → sekme başlığında aranan kelimeler; tanınmayanlar "Diğer web" olur |
+| `[siteler]` | Site adı → sekme başlığında aranan kelimeler ve alan adları; tanınmayanlar "Diğer web" olur |
+| `[tarayici]` | Tarayıcı eklentisi modülü |
 | `[hedef]` | Günlük hedef (dakika); seri hesabında kullanılır |
 | `[kamera]` | Kamera modülü (henüz geliştirilmedi) |
 
@@ -125,12 +133,18 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `POST /api/oturumlar/{id}/duzelt` | Oturumu düzelt (`{"hukum": "ders", "ogren": true, "kelime": null}`) |
 | `GET /api/kurallar` · `DELETE /api/kurallar/{id}` | Öğrenilen kurallar |
 | `POST /api/duraklat` | Takibi duraklat / sürdür (`{"duraklat": true}`) |
+| `POST /api/tarayici` | Tarayıcı eklentisinin raporu (`{"alan_adi": "youtube.com", "sesli": true, "odakta": true}`) |
+
+Veri değiştiren istekler (`POST`, `DELETE`) `X-Heatmap: 1` başlığı taşımalıdır; yoksa `403` döner.
+Bu, açık bir web sitesinin tarayıcın üzerinden bu API'ye gizlice istek göndermesini engeller.
 
 Süreler saniye cinsindendir (`ders_sn`).
 
 ## Gizlilik
 
 - Web sunucusu yalnızca bu bilgisayardan erişilebilir; uygulama internete hiçbir şey göndermez.
+- Tarayıcı eklentisi yalnızca site adını (`youtube.com`) ve ses durumunu, yalnızca bu bilgisayardaki
+  Heatmap'e gönderir; adresin tamamı ve sayfa içeriği gönderilmez.
 - Pencere başlıkları ve uygulama adları yalnızca `data/heatmap.db` dosyasında saklanır.
 - `data/` klasörü ve `config/config.toml` `.gitignore` içindedir; depoya girmez.
 - Kamera modülü geliştirildiğinde de görüntü kaydedilmeyecek ve gönderilmeyecek; yalnızca
@@ -143,12 +157,13 @@ Heatmap/
 ├── baslat.bat                # çift tıkla başlat
 ├── config/config.ornek.toml  # varsayılan ayarlar (kişisel kopya: config.toml)
 ├── data/                     # veritabanı ve günlük dosyası (git dışı)
+├── eklenti/                  # Brave/Chrome eklentisi (site adı + ses durumu)
 ├── heatmap/
 │   ├── main.py               # parçaları kurar ve başlatır
 │   ├── ayarlar.py            # ayar dosyasını okur
 │   ├── sinyal.py             # Sinyal ve Dedektor: modüllerin ortak dili
 │   ├── windows_api.py        # aktif pencere ve boşta süresini Windows'tan okur
-│   ├── dedektorler/          # pencere.py, baslik.py, bosta.py, kamera.py
+│   ├── dedektorler/          # pencere.py, tarayici.py, baslik.py, bosta.py, kamera.py
 │   ├── motor.py              # karar motoru
 │   ├── takipci.py            # saniyelik takip döngüsü
 │   ├── depo.py               # SQLite
@@ -175,11 +190,10 @@ Yeni bir tespit modülü eklemek için `heatmap/sinyal.py` içindeki `Dedektor` 
 
 ## Bilinen sınırlar
 
-- Tarayıcıda site ayrımı sekme başlığına dayanır; başlığında site adı geçmeyen sayfalar
-  "Diğer web" olarak toplanır.
-
-- Sekme başlığından videonun oynayıp oynamadığı anlaşılamaz; duraklatılmış bir ders videosu,
-  video eşiği dolana kadar ders sayılır.
+- Eklenti kurulu değilse site ayrımı sekme başlığına dayanır; başlığında site adı geçmeyen
+  sayfalar "Diğer web" olarak toplanır ve duraklatılmış bir video, video eşiği (30 dk) dolana kadar
+  izleniyor sayılır. Eklentiyle ikisi de çözülür.
+- Eklenti yalnızca kurulduğu tarayıcıyı görür; video kendi düğmesiyle sessize alınırsa "oynamıyor" sayılır.
 - YouTube başlığında kanal adı yer almaz; kanala göre kural yazılamaz.
 - Bazı Microsoft Store uygulamaları süreç adı olarak `ApplicationFrameHost.exe` gösterir.
 

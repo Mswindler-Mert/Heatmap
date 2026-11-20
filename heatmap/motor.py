@@ -26,6 +26,7 @@ class Durum:
     aciklama: str = ""  # Neden bu karar verildi
     uygulama: str = ""  # Süreç adı, örn. "chrome.exe"
     baslik: str = ""    # Pencere / sekme başlığı
+    alan_adi: str = ""  # Tarayıcıdaysa sitenin adı (eklenti kuruluysa), örn. "youtube.com"
 
 
 @dataclass
@@ -73,7 +74,8 @@ def anlik_karar(sinyaller: dict[str, Sinyal]) -> Durum:
         temiz = baslik.detay.get("temiz_baslik", ham_baslik)
         # Bağlama başlığı da katıyoruz: farklı sekme = farklı oturum.
         return Durum(baslik.hukum, baglam=f"{surec}|{temiz}", kaynak="baslik",
-                     aciklama=baslik.aciklama, uygulama=surec, baslik=temiz)
+                     aciklama=baslik.aciklama, uygulama=surec, baslik=temiz,
+                     alan_adi=baslik.detay.get("alan_adi", ""))
 
     if pencere and pencere.hukum != FIKRIM_YOK:
         # Bağlam sadece uygulama: VS Code'da dosya değiştirmek oturumu bölmesin.

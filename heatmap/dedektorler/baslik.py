@@ -66,6 +66,16 @@ def son_gecis_yeri(metin: str, kelime: str) -> int:
     return yer
 
 
+def alan_eslesir_mi(alan_adi: str, liste_ogesi: str) -> bool:
+    """Site adı listedeki öğeyle ya da onun bir alt alan adıyla eşleşiyor mu?
+
+    "github.com" öğesi hem "github.com" hem "gist.github.com" ile eşleşir,
+    ama "notgithub.com" ile eşleşmez.
+    """
+    alan, oge = alan_adi.lower(), liste_ogesi.lower().strip()
+    return bool(oge) and (alan == oge or alan.endswith("." + oge))
+
+
 def _kelimelerle_karar(metin: str, ders_kelimeleri, ders_degil_kelimeleri):
     """Kelime listelerine göre (hüküm, eşleşen kelimeler) döndürür.
 
@@ -92,13 +102,16 @@ class BaslikDedektoru(Dedektor):
         self.ders_kelimeleri = bolum["ders_kelimeleri"]
         self.ders_degil_kelimeleri = bolum["ders_degil_kelimeleri"]
         self.video_isaretleri = bolum["video_isaretleri"]
+        # Eklenti kuruluysa site adına göre karar (örn. "claude.ai" her zaman çalışma).
+        self.ders_alanlari = [a.lower() for a in bolum.get("ders_alanlari", [])]
+        self.ders_degil_alanlari = [a.lower() for a in bolum.get("ders_degil_alanlari", [])]
         # Bu başlıklar sayacı hiç etkilemez (örn. takip panelinin kendi sekmesi).
         self.yok_sayilanlar = bolum.get("yok_sayilan_basliklar", [])
         self.kural_kaynagi = kural_kaynagi or (lambda: [])
 
-    def siniflandir(self, temiz_baslik: str) -> tuple[str, str]:
-        """Temizlenmiş başlık için (hüküm, açıklama) döndürür."""
-        if not temiz_baslik:
+    def siniflandir(self, temiz_baslik: str, alan_adi: str = "") -> tuple[str, str]:
+        """Temizlenmiş başlık (ve eklenti varsa site adı) için (hüküm, açıklama) döndürür."""
+        if not temiz_baslik and not alan_adi:
             return BELIRSIZ, "Sekme başlığı boş"
 
         kurallar = self.kural_kaynagi()
@@ -115,12 +128,19 @@ class BaslikDedektoru(Dedektor):
         if hukum is not None:
             return hukum, "Öğrenilen kelime: " + ", ".join(eslesen)
 
-        # 3) Ayar dosyasındaki anahtar kelimeler
+        # 3) Site listeleri (yalnızca eklenti site adını bildirdiyse)
+        if alan_adi:
+            if any(alan_eslesir_mi(alan_adi, a) for a in self.ders_degil_alanlari):
+                return DERS_DEGIL, f"Site: {alan_adi} (çalışma dışı siteler listesinde)"
+            if any(alan_eslesir_mi(alan_adi, a) for a in self.ders_alanlari):
+                return DERS, f"Site: {alan_adi} (çalışma siteleri listesinde)"
+
+        # 4) Ayar dosyasındaki anahtar kelimeler
         hukum, eslesen = _kelimelerle_karar(temiz_baslik, self.ders_kelimeleri, self.ders_degil_kelimeleri)
         if hukum is not None:
             return hukum, "Anahtar kelime: " + ", ".join(eslesen)
 
-        # 4) Karar verilemedi
+        # 5) Karar verilemedi
         return BELIRSIZ, "Başlıkta tanıdık bir kelime yok"
 
     def oku(self, onceki: dict[str, Sinyal]) -> Sinyal:
@@ -136,6 +156,16 @@ class BaslikDedektoru(Dedektor):
             return Sinyal(self.ad, DEVAM, "Yok sayılan sekme: önceki durum sürüyor",
                           {"temiz_baslik": temiz, "video": False})
 
-        video = any(_kucult(isaret) in _kucult(temiz) for isaret in self.video_isaretleri)
-        hukum, aciklama = self.siniflandir(temiz)
-        return Sinyal(self.ad, hukum, aciklama, {"temiz_baslik": temiz, "video": video})
+        # Eklenti bağlıysa site adını ve "sekme ses çalıyor mu" bilgisini kullan.
+        tarayici = onceki.get("tarayici")
+        bagli = bool(tarayici and tarayici.detay.get("bagli"))
+        alan_adi = tarayici.detay.get("alan_adi", "") if bagli else ""
+        if bagli:
+            # Gerçek bilgi: video yalnızca sekme gerçekten ses çalıyorsa "oynuyor" sayılır.
+            # Böylece duraklatılmış video boşta kalma kuralından muaf olmaz.
+            video = tarayici.detay.get("sesli", False)
+        else:
+            # Tahmin: başlıkta "YouTube" gibi bir işaret varsa video izleniyor say.
+            video = any(_kucult(isaret) in _kucult(temiz) for isaret in self.video_isaretleri)
+        hukum, aciklama = self.siniflandir(temiz, alan_adi)
+        return Sinyal(self.ad, hukum, aciklama, {"temiz_baslik": temiz, "video": video, "alan_adi": alan_adi})

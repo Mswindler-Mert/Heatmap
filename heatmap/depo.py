@@ -32,7 +32,8 @@ CREATE TABLE IF NOT EXISTS oturumlar (
     kaynak    TEXT,               -- kararı veren modül: pencere / baslik / bosta / kamera
     aciklama  TEXT,
     uygulama  TEXT,               -- süreç adı
-    baslik    TEXT                -- pencere / sekme başlığı
+    baslik    TEXT,               -- pencere / sekme başlığı
+    alan_adi  TEXT                -- tarayıcı oturumunda site adı (eklenti varsa)
 );
 CREATE INDEX IF NOT EXISTS oturumlar_baslangic ON oturumlar (baslangic);
 
@@ -64,6 +65,19 @@ class Depo:
         self._kural_onbellegi: list[dict] | None = None
         with self._baglan() as vt:
             vt.executescript(_SEMA)
+            self._semayi_guncelle(vt)
+
+    @staticmethod
+    def _semayi_guncelle(vt) -> None:
+        """Eski sürümle oluşturulmuş veritabanına sonradan eklenen sütunları ekler.
+
+        CREATE TABLE IF NOT EXISTS, tablo zaten varsa yeni sütun EKLEMEZ; o yüzden
+        eksik sütunları tek tek kontrol edip ALTER TABLE ile ekliyoruz. Eski
+        satırlarda yeni sütun boş (NULL) kalır; veri kaybı olmaz.
+        """
+        sutunlar = {satir["name"] for satir in vt.execute("PRAGMA table_info(oturumlar)")}
+        if "alan_adi" not in sutunlar:
+            vt.execute("ALTER TABLE oturumlar ADD COLUMN alan_adi TEXT")
 
     @contextmanager
     def _baglan(self):
@@ -83,9 +97,10 @@ class Depo:
         """Yeni oturum satırı ekler ve numarasını (id) döndürür."""
         with self._baglan() as vt:
             imlec = vt.execute(
-                "INSERT INTO oturumlar (baslangic, bitis, hukum, kaynak, aciklama, uygulama, baslik)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?)",
-                (zaman, zaman, durum.hukum, durum.kaynak, durum.aciklama, durum.uygulama, durum.baslik),
+                "INSERT INTO oturumlar (baslangic, bitis, hukum, kaynak, aciklama, uygulama, baslik, alan_adi)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (zaman, zaman, durum.hukum, durum.kaynak, durum.aciklama, durum.uygulama, durum.baslik,
+                 durum.alan_adi or None),
             )
             return imlec.lastrowid
 
@@ -164,7 +179,7 @@ class Depo:
 
         with self._baglan() as vt:
             satirlar = vt.execute(
-                f"SELECT uygulama, baslik, kaynak, baslangic, bitis FROM oturumlar"
+                f"SELECT uygulama, baslik, kaynak, alan_adi, baslangic, bitis FROM oturumlar"
                 f" WHERE {_ETKIN_HUKUM} = ? AND bitis > ? AND baslangic < ?",
                 (DERS, baslangic, bitis),
             ).fetchall()

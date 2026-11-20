@@ -11,7 +11,7 @@ const HUKUM_ADI = {
   fikrim_yok: "fikri yok",
   devam: "yok sayılıyor",
 };
-const KAYNAK_ADI = { pencere: "Pencere", baslik: "Başlık", bosta: "Boşta", kamera: "Kamera", motor: "Motor" };
+const KAYNAK_ADI = { pencere: "Pencere", tarayici: "Tarayıcı", baslik: "Başlık", bosta: "Boşta", kamera: "Kamera", motor: "Motor" };
 const KURAL_TURU = { surec: "Uygulama", baslik: "Tam başlık", kelime: "Kelime" };
 
 const $ = (id) => document.getElementById(id);
@@ -35,7 +35,9 @@ async function api(yol, secenekler) {
 function apiGonder(yol, yontem, govde) {
   return api(yol, {
     method: yontem,
-    headers: { "Content-Type": "application/json" },
+    // X-Heatmap: sunucu, veri değiştiren isteklerde bu başlığı arar (başka sitelerden
+    // gelen sahte istekleri ayırt etmek için; bkz. api.py).
+    headers: { "Content-Type": "application/json", "X-Heatmap": "1" },
     body: govde ? JSON.stringify(govde) : undefined,
   });
 }
@@ -278,6 +280,7 @@ function oturumSatiri(o) {
   const bilgi = el("div");
   const ust = el("div", "ust-satir");
   ust.append(rozet(o.etkin_hukum), el("span", "ad", o.uygulama || KAYNAK_ADI[o.kaynak] || ""));
+  if (o.alan_adi) ust.append(el("span", "soluk", o.alan_adi));  // eklentiden gelen site adı
   if (o.duzeltme) ust.append(el("span", "soluk", "(sen düzelttin)"));
   bilgi.append(ust, el("div", "baslik-metin", o.baslik || ""), el("div", "soluk", o.aciklama || ""));
 
