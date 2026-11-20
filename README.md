@@ -196,11 +196,11 @@ Kodu okumaya `sinyal.py` → `dedektorler/` → `motor.py` → `takipci.py` sır
 ```bat
 .venv\Scripts\python -m unittest -v
 .venv\Scripts\python -m heatmap --tepsisiz
+```
+
 İkinci komut uygulamayı tepsi ikonu olmadan terminalde çalıştırır; `Ctrl+C` ile kapanır.
 GitHub'a her push'ta testler Windows üzerinde otomatik çalışır (`.github/workflows/testler.yml`);
 sonuç depo sayfasındaki **Actions** sekmesinde ve README'nin başındaki rozette görünür.
-
-İkinci komut uygulamayı tepsi ikonu olmadan terminalde çalıştırır; `Ctrl+C` ile kapanır.
 
 Yeni bir tespit modülü eklemek için `heatmap/sinyal.py` içindeki `Dedektor` sınıfından türetin,
 `oku()` metodunu yazın ve `main.py` içindeki `dedektorleri_kur()` fonksiyonuna ekleyin.
