@@ -195,9 +195,10 @@ async function isiHaritasiniYenile() {
 
 function kartiOlustur() {
   const tur = $("kart-tur").value;
+  const tarih = $("kart-tarih").value || tarihMetni(new Date());
   // Sondaki zaman damgası, tarayıcının eski resmi önbellekten göstermesini engeller.
-  $("kart-resim").src = `/api/kart?tur=${tur}&t=${Date.now()}`;
-  $("kart-indir").href = `/api/kart?tur=${tur}&indir=true`;
+  $("kart-resim").src = `/api/kart?tur=${tur}&tarih=${tarih}&t=${Date.now()}`;
+  $("kart-indir").href = `/api/kart?tur=${tur}&tarih=${tarih}&indir=true`;
   $("kart-onizleme").hidden = false;
 }
 
@@ -367,6 +368,7 @@ $("tarih").addEventListener("change", () => oturumlariYenile(true));
 $("filtre").addEventListener("change", () => oturumlariYenile(true));
 $("dokum-aralik").addEventListener("change", dokumuYenile);
 $("kart-olustur").addEventListener("click", kartiOlustur);
+$("kart-tarih").value = $("kart-tarih").max = tarihMetni(new Date());  // Gelecek seçilemesin
 
 // Windows açılışında otomatik başlatma (gerçek durum kayıt defterinden okunur)
 api("/api/otomatik-baslatma").then((d) => { $("otomatik-baslatma").checked = d.acik; }).catch(() => {});

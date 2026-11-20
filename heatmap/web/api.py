@@ -152,16 +152,21 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict) -> FastAPI:
         return isi_haritasi(depo, hedef_sn, bitis or date.today(), hafta)
 
     @app.get("/api/kart")
-    def kart(tur: Literal["gunluk", "haftalik"] = "gunluk", indir: bool = False):
+    def kart(tur: Literal["gunluk", "haftalik", "aylik", "yillik"] = "gunluk",
+             tarih: date | None = None, indir: bool = False):
         """Paylaşım kartı: 1080x1920 PNG. `indir=true` verilirse tarayıcı dosya olarak kaydeder.
 
+        `tarih`: kartın ait olduğu gün (varsayılan bugün; geçmiş bir gün de olabilir).
         Kartta pencere/sekme başlığı bulunmaz; yalnızca uygulama ve site adları (bkz. kart.py).
         """
         bugun = date.today()
-        png = kart_ciz(kart_verisi(depo, adlandirici, hedef_sn, tur, bugun))
+        tarih = tarih or bugun
+        if tarih > bugun:
+            raise HTTPException(400, "Gelecekteki bir gün için kart oluşturulamaz")
+        png = kart_ciz(kart_verisi(depo, adlandirici, hedef_sn, tur, tarih, bugun))
         basliklar = {"Cache-Control": "no-store"}  # Her istekte güncel kart üretilsin
         if indir:
-            basliklar["Content-Disposition"] = f'attachment; filename="calisma-ozeti-{tur}-{bugun.isoformat()}.png"'
+            basliklar["Content-Disposition"] = f'attachment; filename="heatmap-{tur}-{tarih.isoformat()}.png"'
         return Response(png, media_type="image/png", headers=basliklar)
 
     @app.get("/api/oturumlar")
