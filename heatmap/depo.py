@@ -180,12 +180,38 @@ class Depo:
         return dokum
 
     def gunluk_sureler(self, ilk_gun: date, son_gun: date) -> list[dict]:
-        """İki tarih arasındaki (ikisi de dahil) her gün için ders süresi."""
+        """İki tarih arasındaki (ikisi de dahil) her gün için ders süresi.
+
+        Tek bir sorguyla aralıktaki bütün oturumları çeker ve her oturumu
+        değdiği günlere böler (gece yarısını geçen bir oturum iki güne paylaşılır).
+        Isı haritası bir yılı (365 gün) tek seferde istediği için gün başına
+        ayrı sorgu atmak yerine böyle yapıyoruz.
+        """
+        aralik_bas, _ = gun_araligi(ilk_gun)
+        _, aralik_bit = gun_araligi(son_gun)
+        with self._baglan() as vt:
+            satirlar = vt.execute(
+                f"SELECT baslangic, bitis FROM oturumlar"
+                f" WHERE {_ETKIN_HUKUM} = ? AND bitis > ? AND baslangic < ?",
+                (DERS, aralik_bas, aralik_bit),
+            ).fetchall()
+
+        gunluk: dict[date, float] = {}
+        for satir in satirlar:
+            bas = max(satir["baslangic"], aralik_bas)
+            bit = min(satir["bitis"], aralik_bit)
+            gun = datetime.fromtimestamp(bas).date()
+            while bas < bit:
+                _, gun_sonu = gun_araligi(gun)
+                parca_sonu = min(bit, gun_sonu)
+                gunluk[gun] = gunluk.get(gun, 0.0) + (parca_sonu - bas)
+                bas = parca_sonu
+                gun += timedelta(days=1)
+
         sonuc = []
         gun = ilk_gun
         while gun <= son_gun:
-            bas, bit = gun_araligi(gun)
-            sonuc.append({"tarih": gun.isoformat(), "ders_sn": round(self.ders_suresi(bas, bit))})
+            sonuc.append({"tarih": gun.isoformat(), "ders_sn": round(gunluk.get(gun, 0.0))})
             gun += timedelta(days=1)
         return sonuc
 

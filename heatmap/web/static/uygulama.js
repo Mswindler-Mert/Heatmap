@@ -142,6 +142,55 @@ async function haftayiYenile() {
     : "";
 }
 
+// ---------- Isı haritası (son 12 ay) ----------
+
+const AY_KISA = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
+
+async function isiHaritasiniYenile() {
+  const v = await api("/api/isi-haritasi");
+  const bugun = tarihMetni(new Date());
+
+  // Kareler: API günleri Pazartesi'den başlayarak sırayla verir; CSS ızgarası
+  // (grid-auto-flow: column) her 7 kareyi bir sütuna (haftaya) dizer.
+  const izgara = $("isi-izgara");
+  izgara.replaceChildren();
+  for (const g of v.gunler) {
+    const kare = el("i", `isi-kare s${g.seviye}`);
+    if (g.gelecek) kare.classList.add("gelecek");
+    if (g.tarih === bugun) kare.classList.add("bugun");
+    if (!g.gelecek) {
+      const [yil, ay, gun] = g.tarih.split("-").map(Number);
+      kare.title = `${gun} ${AY_KISA[ay - 1]} ${yil}: ${g.ders_sn ? sureBicimi(g.ders_sn) : "kayıt yok"}`;
+    }
+    izgara.append(kare);
+  }
+
+  // Ay etiketleri: bir ayın ilk günü hangi haftadaysa etiket o sütunun üstüne yazılır.
+  const haftaSayisi = v.gunler.length / 7;
+  const etiketler = [];
+  let oncekiAy = -1;
+  for (let hafta = 0; hafta < haftaSayisi; hafta++) {
+    const ay = Number(v.gunler[hafta * 7].tarih.slice(5, 7)) - 1;
+    etiketler.push(ay !== oncekiAy && hafta < haftaSayisi - 2 ? AY_KISA[ay] : "");
+    oncekiAy = ay;
+  }
+  // İlk sütundaki ay birkaç hafta sonra bitiyorsa iki etiket üst üste biner; ilkini at.
+  const ikinci = etiketler.findIndex((e, i) => i > 0 && e);
+  if (ikinci > 0 && ikinci < 3) etiketler[0] = "";
+  $("isi-aylar").replaceChildren(...etiketler.map((e) => el("span", "", e)));
+
+  // Dar ekranda harita yatay kayar; en yeni haftalar (sağ uç) görünsün.
+  const kaydirma = document.querySelector(".isi-kaydirma");
+  kaydirma.scrollLeft = kaydirma.scrollWidth;
+
+  $("isi-ozet").textContent =
+    `${v.aktif_gun} aktif gün · toplam ${sureBicimi(v.toplam_sn)}` +
+    (v.aktif_gun ? ` · aktif gün ortalaması ${sureBicimi(v.aktif_gun_ortalamasi_sn)}` : "");
+  $("isi-seri").textContent = v.hedef_sn
+    ? `Hedef tutan gün: ${v.hedef_gunu} · Şu anki seri: ${v.simdiki_seri} gün · En uzun seri: ${v.en_uzun_seri} gün`
+    : "";
+}
+
 // ---------- Paylaşım kartı ----------
 
 function kartiOlustur() {
@@ -300,7 +349,7 @@ async function kurallariYenile() {
 
 async function hepsiniYenile(zorla) {
   try {
-    await Promise.all([durumuYenile(), haftayiYenile(), dokumuYenile(), oturumlariYenile(zorla), kurallariYenile()]);
+    await Promise.all([durumuYenile(), haftayiYenile(), isiHaritasiniYenile(), dokumuYenile(), oturumlariYenile(zorla), kurallariYenile()]);
   } catch (hata) {
     console.error(hata);
   }

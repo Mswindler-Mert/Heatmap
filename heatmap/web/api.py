@@ -18,7 +18,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from heatmap import otomatik_baslatma
 from heatmap.depo import Depo, gun_araligi
 from heatmap.kart import kart_ciz, kart_verisi
-from heatmap.ozet import GUN_ADLARI, Adlandirici, seri_hesapla
+from heatmap.ozet import GUN_ADLARI, Adlandirici, isi_haritasi, seri_hesapla
 from heatmap.takipci import Takipci
 
 STATIK_KLASOR = Path(__file__).parent / "static"
@@ -140,6 +140,16 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict) -> FastAPI:
             "bugun_sn": bugun_sn,
             "bugun_hedefe_ulasildi": bool(hedef_sn) and bugun_sn >= hedef_sn,
         }
+
+    @app.get("/api/isi-haritasi")
+    def isi_haritasi_ucu(bitis: date | None = None, hafta: int = 53):
+        """GitHub katkı grafiği gibi ısı haritası: Pazartesi'den başlayan `hafta` hafta.
+
+        Her gün için {tarih, ders_sn, seviye (0-4), gelecek} ve aralığın özeti döner.
+        """
+        if not 1 <= hafta <= 106:
+            raise HTTPException(400, "hafta 1 ile 106 arasında olmalı")
+        return isi_haritasi(depo, hedef_sn, bitis or date.today(), hafta)
 
     @app.get("/api/kart")
     def kart(tur: Literal["gunluk", "haftalik"] = "gunluk", indir: bool = False):

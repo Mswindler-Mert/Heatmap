@@ -7,7 +7,9 @@ from datetime import date, datetime, timedelta
 
 from heatmap.depo import Depo
 from heatmap.motor import Durum
-from heatmap.ozet import BILGISAYAR_DISI, DIGER_WEB, Adlandirici, seri_hesapla
+from heatmap.ozet import (
+    BILGISAYAR_DISI, DIGER_WEB, Adlandirici, en_uzun_seri, isi_haritasi, seri_hesapla, seviye,
+)
 
 AYARLAR = {
     "adlar": {"Code.exe": "VS Code", "POWERPNT.EXE": "PowerPoint"},
@@ -75,6 +77,49 @@ class SeriTestleri(unittest.TestCase):
         self.calis(1, 30)
         self.calis(2, 130)
         self.assertEqual(seri_hesapla(self.depo, 120 * 60, self.bugun), 0)
+
+
+class IsiHaritasiTestleri(unittest.TestCase):
+    def setUp(self):
+        self.klasor = tempfile.TemporaryDirectory()
+        self.depo = Depo(os.path.join(self.klasor.name, "test.db"))
+        self.bugun = date(2026, 11, 19)  # Perşembe
+
+    def tearDown(self):
+        self.klasor.cleanup()
+
+    def oturum(self, gun: date, saat: float, dakika: int):
+        bas = datetime.combine(gun, datetime.min.time()).timestamp() + saat * 3600
+        oid = self.depo.oturum_baslat(Durum("ders", "Code.exe", "pencere", "", "Code.exe", ""), bas)
+        self.depo.oturum_bitisini_guncelle(oid, bas + dakika * 60)
+
+    def test_gece_yarisini_gecen_oturum_iki_gune_bolunur(self):
+        dun = self.bugun - timedelta(days=1)
+        self.oturum(dun, 23.5, 60)  # 23:30 - 00:30
+        gunler = self.depo.gunluk_sureler(dun, self.bugun)
+        self.assertEqual([g["ders_sn"] for g in gunler], [1800, 1800])
+
+    def test_isi_haritasi_izgarasi(self):
+        self.oturum(self.bugun, 10, 130)
+        self.oturum(self.bugun - timedelta(days=1), 10, 125)
+        self.oturum(self.bugun - timedelta(days=3), 10, 30)
+        v = isi_haritasi(self.depo, 120 * 60, self.bugun)
+        self.assertEqual(len(v["gunler"]), 53 * 7)                  # tam ızgara
+        self.assertEqual(date.fromisoformat(v["baslangic"]).weekday(), 0)  # Pazartesi'den başlar
+        self.assertEqual(sum(g["gelecek"] for g in v["gunler"]), 3)   # Cuma, Cmt, Paz
+        self.assertEqual(v["aktif_gun"], 3)
+        self.assertEqual(v["hedef_gunu"], 2)
+        self.assertEqual(v["en_uzun_seri"], 2)
+        bugun_kaydi = next(g for g in v["gunler"] if g["tarih"] == self.bugun.isoformat())
+        self.assertEqual(bugun_kaydi["seviye"], 4)
+
+    def test_seviyeler(self):
+        self.assertEqual([seviye(s, 7200) for s in (0, 600, 3000, 6000, 7200)], [0, 1, 2, 3, 4])
+        self.assertEqual([seviye(s, 0) for s in (0, 600, 3000, 6000, 9000)], [0, 1, 2, 3, 4])
+
+    def test_en_uzun_seri(self):
+        gunler = [{"ders_sn": s} for s in (100, 200, 200, 0, 200, 200, 200)]
+        self.assertEqual(en_uzun_seri(gunler, 150), 3)
 
 
 if __name__ == "__main__":

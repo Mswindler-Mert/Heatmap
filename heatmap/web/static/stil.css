@@ -100,6 +100,34 @@ footer { padding-top: 8px; padding-bottom: 32px; text-align: center; }
 .gun.bugun .cubuk { background: var(--yesil); }
 .gun.bugun .ad, .gun.bugun .deger { color: var(--yazi); font-weight: 600; }
 
+/* ---------- Isı haritası (GitHub katkı grafiği gibi) ---------- */
+/* Hücre boyu ve aralık tek yerden ayarlansın diye değişken. */
+.isi { --hucre: 13px; --aralik: 3px; display: grid; grid-template-columns: auto 1fr;
+       grid-template-rows: auto auto; gap: 4px 6px; width: max-content; }
+.isi-kaydirma { overflow-x: auto; padding-bottom: 4px; }  /* Dar ekranda yalnızca bu alan kayar */
+.isi-aylar { grid-column: 2; display: grid; grid-template-columns: repeat(53, calc(var(--hucre) + var(--aralik)));
+             font-size: 11px; color: var(--soluk); height: 14px; }
+.isi-aylar span { white-space: nowrap; }
+.isi-gun-adlari { grid-column: 1; grid-row: 2; display: grid; grid-template-rows: repeat(7, var(--hucre));
+                  row-gap: var(--aralik); font-size: 11px; color: var(--soluk); line-height: var(--hucre); }
+.isi-izgara { grid-column: 2; grid-row: 2; display: grid; grid-auto-flow: column;
+              grid-template-rows: repeat(7, var(--hucre)); grid-auto-columns: var(--hucre); gap: var(--aralik); }
+.isi-kare { display: inline-block; width: var(--hucre, 13px); height: var(--hucre, 13px); border-radius: 3px;
+            background: var(--kart-ic); }
+.isi-kare.s1 { background: rgba(62, 207, 142, .28); }
+.isi-kare.s2 { background: rgba(62, 207, 142, .5); }
+.isi-kare.s3 { background: rgba(62, 207, 142, .75); }
+.isi-kare.s4 { background: var(--yesil); }
+.isi-kare.gelecek { background: transparent; }
+.isi-kare.bugun { outline: 2px solid var(--yazi); outline-offset: -1px; }
+.isi-alt { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.isi-lejant { display: flex; align-items: center; gap: 4px; }
+.isi-lejant .isi-kare { width: 11px; height: 11px; }
+
+@media (max-width: 720px) {
+  .isi { --hucre: 11px; --aralik: 2px; }
+}
+
 /* ---------- Uygulama dökümü (yatay çubuklar) ---------- */
 .dokum-satir { display: grid; grid-template-columns: 170px 1fr 120px; gap: 12px; align-items: center; padding: 6px 0; }
 .dokum-satir .ad { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
