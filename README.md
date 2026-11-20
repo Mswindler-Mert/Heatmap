@@ -1,5 +1,7 @@
 # Heatmap
 
+[![Testler](https://github.com/Mswindler-Mert/Heatmap/actions/workflows/testler.yml/badge.svg)](https://github.com/Mswindler-Mert/Heatmap/actions/workflows/testler.yml)
+
 Windows'ta arka planda çalışıp **bilgisayar başında aktif geçen çalışma sürenizi kendiliğinden ölçen**,
 bu sürenin hangi uygulama ve sitelerden geldiğini gösteren ve paylaşılabilir bir özet kartına çeviren yerel bir uygulama.
 Kronometre değildir: başlat/durdur düğmesine basmazsınız. Uygulama öndeki pencereye, tarayıcı
@@ -194,7 +196,9 @@ Kodu okumaya `sinyal.py` → `dedektorler/` → `motor.py` → `takipci.py` sır
 ```bat
 .venv\Scripts\python -m unittest -v
 .venv\Scripts\python -m heatmap --tepsisiz
-```
+İkinci komut uygulamayı tepsi ikonu olmadan terminalde çalıştırır; `Ctrl+C` ile kapanır.
+GitHub'a her push'ta testler Windows üzerinde otomatik çalışır (`.github/workflows/testler.yml`);
+sonuç depo sayfasındaki **Actions** sekmesinde ve README'nin başındaki rozette görünür.
 
 İkinci komut uygulamayı tepsi ikonu olmadan terminalde çalıştırır; `Ctrl+C` ile kapanır.
 

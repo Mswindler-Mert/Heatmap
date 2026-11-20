@@ -1,0 +1,22 @@
+# Her push'ta ve pull request'te testleri GitHub'ın Windows makinesinde çalıştırır.
+# Sonuç GitHub'da depo sayfasının "Actions" sekmesinde görünür.
+name: Testler
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    # Proje Windows'a özel (kayıt defteri, pencere API'leri, Segoe UI yazı tipi)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Paketleri kur
+        run: python -m pip install -r requirements.txt
+      - name: Testleri çalıştır
+        # İlk açılışta config.toml örnekten kopyalanır; testler gerçek ayara ihtiyaç duymaz.
+        run: python -m unittest -v
