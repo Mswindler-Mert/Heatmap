@@ -5,7 +5,7 @@ hüküm verir. Tarayıcılarda hüküm vermez; orada kararı başlık dedektör�
 (baslik.py) verir.
 """
 
-from ders_takip.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK, Dedektor, Sinyal
+from heatmap.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK, Dedektor, Sinyal
 
 
 class PencereDedektoru(Dedektor):
@@ -31,7 +31,7 @@ class PencereDedektoru(Dedektor):
         self.kural_kaynagi = kural_kaynagi or (lambda: [])
         if okuyucu is None:
             # Windows'a özel kodu sadece gerçekten gerekince içe aktarıyoruz.
-            from ders_takip.windows_api import aktif_pencereyi_oku as okuyucu
+            from heatmap.windows_api import aktif_pencereyi_oku as okuyucu
         self.okuyucu = okuyucu
 
     def oku(self, onceki: dict[str, Sinyal]) -> Sinyal:

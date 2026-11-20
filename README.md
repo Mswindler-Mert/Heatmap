@@ -120,10 +120,10 @@ Süreler saniye cinsindendir (`ders_sn`).
 ## Gizlilik
 
 - Web sunucusu yalnızca bu bilgisayardan erişilebilir; uygulama internete hiçbir şey göndermez.
-- Pencere başlıkları ve uygulama adları yalnızca `data/ders_takip.db` dosyasında saklanır.
+- Pencere başlıkları ve uygulama adları yalnızca `data/heatmap.db` dosyasında saklanır.
 - `data/` klasörü ve `config/config.toml` `.gitignore` içindedir; depoya girmez.
 - Kamera modülü geliştirildiğinde de görüntü kaydedilmeyecek ve gönderilmeyecek; yalnızca
-  “yüz var / yok” gibi sonuçlar tutulacak. Kurallar `ders_takip/dedektorler/kamera.py` başında yazılıdır.
+  “yüz var / yok” gibi sonuçlar tutulacak. Kurallar `heatmap/dedektorler/kamera.py` başında yazılıdır.
 
 ## Proje yapısı
 
@@ -132,7 +132,7 @@ ders-takip/
 ├── baslat.bat                # çift tıkla başlat
 ├── config/config.ornek.toml  # varsayılan ayarlar (kişisel kopya: config.toml)
 ├── data/                     # veritabanı ve günlük dosyası (git dışı)
-├── ders_takip/
+├── heatmap/
 │   ├── main.py               # parçaları kurar ve başlatır
 │   ├── ayarlar.py            # ayar dosyasını okur
 │   ├── sinyal.py             # Sinyal ve Dedektor: modüllerin ortak dili
@@ -154,12 +154,12 @@ Kodu okumaya `sinyal.py` → `dedektorler/` → `motor.py` → `takipci.py` sır
 
 ```bat
 .venv\Scripts\python -m unittest -v
-.venv\Scripts\python -m ders_takip --tepsisiz
+.venv\Scripts\python -m heatmap --tepsisiz
 ```
 
 İkinci komut uygulamayı tepsi ikonu olmadan terminalde çalıştırır; `Ctrl+C` ile kapanır.
 
-Yeni bir tespit modülü eklemek için `ders_takip/sinyal.py` içindeki `Dedektor` sınıfından türetin,
+Yeni bir tespit modülü eklemek için `heatmap/sinyal.py` içindeki `Dedektor` sınıfından türetin,
 `oku()` metodunu yazın ve `main.py` içindeki `dedektorleri_kur()` fonksiyonuna ekleyin.
 
 ## Bilinen sınırlar

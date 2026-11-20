@@ -25,7 +25,7 @@ diyor ama anlamı "çalışma / aktif süre".
   API alan adları) kullanıcı istemeden değiştirme.
 - **Her anlamlı adımda commit** at (Türkçe, ASCII mesaj). Önce tasarımı anlat, onay al, sonra kodla.
 - Ortam: Windows 11, **Python 3.14.3**, komut **`py`** (`python` komutu yok), Git kurulu.
-- Çalıştırma: `baslat.bat` (tepsi ikonuyla) ya da `.venv\Scripts\python -m ders_takip --tepsisiz --sessiz`.
+- Çalıştırma: `baslat.bat` (tepsi ikonuyla) ya da `.venv\Scripts\python -m heatmap --tepsisiz --sessiz`.
 - Testler: `.venv\Scripts\python -m unittest` (şu an 49 test, hepsi geçiyor). pytest yok, ekleme.
 
 ### Mimari (tek süreç, üç thread)
@@ -72,7 +72,7 @@ tepsi.py (pystray, ana thread)
 - ⚠️ **Sunucu yalnızca 127.0.0.1'i dinler** ve `TrustedHostMiddleware` var. Bunu gevşetmeden önce
   kullanıcıya sor (bkz. Bölüm 4).
 - ⚠️ **`pythonw.exe` ile `sys.stdout` None olur**; `main._ciktiyi_dosyaya_yonlendir` bunu
-  `data/ders_takip.log`'a çevirir. Alt süreç başlatırken de konsolsuz çalıştığını unutma.
+  `data/heatmap.log`'a çevirir. Alt süreç başlatırken de konsolsuz çalıştığını unutma.
 - ⚠️ **`.bat` dosyaları CRLF ve ASCII olmalı** (`.gitattributes` bunu sağlar; Türkçe karakter koyma).
 - ⚠️ **Türkçe büyük/küçük harf:** `"seri".upper()` → "SERI" (yanlış). Büyük harfli etiketleri elle
   yaz. Karşılaştırmada `baslik._kucult()` kullan (İ → i).

@@ -6,8 +6,8 @@
 
 import unittest
 
-from ders_takip.motor import Durum, KararMotoru, anlik_karar
-from ders_takip.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK, Sinyal
+from heatmap.motor import Durum, KararMotoru, anlik_karar
+from heatmap.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK, Sinyal
 
 # Testlerde kullanacağımız hazır durumlar
 KOD = Durum(DERS, "Code.exe")

@@ -15,10 +15,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from ders_takip.depo import Depo, gun_araligi
-from ders_takip.kart import kart_ciz, kart_verisi
-from ders_takip.ozet import GUN_ADLARI, Adlandirici, seri_hesapla
-from ders_takip.takipci import Takipci
+from heatmap.depo import Depo, gun_araligi
+from heatmap.kart import kart_ciz, kart_verisi
+from heatmap.ozet import GUN_ADLARI, Adlandirici, seri_hesapla
+from heatmap.takipci import Takipci
 
 STATIK_KLASOR = Path(__file__).parent / "static"
 

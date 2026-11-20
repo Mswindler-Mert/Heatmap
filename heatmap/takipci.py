@@ -12,9 +12,9 @@ import threading
 import time
 from datetime import date, datetime
 
-from ders_takip.depo import Depo, gun_araligi
-from ders_takip.motor import KararMotoru, anlik_karar
-from ders_takip.sinyal import DERS, FIKRIM_YOK, Dedektor, Sinyal
+from heatmap.depo import Depo, gun_araligi
+from heatmap.motor import KararMotoru, anlik_karar
+from heatmap.sinyal import DERS, FIKRIM_YOK, Dedektor, Sinyal
 
 # İki tarama arasında bundan uzun boşluk varsa bilgisayar uyumuş demektir.
 UYKU_ESIGI_SN = 30

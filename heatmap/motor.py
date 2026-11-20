@@ -13,7 +13,7 @@ beklemeden deneyebiliyoruz.
 
 from dataclasses import dataclass
 
-from ders_takip.sinyal import BELIRSIZ, DERS, DERS_DEGIL, DEVAM, FIKRIM_YOK, Sinyal
+from heatmap.sinyal import BELIRSIZ, DERS, DERS_DEGIL, DEVAM, FIKRIM_YOK, Sinyal
 
 
 @dataclass(frozen=True)

@@ -11,8 +11,8 @@ import webbrowser
 import pystray
 from PIL import Image, ImageDraw
 
-from ders_takip.ayarlar import KISISEL_DOSYA
-from ders_takip.takipci import Takipci
+from heatmap.ayarlar import KISISEL_DOSYA
+from heatmap.takipci import Takipci
 
 YESIL = (62, 207, 142)
 SARI = (245, 183, 79)

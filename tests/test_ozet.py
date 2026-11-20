@@ -5,9 +5,9 @@ import tempfile
 import unittest
 from datetime import date, datetime, timedelta
 
-from ders_takip.depo import Depo
-from ders_takip.motor import Durum
-from ders_takip.ozet import BILGISAYAR_DISI, DIGER_WEB, Adlandirici, seri_hesapla
+from heatmap.depo import Depo
+from heatmap.motor import Durum
+from heatmap.ozet import BILGISAYAR_DISI, DIGER_WEB, Adlandirici, seri_hesapla
 
 AYARLAR = {
     "adlar": {"Code.exe": "VS Code", "POWERPNT.EXE": "PowerPoint"},

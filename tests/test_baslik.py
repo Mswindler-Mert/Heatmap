@@ -2,9 +2,9 @@
 
 import unittest
 
-from ders_takip.dedektorler.baslik import BaslikDedektoru, basligi_temizle, kelime_gecer_mi
-from ders_takip.dedektorler.pencere import PencereDedektoru
-from ders_takip.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK
+from heatmap.dedektorler.baslik import BaslikDedektoru, basligi_temizle, kelime_gecer_mi
+from heatmap.dedektorler.pencere import PencereDedektoru
+from heatmap.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK
 
 AYARLAR = {
     "pencere": {

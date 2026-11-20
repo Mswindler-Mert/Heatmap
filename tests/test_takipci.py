@@ -4,13 +4,13 @@ import os
 import tempfile
 import unittest
 
-from ders_takip.dedektorler.baslik import BaslikDedektoru
-from ders_takip.dedektorler.bosta import BostaDedektoru
-from ders_takip.dedektorler.pencere import PencereDedektoru
-from ders_takip.depo import Depo
-from ders_takip.motor import KararMotoru
-from ders_takip.ozet import Adlandirici
-from ders_takip.takipci import Takipci
+from heatmap.dedektorler.baslik import BaslikDedektoru
+from heatmap.dedektorler.bosta import BostaDedektoru
+from heatmap.dedektorler.pencere import PencereDedektoru
+from heatmap.depo import Depo
+from heatmap.motor import KararMotoru
+from heatmap.ozet import Adlandirici
+from heatmap.takipci import Takipci
 
 AYARLAR = {
     "genel": {"tarama_araligi_sn": 1},

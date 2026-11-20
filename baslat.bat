@@ -27,4 +27,4 @@ if not exist ".venv\Scripts\pythonw.exe" (
 
 rem pythonw.exe = konsol penceresi acmadan calistirir.
 rem "start" sayesinde bu pencere hemen kapanir, program arka planda devam eder.
-start "" ".venv\Scripts\pythonw.exe" -m ders_takip
+start "" ".venv\Scripts\pythonw.exe" -m heatmap

@@ -9,10 +9,10 @@ from datetime import date, datetime, timedelta
 
 from PIL import Image
 
-from ders_takip.depo import Depo
-from ders_takip.kart import kart_ciz, kart_verisi
-from ders_takip.motor import Durum
-from ders_takip.ozet import Adlandirici
+from heatmap.depo import Depo
+from heatmap.kart import kart_ciz, kart_verisi
+from heatmap.motor import Durum
+from heatmap.ozet import Adlandirici
 
 AYARLAR = {
     "adlar": {"Code.exe": "VS Code"},

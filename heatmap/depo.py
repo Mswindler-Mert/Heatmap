@@ -19,8 +19,8 @@ from contextlib import contextmanager
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from ders_takip.motor import Durum
-from ders_takip.sinyal import BELIRSIZ, DERS
+from heatmap.motor import Durum
+from heatmap.sinyal import BELIRSIZ, DERS
 
 _SEMA = """
 CREATE TABLE IF NOT EXISTS oturumlar (

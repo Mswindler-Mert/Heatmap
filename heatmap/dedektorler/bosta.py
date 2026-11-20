@@ -5,7 +5,7 @@ boşta olmak sorun değil" kuralı burada DEĞİL, karar motorundadır; çünkü
 o kural iki modülün bilgisini birleştirmeyi gerektirir.
 """
 
-from ders_takip.sinyal import DERS_DEGIL, FIKRIM_YOK, Dedektor, Sinyal
+from heatmap.sinyal import DERS_DEGIL, FIKRIM_YOK, Dedektor, Sinyal
 
 
 class BostaDedektoru(Dedektor):
@@ -16,7 +16,7 @@ class BostaDedektoru(Dedektor):
         self.esik_sn = bolum["esik_sn"]
         self.video_esik_sn = bolum["video_esik_sn"]
         if okuyucu is None:
-            from ders_takip.windows_api import bosta_suresini_oku as okuyucu
+            from heatmap.windows_api import bosta_suresini_oku as okuyucu
         self.okuyucu = okuyucu
 
     def oku(self, onceki: dict[str, Sinyal]) -> Sinyal:

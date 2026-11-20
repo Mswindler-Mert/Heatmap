@@ -12,7 +12,7 @@ import shutil
 import tomllib  # TOML okuyucu, Python 3.11'den beri standart kütüphanede
 from pathlib import Path
 
-# Proje kök klasörü: bu dosyanın (ders_takip/ayarlar.py) iki üstü.
+# Proje kök klasörü: bu dosyanın (heatmap/ayarlar.py) iki üstü.
 KOK = Path(__file__).resolve().parent.parent
 CONFIG_KLASORU = KOK / "config"
 VERI_KLASORU = KOK / "data"

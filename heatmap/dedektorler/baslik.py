@@ -12,7 +12,7 @@ Bu modül başlığı temizler ve şu sırayla karar verir:
 
 import re
 
-from ders_takip.sinyal import BELIRSIZ, DERS, DERS_DEGIL, DEVAM, FIKRIM_YOK, Dedektor, Sinyal
+from heatmap.sinyal import BELIRSIZ, DERS, DERS_DEGIL, DEVAM, FIKRIM_YOK, Dedektor, Sinyal
 
 # Başlığın sonundaki " - Google Chrome" gibi tarayıcı adını yakalar.
 # (Edge, adının içine görünmez bir karakter koyduğu için "Microsoft.{0,3}Edge".)

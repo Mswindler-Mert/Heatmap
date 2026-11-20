@@ -22,8 +22,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from ders_takip.depo import Depo, gun_araligi
-from ders_takip.ozet import GUN_ADLARI, Adlandirici, seri_hesapla
+from heatmap.depo import Depo, gun_araligi
+from heatmap.ozet import GUN_ADLARI, Adlandirici, seri_hesapla
 
 GENISLIK, YUKSEKLIK = 1080, 1920
 KENAR = 84                     # Sağ/sol boşluk

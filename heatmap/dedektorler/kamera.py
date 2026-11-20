@@ -18,7 +18,7 @@ Geliştirme planı SONRAKI_ADIMLAR.md dosyasında.
 
 from dataclasses import dataclass
 
-from ders_takip.sinyal import DERS_DEGIL, FIKRIM_YOK, Dedektor, Sinyal
+from heatmap.sinyal import DERS_DEGIL, FIKRIM_YOK, Dedektor, Sinyal
 
 
 @dataclass

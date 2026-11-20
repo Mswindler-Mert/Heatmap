@@ -1,9 +1,9 @@
 """Programın giriş noktası: bütün parçaları kurar ve birbirine bağlar.
 
 Çalıştırma:
-    py -m ders_takip              -> tepsi ikonuyla (normal kullanım)
-    py -m ders_takip --tepsisiz   -> tepsi ikonu olmadan; terminalde Ctrl+C ile kapanır
-    py -m ders_takip --sessiz     -> açılışta tarayıcıyı açma
+    py -m heatmap              -> tepsi ikonuyla (normal kullanım)
+    py -m heatmap --tepsisiz   -> tepsi ikonu olmadan; terminalde Ctrl+C ile kapanır
+    py -m heatmap --sessiz     -> açılışta tarayıcıyı açma
 """
 
 import socket
@@ -11,31 +11,54 @@ import sys
 import threading
 import time
 import webbrowser
+from pathlib import Path
 
 import uvicorn
 
-from ders_takip.ayarlar import VERI_KLASORU, ayarlari_yukle
-from ders_takip.dedektorler.baslik import BaslikDedektoru
-from ders_takip.dedektorler.bosta import BostaDedektoru
-from ders_takip.dedektorler.kamera import KameraDedektoru
-from ders_takip.dedektorler.pencere import PencereDedektoru
-from ders_takip.depo import Depo
-from ders_takip.motor import KararMotoru
-from ders_takip.takipci import Takipci
-from ders_takip.web.api import uygulama_olustur
+from heatmap.ayarlar import VERI_KLASORU, ayarlari_yukle
+from heatmap.dedektorler.baslik import BaslikDedektoru
+from heatmap.dedektorler.bosta import BostaDedektoru
+from heatmap.dedektorler.kamera import KameraDedektoru
+from heatmap.dedektorler.pencere import PencereDedektoru
+from heatmap.depo import Depo
+from heatmap.motor import KararMotoru
+from heatmap.takipci import Takipci
+from heatmap.web.api import uygulama_olustur
 
 
 def _ciktiyi_dosyaya_yonlendir() -> None:
     """Konsolsuz (pythonw.exe ile) çalışırken print çıktıları kaybolmasın, dosyaya gitsin."""
     if sys.stdout is not None:
         return  # Normal terminalde çalışıyoruz, dokunma
-    gunluk = VERI_KLASORU / "ders_takip.log"
+    gunluk = VERI_KLASORU / "heatmap.log"
     # Dosya çok büyüdüyse baştan başla.
     if gunluk.exists() and gunluk.stat().st_size > 1_000_000:
         gunluk.unlink()
     dosya = open(gunluk, "a", encoding="utf-8", buffering=1)
     sys.stdout = dosya
     sys.stderr = dosya
+
+
+VERITABANI_ADI = "heatmap.db"
+ESKI_VERITABANI_ADI = "ders_takip.db"  # Proje "Ders Takip" adındayken kullanılan dosya
+
+
+def eski_veritabanini_tasi(klasor: Path) -> bool:
+    """Proje adı değişmeden önceki veritabanını (ders_takip.db) yeni adına taşır.
+
+    Sadece yeni dosya henüz YOKSA taşır; böylece hiçbir veri üzerine yazılmaz.
+    SQLite'ın yan dosyaları (-wal, -shm, -journal) varsa onlar da birlikte taşınır.
+    Taşıma yapıldıysa True döndürür.
+    """
+    eski = klasor / ESKI_VERITABANI_ADI
+    yeni = klasor / VERITABANI_ADI
+    if not eski.exists() or yeni.exists():
+        return False
+    for ek in ("", "-wal", "-shm", "-journal"):
+        eski_dosya = klasor / (ESKI_VERITABANI_ADI + ek)
+        if eski_dosya.exists():
+            eski_dosya.rename(klasor / (VERITABANI_ADI + ek))
+    return True
 
 
 def _port_dolu_mu(port: int) -> bool:
@@ -73,12 +96,20 @@ def main() -> None:
 
     # Program zaten açıksa ikincisini başlatma, sadece arayüzü göster.
     if _port_dolu_mu(port):
-        print("Ders Takip zaten çalışıyor, arayüz açılıyor.")
+        print("Heatmap zaten çalışıyor, arayüz açılıyor.")
         webbrowser.open(adres)
         return
 
+    # Eski adla biriken veriyi koru. (Eski sürüm hâlâ açıkken buraya gelinmez:
+    # port dolu olduğu için yukarıda çıkılır, yani dosya kullanımdayken taşınmaz.)
+    try:
+        if eski_veritabanini_tasi(VERI_KLASORU):
+            print(f"Eski veritabanı {ESKI_VERITABANI_ADI} -> {VERITABANI_ADI} olarak taşındı.", flush=True)
+    except OSError as hata:
+        print(f"UYARI: eski veritabanı taşınamadı ({hata}); yeni bir veritabanıyla devam ediliyor.", flush=True)
+
     # --- Parçaları kur ---
-    depo = Depo(VERI_KLASORU / "ders_takip.db")
+    depo = Depo(VERI_KLASORU / VERITABANI_ADI)
     motor = KararMotoru(ayarlar["tolerans"]["baslatma_sn"], ayarlar["tolerans"]["durdurma_sn"])
     takipci = Takipci(ayarlar, depo, dedektorleri_kur(ayarlar, depo), motor)
     takipci.baslat()
@@ -101,7 +132,7 @@ def main() -> None:
             while True:
                 time.sleep(1)
         else:
-            from ders_takip.tepsi import Tepsi  # pystray'i sadece gerekince yükle
+            from heatmap.tepsi import Tepsi  # pystray'i sadece gerekince yükle
             Tepsi(takipci, adres).calistir()
     except KeyboardInterrupt:
         pass
