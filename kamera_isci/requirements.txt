@@ -1,0 +1,4 @@
+# Kamera işçisinin paketleri (ana uygulamanınkinden AYRI; kamera_kur.bat kurar).
+# MediaPipe yeni Python sürümlerini geç destekler; bu yüzden işçi kendi ortamında çalışır.
+opencv-python
+mediapipe

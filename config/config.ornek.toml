@@ -217,7 +217,18 @@ esik_sn = 120          # Bu kadar süre klavye/fare kullanılmazsa "bilgisayar b
 video_esik_sn = 1800   # Video izlerken eşik (30 dk). Ders videosunda fareye dokunmazsın.
 
 # ---------------------------------------------------------------------
-#  Modül 4 - Kamera (şimdilik sadece iskelet, kapalı kalsın)
+#  Modül 4 - Kamera (isteğe bağlı; kurulum: kamera_isci/README.md)
+#  Görüntü ASLA kaydedilmez/gönderilmez; yalnızca "yüz var mı, kafa açısı" sonucu kullanılır.
 # ---------------------------------------------------------------------
 [kamera]
-etkin = false
+etkin = false              # Kurulumdan sonra true yap
+kare_araligi_sn = 2        # Kaç saniyede bir kare analiz edilsin
+kamera_no = 0              # Birden çok kamera varsa 1, 2...
+model = "modeller/face_landmarker.task"
+python = ""                # Boşsa .venv-kamera kullanılır (kamera_kur.bat kurar)
+yuz_yok_esik_sn = 30       # Yüz bu kadar görünmezse (ve klavye/fare boştaysa) sayaç durur
+telefon_esik_sn = 20       # Telefon bu kadar görülürse sayaç durur
+not_alma_esik_sn = 600     # Klavye boşken kafa bu kadar aşağıdaysa süre "belirsiz" olur
+ekran_pitch = 0.0          # Kalibrasyon: ekrana normal bakarkenki açı (Kamera satırında görünür)
+asagi_fark_derece = 18     # ekran_pitch'ten bu kadar aşağısı "aşağı bakıyor"
+sahte_senaryo = ""         # Kamerasız deneme: "masada", "yok", "not_aliyor", "telefon"

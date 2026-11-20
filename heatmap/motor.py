@@ -41,7 +41,14 @@ class Gecis:
 #  1. AŞAMA - Anlık karar
 # =====================================================================
 def anlik_karar(sinyaller: dict[str, Sinyal]) -> Durum:
-    """Dedektör sinyallerini birleştirip şu anki (toleranssız) durumu döndürür."""
+    """Dedektör sinyallerini birleştirip şu anki (toleranssız) durumu döndürür.
+
+    Kural sırası:
+      1. Kamera vetosu (telefon / masada değil)
+      2. Boşta kalma (kamera "masada" diyorsa ya da video oynuyorsa muaf)
+      3. Ekrandaki içerik (sekme başlığı ya da uygulama)
+      4. Kamera düzeltmesi: uzun süre aşağı bakılıyorsa "çalışma" -> "belirsiz"
+    """
     pencere = sinyaller.get("pencere")
     baslik = sinyaller.get("baslik")
     bosta = sinyaller.get("bosta")
@@ -52,24 +59,43 @@ def anlik_karar(sinyaller: dict[str, Sinyal]) -> Durum:
 
     # Video izleniyor mu? (Boşta kalma kuralını yumuşatmak için lazım.)
     video = bool(baslik and baslik.detay.get("video"))
+    girdi_aktif = not (bosta and bosta.hukum == DERS_DEGIL)   # Klavye/fare yakın zamanda kullanıldı mı
+    kamera_durumu = kamera.detay.get("kamera_durumu") if kamera else None
+    masada = kamera.detay.get("masada") if kamera else None   # True / False / None (bilinmiyor)
 
-    # --- Kural 1: Bilgisayar başında değilse gerisinin önemi yok ---------
-    if bosta and bosta.hukum == DERS_DEGIL:
+    # --- Kural 1: Kamera vetosu ---------------------------------------------
+    # Telefon her zaman veto eder. "Yüz yok" ise klavye/fare kullanılıyorsa uygulanmaz:
+    # kamera kapatılmış, ışık kötü ya da yandan oturuyor olabilirsin; girdi yalan söylemez.
+    if kamera and kamera.hukum == DERS_DEGIL and not (kamera_durumu == "yok" and girdi_aktif):
+        return Durum(DERS_DEGIL, baglam="kamera", kaynak="kamera",
+                     aciklama=kamera.aciklama, uygulama=surec, baslik=ham_baslik)
+
+    # --- Kural 2: Bilgisayar başında değilse gerisinin önemi yok ---------
+    if not girdi_aktif and masada is not True:
         # İstisna: video izlerken klavye/fareye dokunmamak normaldir.
         # Ancak videonun kendi (daha uzun) eşiği de aşıldıysa istisna biter.
+        # (Kamera "masada" diyorsa bu kurala hiç girilmez: okuyor/izliyor/not alıyorsundur.)
         video_muafiyeti = video and not bosta.detay.get("video_esigi_asildi")
         if not video_muafiyeti:
             return Durum(DERS_DEGIL, baglam="bosta", kaynak="bosta",
                          aciklama=bosta.aciklama, uygulama="", baslik="Bilgisayar başında değil")
 
-    # --- Kural 2: Kamera "çalışmıyor" diyorsa (ileride) --------------------
-    # Kamera modülü şimdilik hep FIKRIM_YOK döndürdüğü için bu kural tetiklenmez.
-    if kamera and kamera.hukum == DERS_DEGIL:
-        return Durum(DERS_DEGIL, baglam="kamera", kaynak="kamera",
-                     aciklama=kamera.aciklama, uygulama=surec, baslik=ham_baslik)
-
     # --- Kural 3: Ekrandaki içerik ----------------------------------------
-    # Tarayıcıdaysak başlık dedektörü, değilsek pencere dedektörü konuşur.
+    durum = _icerik_karari(pencere, baslik, surec, ham_baslik)
+
+    # --- Kural 4: Uzun süre aşağı bakmak ----------------------------------
+    # Klavye/fare boştayken kafa uzun süredir aşağıdaysa not alıyor da olabilirsin, masa altında
+    # telefona bakıyor da. Kamera ayırt edemez: "çalışma" kararını "belirsiz"e çevir, sen karar ver.
+    if (durum.hukum == DERS and not girdi_aktif and kamera_durumu == "asagi_bakiyor"
+            and kamera.detay.get("not_alma_doldu")):
+        return Durum(BELIRSIZ, baglam=durum.baglam + "|asagi", kaynak="kamera",
+                     aciklama="Uzun süredir aşağı bakıyor: not mu alıyor, telefona mı bakıyor?",
+                     uygulama=durum.uygulama, baslik=durum.baslik, alan_adi=durum.alan_adi)
+    return durum
+
+
+def _icerik_karari(pencere, baslik, surec: str, ham_baslik: str) -> Durum:
+    """Ekranda ne var? Tarayıcıdaysak başlık dedektörü, değilsek pencere dedektörü konuşur."""
     if baslik and baslik.hukum != FIKRIM_YOK:
         temiz = baslik.detay.get("temiz_baslik", ham_baslik)
         # Bağlama başlığı da katıyoruz: farklı sekme = farklı oturum.

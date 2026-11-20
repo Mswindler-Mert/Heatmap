@@ -18,10 +18,14 @@ data/*
 # Depoda sadece config.ornek.toml bulunur.
 config/config.toml
 
+# Kamera modelleri (büyük dosyalar; kullanıcı kendisi indirir)
+modeller/
+
 # ---------------------------------------------------------------
 # Python
 # ---------------------------------------------------------------
 .venv/
+.venv-kamera/
 venv/
 env/
 __pycache__/

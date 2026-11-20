@@ -107,6 +107,16 @@ Microsoft Store'daki ücretsiz **Lively Wallpaper**: yeni duvar kâğıdı ekler
 `http://127.0.0.1:8765/dashboard` yaz. Panel sağda durur, sol taraf masaüstü simgelerine kalır.
 Zemini saydam istersen adresin sonuna `?saydam=1` ekle.
 
+## Kamera modülü (isteğe bağlı, deneysel)
+
+Kamera açıkken Heatmap, masada olup olmadığını anlar: kitap okurken ya da video izlerken klavyeye
+dokunmasan da sayaç durmaz; masadan kalkınca durur; kafan uzun süre aşağıdaysa (not mu alıyorsun,
+telefona mı bakıyorsun?) o süreyi "belirsiz" yapıp karar vermeyi sana bırakır. **Görüntü hiçbir
+zaman kaydedilmez ya da gönderilmez.** Kamera analizi ayrı bir süreçte, kendi Python ortamında
+çalışır. Kurulum ve kalibrasyon: [kamera_isci/README.md](kamera_isci/README.md).
+
+> Ana uygulama tarafı test edildi; gerçek kamera + MediaPipe kısmı henüz gerçek bir kamerayla denenmedi.
+
 ## Ayarlar
 
 İlk açılışta `config/config.ornek.toml` dosyası `config/config.toml` adıyla kopyalanır.
@@ -123,7 +133,7 @@ sonra uygulamayı yeniden başlatın.
 | `[siteler]` | Site adı → sekme başlığında aranan kelimeler ve alan adları; tanınmayanlar "Diğer web" olur |
 | `[tarayici]` | Tarayıcı eklentisi modülü |
 | `[hedef]` | Günlük hedef (dakika); seri hesabında kullanılır |
-| `[kamera]` | Kamera modülü (henüz geliştirilmedi) |
+| `[kamera]` | Kamera modülü: eşik süreleri, kalibrasyon, kamerasız deneme senaryosu |
 
 Her modül `etkin = false` ile kapatılabilir.
 
@@ -162,8 +172,9 @@ Süreler saniye cinsindendir (`ders_sn`).
   Heatmap'e gönderir; adresin tamamı ve sayfa içeriği gönderilmez.
 - Pencere başlıkları ve uygulama adları yalnızca `data/heatmap.db` dosyasında saklanır.
 - `data/` klasörü ve `config/config.toml` `.gitignore` içindedir; depoya girmez.
-- Kamera modülü geliştirildiğinde de görüntü kaydedilmeyecek ve gönderilmeyecek; yalnızca
-  “yüz var / yok” gibi sonuçlar tutulacak. Kurallar `heatmap/dedektorler/kamera.py` başında yazılıdır.
+- Kamera modülü görüntüyü kaydetmez ve göndermez; kare analizden hemen sonra silinir ve ana
+  uygulamaya yalnızca "yüz var / yok, kafa açısı" gibi sonuçlar gider. Bir test, kamera işçisinin
+  kodunda kare kaydetme ya da ağ kodu bulunmadığını her çalıştırmada denetler.
 
 ## Proje yapısı
 
@@ -173,6 +184,7 @@ Heatmap/
 ├── config/config.ornek.toml  # varsayılan ayarlar (kişisel kopya: config.toml)
 ├── data/                     # veritabanı ve günlük dosyası (git dışı)
 ├── eklenti/                  # Brave/Chrome eklentisi (site adı + ses durumu)
+├── kamera_isci/              # kamera analizi (ayrı süreç; MediaPipe)
 ├── heatmap/
 │   ├── main.py               # parçaları kurar ve başlatır
 │   ├── ayarlar.py            # ayar dosyasını okur

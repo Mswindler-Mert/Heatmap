@@ -82,11 +82,32 @@ tepsi.py (pystray, ana thread)
 
 ---
 
-## 1. Kamera modülü 🔲
+## 1. Kamera modülü 🟡 (yarısı yapıldı)
 
-Şu an: `dedektorler/kamera.py` yalnızca iskelet; kameraya dokunmaz, hep `FIKRIM_YOK` döner.
-Ayarda `[kamera] etkin = false`. Motor tarafında yalnızca basit bir veto kuralı ve bir test var
-(`tests/test_motor.py::test_kamera_vetosu`).
+**Yapılanlar (1.8'deki 1. ve 2. adım + işçinin ilk sürümü):**
+
+- `kamera_isci/isci.py`: sözleşmedeki JSON'u yazan işçi. `--sahte <senaryo>` modu kamera ve
+  MediaPipe olmadan çalışır (testler bunu kullanır). Gerçek mod: OpenCV + MediaPipe Face Landmarker,
+  yüz var/yok ve dönüşüm matrisinden pitch/yaw. ❓ **Gerçek kamerayla HİÇ çalıştırılmadı**: MediaPipe
+  API adları, açı formülü (`_acilar`) ve işareti ilk denemede doğrulanmalı. Telefon nesne tespiti
+  (1.4-B) yok; `telefon_var` gerçek modda hep `null`.
+- `dedektorler/kamera.py`: `IsciSureci` (alt süreç, CREATE_NO_WINDOW, satır okuyan thread, 5→300 sn
+  artan yeniden başlatma, kapanışta terminate + boru kapatma) ve `KameraDedektoru` (1.5'teki
+  durumlar, eşikler, `masada`, `not_alma_doldu`, bayat veri 10 sn).
+- `motor.anlik_karar()`: 1.5'teki kural sırası uygulandı (veto → boşta + masada muafiyeti →
+  içerik → uzun aşağı bakma = BELIRSIZ). `_icerik_karari()` ayrı fonksiyona alındı.
+- `tests/test_kamera.py`: dedektör eşikleri, karar tablosunun her satırı, gerçek alt süreçle hat
+  (sahte mod), Türkçe hata mesajının borudan bozulmadan gelmesi, gizlilik taraması.
+- `kamera_kur.bat`, `kamera_isci/requirements.txt`, `kamera_isci/README.md`, `.gitignore`
+  (`.venv-kamera/`, `modeller/`), `[kamera]` ayarları (`sahte_senaryo` dahil).
+
+**Kalanlar (kullanıcının katılımı gerekir):** 🔲 Python 3.12 kurulumu (makinede yalnızca 3.14 var),
+🔲 model dosyasının indirilmesi, 🔲 gerçek kamerayla ilk çalıştırma ve açı doğrulaması,
+🔲 arayüzde kalibrasyon düğmesi (şimdilik `ekran_pitch` elle yazılıyor), 🔲 arayüz/tepside
+"kamera açık" göstergesi ve aç/kapat, 🔲 telefon nesne tespiti. ⚠️ 1.7'deki "ikili gecikme"
+tuzağı hâlâ geçerli: yüz yok eşiği (30 sn) + motor toleransı (15 sn) üst üste biniyor.
+
+Aşağıdaki tasarım metni bu kalanlar için hâlâ geçerli.
 
 ### 1.1 Gizlilik kuralları (pazarlık yok)
 
