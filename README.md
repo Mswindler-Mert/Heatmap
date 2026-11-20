@@ -51,7 +51,7 @@ kısa ayrılmalar yok sayılır; sayacın başlaması için 5 saniye kesintisiz 
 Gerekenler: Windows 10/11 ve [Python](https://www.python.org/downloads/) 3.11 veya üstü.
 
 ```bat
-git clone https://github.com/KULLANICI_ADIN/ders-takip.git
+git clone https://github.com/Mswindler-Mert/ders-takip.git
 cd ders-takip
 baslat.bat
 ```

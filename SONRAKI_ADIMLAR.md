@@ -492,7 +492,7 @@ Tuzaklar:
 - **Proje sağlığı:** lisans dosyası (yoksa "tüm hakları saklı" sayılır; kullanıcıya sor),
   GitHub Actions ile test, `ruff`, projeyi "ders"ten bağımsız bir ada taşıma.
 - **GitHub:** depo henüz yüklenmedi. Adımlar: github.com'da boş depo aç (README/.gitignore/lisans
-  ekleme) → `git remote add origin https://github.com/KULLANICI/ders-takip.git` →
+  ekleme) → `git remote add origin https://github.com/Mswindler-Mert/ders-takip.git` →
   `git push -u origin main`. Commit'lerde kullanıcının Git e-postası görünür; gizlemek isterse
   push'tan önce `noreply` adresine çevrilmeli.
 
