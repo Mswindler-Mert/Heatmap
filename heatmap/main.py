@@ -15,6 +15,7 @@ from pathlib import Path
 
 import uvicorn
 
+from heatmap import otomatik_baslatma
 from heatmap.ayarlar import VERI_KLASORU, ayarlari_yukle
 from heatmap.dedektorler.baslik import BaslikDedektoru
 from heatmap.dedektorler.bosta import BostaDedektoru
@@ -96,8 +97,10 @@ def main() -> None:
 
     # Program zaten açıksa ikincisini başlatma, sadece arayüzü göster.
     if _port_dolu_mu(port):
-        print("Heatmap zaten çalışıyor, arayüz açılıyor.")
-        webbrowser.open(adres)
+        # --sessiz ile (örn. Windows açılışında) gelindiyse tarayıcı da açma, sessizce çık.
+        if "--sessiz" not in sys.argv:
+            print("Heatmap zaten çalışıyor, arayüz açılıyor.")
+            webbrowser.open(adres)
         return
 
     # Eski adla biriken veriyi koru. (Eski sürüm hâlâ açıkken buraya gelinmez:
@@ -107,6 +110,13 @@ def main() -> None:
             print(f"Eski veritabanı {ESKI_VERITABANI_ADI} -> {VERITABANI_ADI} olarak taşındı.", flush=True)
     except OSError as hata:
         print(f"UYARI: eski veritabanı taşınamadı ({hata}); yeni bir veritabanıyla devam ediliyor.", flush=True)
+
+    # Otomatik başlatma açıksa ve proje klasörü taşındıysa kayıtlı komutu düzelt.
+    try:
+        if otomatik_baslatma.guncel_tut():
+            print("Otomatik başlatma komutu yeni klasöre göre güncellendi.", flush=True)
+    except OSError as hata:
+        print(f"UYARI: otomatik başlatma kontrol edilemedi ({hata}).", flush=True)
 
     # --- Parçaları kur ---
     depo = Depo(VERI_KLASORU / VERITABANI_ADI)

@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from heatmap import otomatik_baslatma
 from heatmap.depo import Depo, gun_araligi
 from heatmap.kart import kart_ciz, kart_verisi
 from heatmap.ozet import GUN_ADLARI, Adlandirici, seri_hesapla
@@ -32,6 +33,10 @@ class DuzeltmeIstegi(BaseModel):
 
 class DuraklatIstegi(BaseModel):
     duraklat: bool
+
+
+class OtomatikBaslatmaIstegi(BaseModel):
+    acik: bool
 
 
 def _saat(epoch: float) -> str:
@@ -204,6 +209,16 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict) -> FastAPI:
         """Takibi elle duraklat / devam ettir."""
         takipci.duraklat(istek.duraklat)
         return {"duraklatildi": takipci.duraklatildi}
+
+    @app.get("/api/otomatik-baslatma")
+    def otomatik_baslatma_durumu():
+        """Windows açılışında otomatik başlatma açık mı?"""
+        return {"acik": otomatik_baslatma.acik_mi()}
+
+    @app.post("/api/otomatik-baslatma")
+    def otomatik_baslatma_ayarla(istek: OtomatikBaslatmaIstegi):
+        """Windows açılışında otomatik başlatmayı açar/kapatır (kullanıcının kayıt defteri)."""
+        return {"acik": otomatik_baslatma.ayarla(istek.acik)}
 
     # ------------------------------------------------------------------
     #  Arayüz (HTML/CSS/JS dosyaları)

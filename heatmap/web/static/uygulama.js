@@ -318,6 +318,13 @@ $("tarih").addEventListener("change", () => oturumlariYenile(true));
 $("filtre").addEventListener("change", () => oturumlariYenile(true));
 $("dokum-aralik").addEventListener("change", dokumuYenile);
 $("kart-olustur").addEventListener("click", kartiOlustur);
+
+// Windows açılışında otomatik başlatma (gerçek durum kayıt defterinden okunur)
+api("/api/otomatik-baslatma").then((d) => { $("otomatik-baslatma").checked = d.acik; }).catch(() => {});
+$("otomatik-baslatma").addEventListener("change", async (olay) => {
+  const d = await apiGonder("/api/otomatik-baslatma", "POST", { acik: olay.target.checked });
+  olay.target.checked = d.acik;  // İşlem başarısız olduysa kutu gerçek durumu göstersin
+});
 $("onceki-gun").addEventListener("click", () => gunKaydir(-1));
 $("sonraki-gun").addEventListener("click", () => gunKaydir(1));
 $("duraklat-dugme").addEventListener("click", async () => {

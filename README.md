@@ -65,7 +65,11 @@ ve paketleri yükler; sonraki açılışlarda doğrudan başlatır.
 - Uygulama açılınca saatin yanında (sistem tepsisinde) bir ikon belirir ve tarayıcıda arayüz açılır:
   <http://127.0.0.1:8765>
 - İkon rengi: **yeşil** = sayaç çalışıyor, **sarı** = belirsiz, **gri** = sayaç durdu.
-- İkona sağ tıklayınca: arayüzü aç, takibi duraklat, ayar dosyasını aç, çıkış.
+- İkona sağ tıklayınca: arayüzü aç, takibi duraklat, ayar dosyasını aç, Windows açılışında başlat, çıkış.
+- **Windows açılışında başlat:** arayüzün sağ üstündeki kutudan ya da tepsi menüsünden açılır.
+  Açıkken bilgisayarı her açtığında Heatmap tarayıcı açmadan arka planda başlar, böylece takibi
+  başlatmayı unuttuğun günler kaybolmaz. Ayar, kullanıcı hesabının kayıt defterine (`Run` anahtarı)
+  yazılır ve Görev Yöneticisi > Başlangıç uygulamaları altında da görünür.
 
 Arayüzde altı bölüm vardır:
 

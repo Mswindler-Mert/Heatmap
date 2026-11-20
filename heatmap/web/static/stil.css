@@ -29,7 +29,9 @@ h2 { font-size: 16px; margin: 0; }
 
 .ust, main, footer { max-width: 980px; margin: 0 auto; padding: 0 16px; }
 .ust { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; padding-bottom: 12px; }
-.ust-sag { display: flex; align-items: center; gap: 12px; }
+.ust-sag { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.anahtar { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--soluk); cursor: pointer; }
+.anahtar input { accent-color: var(--yesil); width: 16px; height: 16px; }
 footer { padding-top: 8px; padding-bottom: 32px; text-align: center; }
 
 .kart {

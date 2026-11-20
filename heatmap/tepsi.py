@@ -1,7 +1,8 @@
 """Sistem tepsisi (saatin yanındaki) ikonu.
 
 İkon yeşilse sayaç çalışıyor, sarıysa durum belirsiz, griyse sayaç durmuş.
-Sağ tık menüsü: arayüzü aç, takibi duraklat, ayar dosyasını aç, çıkış.
+Sağ tık menüsü: arayüzü aç, takibi duraklat, ayar dosyasını aç,
+Windows açılışında başlat (aç/kapat), çıkış.
 """
 
 import subprocess
@@ -11,6 +12,7 @@ import webbrowser
 import pystray
 from PIL import Image, ImageDraw
 
+from heatmap import otomatik_baslatma
 from heatmap.ayarlar import KISISEL_DOSYA
 from heatmap.takipci import Takipci
 
@@ -41,6 +43,9 @@ class Tepsi:
             pystray.MenuItem("Takibi duraklat", self._duraklat_degistir,
                              checked=lambda oge: self.takipci.duraklatildi),
             pystray.MenuItem("Ayar dosyasını aç", self._ayarlari_ac),
+            # İşaret, kayıt defterindeki gerçek duruma göre her menü açılışında yeniden okunur.
+            pystray.MenuItem("Windows açılışında başlat", self._otomatik_baslatma_degistir,
+                             checked=lambda oge: otomatik_baslatma.acik_mi()),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Çıkış", self._cikis),
         )
@@ -55,6 +60,9 @@ class Tepsi:
 
     def _ayarlari_ac(self, ikon=None, oge=None):
         subprocess.Popen(["notepad.exe", str(KISISEL_DOSYA)])
+
+    def _otomatik_baslatma_degistir(self, ikon=None, oge=None):
+        otomatik_baslatma.ayarla(not otomatik_baslatma.acik_mi())
 
     def _cikis(self, ikon=None, oge=None):
         self._calisiyor = False
