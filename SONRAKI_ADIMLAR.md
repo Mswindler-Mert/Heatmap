@@ -301,8 +301,9 @@ Dosyalar: `ozet.py`, `depo.py` (`uygulama_dokumu`), `dedektorler/baslik.py` (`so
   `oturumlar.alan_adi` sütununa kaydedilir (eski DB'lere `Depo._semayi_guncelle` ekler);
   `Adlandirici` alan adını `[siteler]`'deki noktalı öğelerle eşler, eşleşmezse alan adını gösterir.
   Eklenti `host_permissions` ile istek attığı için CORS gerekmez.
+  Öğrenilen kural türü "alan" ✅: düzeltme ekranında "<site> sitesini hep böyle say" kutusu
+  (varsayılan kapalı); `baslik.siniflandir` içinde ayar listelerinden önce uygulanır.
   Kalanlar: 🔲 YouTube kanal adı (içerik betiği gerekir; ⚠️ yeni izin ister, gizliliği düşün),
-  🔲 öğrenilen kural türü "alan" (düzeltme ekranından "bu siteyi hep çalışma say"),
   🔲 eklentinin portu sabit (8765); ayardan değişirse eklentide de değişmeli,
   🔲 eklenti gerçek Brave'de kullanıcı tarafından denenmedi (yalnızca sunucu tarafı test edildi).
 - ✅ **Sahte istek koruması:** `api.py` içindeki ara katman, `GET/HEAD/OPTIONS` dışındaki her
@@ -394,6 +395,14 @@ Dosyalar: `kart.py`, `ozet.py` (`seri_hesapla`, `GUN_ADLARI`), `web/api.py` (`/a
 ## 4. Windows arka plan dashboard'u ve Health Connect 🔲
 
 ### 4.1 Windows arka plan dashboard'u
+
+> ✅ **İlk sürüm yapıldı:** `GET /dashboard` (`web/static/dashboard.html`, tek dosya, kendi CSS/JS'i)
+> ve başlıksız özet ucu `GET /api/dashboard` (`simdiki` alanı `Adlandirici.etiket` ile okunabilir
+> ada çevrilir). Sayfa başlığı "Takip Paneli · Masaüstü" olduğu için `yok_sayilan_basliklar`
+> kuralına takılır. 5 sn'de bir yeniler; Heatmap kapalıysa "Heatmap kapalı" yazar. `?saydam=1`.
+> Kalanlar: 🔲 Lively Wallpaper ile gerçek masaüstünde denenmedi (❓ duvar kâğıdı sürecinin ön plan
+> penceresi sayılıp sayılmadığı hâlâ doğrulanmalı), 🔲 Rainmeter görünümü, 🔲 çoklu monitörde konum
+> ayarı. Aşağıdaki plan, bu kalanlar için hâlâ geçerli.
 
 Hedef: masaüstü arka planında bugünkü süre, sayaç durumu, haftalık grafik ve seri.
 

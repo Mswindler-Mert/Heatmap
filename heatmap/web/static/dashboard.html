@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- "Takip Paneli" ile başlıyor: bu sayfa önde olsa bile sayacı etkilemez
+       (ayar dosyasındaki yok_sayilan_basliklar). -->
+  <title>Takip Paneli · Masaüstü</title>
+  <style>
+    /* Masaüstü dashboard'u: duvar kâğıdı aracında tam ekran açılmak için tasarlandı.
+       Panel sağ tarafta durur; sol taraf masaüstü simgeleri için boş kalır. */
+    :root {
+      --zemin: #0b0e13;
+      --panel: rgba(23, 27, 35, .72);
+      --cizgi: rgba(255, 255, 255, .08);
+      --yazi: #e9ebf1;
+      --soluk: #8b93a7;
+      --yesil: #3ecf8e;
+      --sari: #f5b74f;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: radial-gradient(1200px 800px at 85% 10%, rgba(62, 207, 142, .10), transparent 60%),
+                  radial-gradient(900px 700px at 70% 100%, rgba(106, 165, 255, .07), transparent 60%),
+                  var(--zemin);
+      color: var(--yazi);
+      font: 15px/1.45 "Segoe UI", system-ui, sans-serif;
+      overflow: hidden;
+      display: flex; justify-content: flex-end; align-items: center;
+      padding: 4vh 4vw;
+    }
+    body.saydam { background: transparent; }
+
+    .panel {
+      width: min(460px, 92vw);
+      background: var(--panel);
+      border: 1px solid var(--cizgi);
+      border-radius: 22px;
+      padding: 26px 28px;
+      backdrop-filter: blur(14px);
+      display: grid; gap: 22px;
+    }
+    .ust { display: flex; align-items: center; justify-content: space-between; }
+    .marka { display: flex; align-items: center; gap: 10px; letter-spacing: .18em; font-size: 12px; font-weight: 600; }
+    .halka { width: 16px; height: 16px; border-radius: 50%; background: var(--yesil); position: relative; }
+    .halka::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--zemin); }
+    .durum { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--soluk); }
+    .nokta { width: 9px; height: 9px; border-radius: 50%; background: var(--soluk); }
+    .nokta.calisiyor { background: var(--yesil); box-shadow: 0 0 12px var(--yesil); animation: nabiz 2s infinite; }
+    .nokta.belirsiz { background: var(--sari); }
+    @keyframes nabiz { 50% { opacity: .45; } }
+
+    .etiket { color: var(--soluk); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+    .sure { font-size: 64px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; margin-top: 6px; }
+    .sure small { font-size: 24px; color: var(--soluk); font-weight: 600; margin: 0 10px 0 4px; }
+    .simdiki { color: var(--soluk); margin-top: 8px; min-height: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .hedef-ray { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .07); overflow: hidden; margin-top: 10px; }
+    .hedef-dolgu { height: 100%; background: var(--yesil); border-radius: 4px; width: 0; transition: width .6s; }
+    .hedef-alt { display: flex; justify-content: space-between; font-size: 12px; color: var(--soluk); margin-top: 6px; }
+
+    .hafta { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 96px; margin-top: 10px; }
+    .gun { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; }
+    .cubuk { width: 100%; min-height: 3px; border-radius: 5px 5px 2px 2px; background: rgba(255, 255, 255, .13); }
+    .gun.bugun .cubuk { background: var(--yesil); }
+    .gun span { font-size: 11px; color: var(--soluk); }
+    .gun.bugun span { color: var(--yazi); font-weight: 600; }
+
+    .isi { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 3px; margin-top: 10px; }
+    .isi i { aspect-ratio: 1; border-radius: 3px; background: rgba(255, 255, 255, .06); }
+    .isi i.s1 { background: rgba(62, 207, 142, .28); }
+    .isi i.s2 { background: rgba(62, 207, 142, .5); }
+    .isi i.s3 { background: rgba(62, 207, 142, .75); }
+    .isi i.s4 { background: var(--yesil); }
+    .isi i.gelecek { background: transparent; }
+
+    .liste { display: grid; gap: 10px; margin-top: 10px; }
+    .satir { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 14px; }
+    .satir .yuzde { color: var(--soluk); font-variant-numeric: tabular-nums; }
+    .satir .ray { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .07); }
+    .satir .ray b { display: block; height: 100%; border-radius: 2px; background: var(--yesil); }
+    .bos { color: var(--soluk); font-size: 13px; }
+    .kapali { text-align: center; color: var(--soluk); }
+  </style>
+</head>
+<body>
+  <main class="panel" id="panel">
+    <div class="ust">
+      <div class="marka"><span class="halka"></span>HEATMAP</div>
+      <div class="durum"><span class="nokta" id="nokta"></span><span id="durum-yazi">bağlanıyor…</span></div>
+    </div>
+
+    <section>
+      <div class="etiket">Bugün aktif süre</div>
+      <div class="sure" id="sure">0<small>dk</small></div>
+      <div class="simdiki" id="simdiki"></div>
+      <div class="hedef-ray"><div class="hedef-dolgu" id="hedef-dolgu"></div></div>
+      <div class="hedef-alt"><span id="hedef-yazi"></span><span id="seri"></span></div>
+    </section>
+
+    <section>
+      <div class="etiket">Bu hafta</div>
+      <div class="hafta" id="hafta"></div>
+    </section>
+
+    <section>
+      <div class="etiket">Son 20 hafta</div>
+      <div class="isi" id="isi"></div>
+    </section>
+
+    <section>
+      <div class="etiket">Bugün en çok</div>
+      <div class="liste" id="liste"></div>
+    </section>
+  </main>
+
+  <script>
+    // Bu sayfa yalnızca /api/dashboard ucunu okur; o uç pencere başlığı döndürmez.
+    // Metinler her zaman textContent ile yazılır (innerHTML kullanılmaz).
+    const $ = (id) => document.getElementById(id);
+    if (new URLSearchParams(location.search).get("saydam") === "1") document.body.classList.add("saydam");
+
+    const DURUM_YAZI = { calisiyor: "sayaç çalışıyor", belirsiz: "belirsiz", durdu: "sayaç durdu", duraklatildi: "duraklatıldı" };
+
+    function el(etiket, sinif, metin) {
+      const e = document.createElement(etiket);
+      if (sinif) e.className = sinif;
+      if (metin !== undefined) e.textContent = metin;
+      return e;
+    }
+
+    function sureBicimi(sn) {
+      const dk = Math.floor(sn / 60);
+      return dk < 60 ? `${dk} dk` : `${Math.floor(dk / 60)} sa ${dk % 60} dk`;
+    }
+
+    let sonVeri = null;
+
+    function ciz(v) {
+      // Büyük süre: "3 sa 12 dk" -> rakamlar büyük, birimler küçük
+      const dk = Math.floor(v.bugun_sn / 60);
+      const parcalar = dk >= 60 ? [[Math.floor(dk / 60), "sa"], [dk % 60, "dk"]] : [[dk, "dk"]];
+      $("sure").replaceChildren(...parcalar.flatMap(([sayi, birim]) => [document.createTextNode(sayi), el("small", "", birim)]));
+
+      $("nokta").className = `nokta ${v.durum}`;
+      $("durum-yazi").textContent = DURUM_YAZI[v.durum] || v.durum;
+      $("simdiki").textContent = v.simdiki ? `Şu an: ${v.simdiki}` : "";
+
+      const oran = v.hedef_sn ? Math.min(1, v.bugun_sn / v.hedef_sn) : 0;
+      $("hedef-dolgu").style.width = `${oran * 100}%`;
+      $("hedef-yazi").textContent = v.hedef_sn ? `Hedef ${sureBicimi(v.hedef_sn)} · %${Math.round(oran * 100)}` : "";
+      $("seri").textContent = v.seri_gun ? `${v.seri_gun} günlük seri` : "";
+
+      const enUzun = Math.max(3600, ...v.hafta.map((g) => g.ders_sn));
+      $("hafta").replaceChildren(...v.hafta.map((g) => {
+        const gun = el("div", g.bugun ? "gun bugun" : "gun");
+        const cubuk = el("div", "cubuk");
+        cubuk.style.height = `${(g.ders_sn / enUzun) * 100}%`;
+        gun.append(cubuk, el("span", "", g.gun_adi));
+        return gun;
+      }));
+
+      $("isi").replaceChildren(...v.isi.map((g) => el("i", `s${g.seviye}${g.gelecek ? " gelecek" : ""}`)));
+
+      $("liste").replaceChildren(...(v.en_cok.length ? v.en_cok.map((u) => {
+        const satir = el("div", "satir");
+        const ray = el("div", "ray");
+        const dolgu = el("b");
+        dolgu.style.width = `${u.oran * 100}%`;
+        ray.append(dolgu);
+        satir.append(el("span", "", u.ad), el("span", "yuzde", `${sureBicimi(u.sure_sn)} · %${Math.round(u.oran * 100)}`), ray);
+        return satir;
+      }) : [el("div", "bos", "Bugün henüz kayıt yok.")]));
+    }
+
+    async function yenile() {
+      try {
+        const yanit = await fetch("/api/dashboard", { cache: "no-store" });
+        if (!yanit.ok) throw new Error(yanit.status);
+        sonVeri = await yanit.json();
+        ciz(sonVeri);
+      } catch {
+        // Heatmap kapalı: son bilinen değerleri bırakma, açıkça "kapalı" de.
+        $("nokta").className = "nokta";
+        $("durum-yazi").textContent = "Heatmap kapalı";
+      }
+    }
+
+    yenile();
+    setInterval(yenile, 5000);  // Duvar kâğıdı sürekli açık: 5 sn yeterli ve hafif
+  </script>
+</body>
+</html>

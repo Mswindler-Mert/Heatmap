@@ -93,6 +93,18 @@ Arayüzde yedi bölüm vardır:
 (`claude.ai`, `geeksforgeeks.org`...) ve duraklatılmış bir video artık izleniyor sayılmaz.
 Adresin tamamı, başlık ya da sayfa içeriği gönderilmez. Kurulum: [eklenti/README.md](eklenti/README.md).
 
+## Masaüstü dashboard'u
+
+<http://127.0.0.1:8765/dashboard> adresi, masaüstü arka planında durması için tasarlanmış sade bir
+panel gösterir: bugünkü süre ve hedef çubuğu, sayacın durumu, bu haftanın çubukları, son 20 haftanın
+ısı haritası ve bugün en çok kullanılan üç uygulama/site. Pencere ya da sekme başlığı göstermez;
+ekran paylaşımında görünse bile yalnızca uygulama/site adları ve süreler görünür.
+
+Duvar kâğıdı yapmak için web sayfasını arka plan olarak gösterebilen bir araç gerekir, örneğin
+Microsoft Store'daki ücretsiz **Lively Wallpaper**: yeni duvar kâğıdı eklerken adres olarak
+`http://127.0.0.1:8765/dashboard` yaz. Panel sağda durur, sol taraf masaüstü simgelerine kalır.
+Zemini saydam istersen adresin sonuna `?saydam=1` ekle.
+
 ## Ayarlar
 
 İlk açılışta `config/config.ornek.toml` dosyası `config/config.toml` adıyla kopyalanır.
@@ -133,6 +145,7 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `POST /api/oturumlar/{id}/duzelt` | Oturumu düzelt (`{"hukum": "ders", "ogren": true, "kelime": null}`) |
 | `GET /api/kurallar` · `DELETE /api/kurallar/{id}` | Öğrenilen kurallar |
 | `POST /api/duraklat` | Takibi duraklat / sürdür (`{"duraklat": true}`) |
+| `GET /api/dashboard` | Masaüstü dashboard'unun tek seferlik özeti (pencere başlığı içermez) |
 | `POST /api/tarayici` | Tarayıcı eklentisinin raporu (`{"alan_adi": "youtube.com", "sesli": true, "odakta": true}`) |
 
 Veri değiştiren istekler (`POST`, `DELETE`) `X-Heatmap: 1` başlığı taşımalıdır; yoksa `403` döner.

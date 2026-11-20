@@ -128,8 +128,12 @@ class BaslikDedektoru(Dedektor):
         if hukum is not None:
             return hukum, "Öğrenilen kelime: " + ", ".join(eslesen)
 
-        # 3) Site listeleri (yalnızca eklenti site adını bildirdiyse)
+        # 3) Site kuralları (yalnızca eklenti site adını bildirdiyse):
+        #    önce senin düzeltme ekranında öğrettiğin siteler, sonra ayar dosyasındaki listeler.
         if alan_adi:
+            for kural in kurallar:
+                if kural["tur"] == "alan" and alan_eslesir_mi(alan_adi, kural["desen"]):
+                    return kural["hukum"], f"Site: {alan_adi} (senin düzeltmenden öğrenildi)"
             if any(alan_eslesir_mi(alan_adi, a) for a in self.ders_degil_alanlari):
                 return DERS_DEGIL, f"Site: {alan_adi} (çalışma dışı siteler listesinde)"
             if any(alan_eslesir_mi(alan_adi, a) for a in self.ders_alanlari):

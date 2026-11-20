@@ -30,6 +30,7 @@ class DuzeltmeIstegi(BaseModel):
     hukum: Literal["ders", "ders_degil"]
     ogren: bool = True                 # Bu uygulama/başlık için kalıcı kural da oluşturulsun mu
     kelime: str | None = Field(default=None, max_length=80)  # İsteğe bağlı anahtar kelime
+    site_ogren: bool = False           # Oturumun sitesini (eklentiden gelen alan adı) hep böyle say
 
 
 class DuraklatIstegi(BaseModel):
@@ -151,6 +152,40 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
             "uygulamalar": uygulamalar,
         }
 
+    @app.get("/api/dashboard")
+    def dashboard_verisi():
+        """Masaüstü dashboard'u için tek seferde özet. Pencere/sekme BAŞLIĞI İÇERMEZ.
+
+        Dashboard ekranda sürekli açık durduğu (ekran paylaşımında, ekran görüntülerinde
+        görünebileceği) için yalnızca okunabilir uygulama/site adları ve sayılar döner.
+        """
+        d = takipci.durum()
+        if d.get("kaynak") in ("pencere", "baslik"):
+            simdiki, _ = adlandirici.etiket({k: d.get(k) for k in ("kaynak", "uygulama", "baslik", "alan_adi")})
+        elif d.get("kaynak") == "bosta":
+            simdiki = "Bilgisayar başında değil"
+        else:
+            simdiki = ""
+        bugun = date.today()
+        bas, bit = gun_araligi(bugun)
+        dokum = depo.uygulama_dokumu(bas, bit, adlandirici.etiket)
+        toplam = sum(u["sure_sn"] for u in dokum) or 1
+        isi = isi_haritasi(depo, hedef_sn, bugun, 20)
+        return {
+            "calisiyor": d["calisiyor"],
+            "duraklatildi": d["duraklatildi"],
+            "durum": "duraklatildi" if d["duraklatildi"] else "calisiyor" if d["calisiyor"]
+                     else "belirsiz" if d.get("hukum") == "belirsiz" else "durdu",
+            "simdiki": simdiki,
+            "bugun_sn": d["bugun_ders_sn"],
+            "hedef_sn": hedef_sn,
+            "seri_gun": isi["simdiki_seri"],
+            "hafta": ozet_hafta()["gunler"],
+            "isi": [{"tarih": g["tarih"], "seviye": g["seviye"], "gelecek": g["gelecek"]} for g in isi["gunler"]],
+            "en_cok": [{"ad": u["ad"], "sure_sn": u["sure_sn"], "oran": round(u["sure_sn"] / toplam, 3)}
+                       for u in dokum[:3]],
+        }
+
     @app.get("/api/seri")
     def seri():
         """Günlük hedef ve seri: hedefe üst üste kaç gündür ulaşıldı."""
@@ -228,6 +263,10 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
             # Aynı şeye ait diğer belirsiz oturumları da tek seferde düzelt.
             benzer_sayisi = depo.benzerleri_duzelt(oturum, istek.hukum)
 
+        if istek.site_ogren and oturum.get("alan_adi"):
+            depo.kural_ekle("alan", oturum["alan_adi"], istek.hukum)
+            ogrenilenler.append({"tur": "alan", "desen": oturum["alan_adi"]})
+
         kelime = (istek.kelime or "").strip()
         if len(kelime) >= 2:
             depo.kural_ekle("kelime", kelime, istek.hukum)
@@ -271,6 +310,12 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
     @app.get("/", include_in_schema=False)
     def ana_sayfa():
         return FileResponse(STATIK_KLASOR / "index.html")
+
+    @app.get("/dashboard", include_in_schema=False)
+    def dashboard():
+        """Masaüstü dashboard'u: duvar kâğıdı aracında (örn. Lively Wallpaper) bu adres açılır.
+        ?saydam=1 eklenirse zemin saydam olur."""
+        return FileResponse(STATIK_KLASOR / "dashboard.html")
 
     app.mount("/static", StaticFiles(directory=STATIK_KLASOR), name="static")
     return app

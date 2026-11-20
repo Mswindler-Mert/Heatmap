@@ -12,7 +12,7 @@ const HUKUM_ADI = {
   devam: "yok sayılıyor",
 };
 const KAYNAK_ADI = { pencere: "Pencere", tarayici: "Tarayıcı", baslik: "Başlık", bosta: "Boşta", kamera: "Kamera", motor: "Motor" };
-const KURAL_TURU = { surec: "Uygulama", baslik: "Tam başlık", kelime: "Kelime" };
+const KURAL_TURU = { surec: "Uygulama", baslik: "Tam başlık", kelime: "Kelime", alan: "Site" };
 
 const $ = (id) => document.getElementById(id);
 
@@ -293,6 +293,7 @@ function oturumSatiri(o) {
   // Kural öğrenme sadece uygulama ve tarayıcı oturumlarında anlamlı (boşta kalma için değil).
   let ogrenKutusu = null;
   let kelimeKutusu = null;
+  let siteKutusu = null;
   if (o.kaynak === "pencere" || o.kaynak === "baslik") {
     const etiket = el("label");
     ogrenKutusu = el("input");
@@ -301,6 +302,15 @@ function oturumSatiri(o) {
     // tek seferlik bir istisna olabilir.
     ogrenKutusu.checked = o.hukum === "belirsiz";
     etiket.append(ogrenKutusu, document.createTextNode("bundan sonra da böyle say"));
+    islemler.append(etiket);
+  }
+  if (o.kaynak === "baslik" && o.alan_adi) {
+    // Eklenti site adını bildirdiyse: o sitedeki her şeyi aynı şekilde say (varsayılan kapalı;
+    // YouTube gibi sitelerde içerik videoya göre değiştiği için dikkatli kullanılmalı).
+    const etiket = el("label");
+    siteKutusu = el("input");
+    siteKutusu.type = "checkbox";
+    etiket.append(siteKutusu, document.createTextNode(`${o.alan_adi} sitesini hep böyle say`));
     islemler.append(etiket);
   }
   if (o.kaynak === "baslik") {
@@ -317,6 +327,7 @@ function oturumSatiri(o) {
       hukum,
       ogren: ogrenKutusu ? ogrenKutusu.checked : false,
       kelime: kelimeKutusu ? kelimeKutusu.value : null,
+      site_ogren: siteKutusu ? siteKutusu.checked : false,
     });
     await hepsiniYenile(true);
   };

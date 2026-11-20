@@ -90,6 +90,12 @@ class BaslikIleTesti(unittest.TestCase):
         # Eklenti yoksa eski tahmin: başlıkta "YouTube" -> video
         self.assertTrue(self.oku("ML Lecture - YouTube").detay["video"])
 
+    def test_ogrenilen_site_kurali_ayar_listesinden_once_gelir(self):
+        kurallar = [{"tur": "alan", "desen": "instagram.com", "hukum": DERS}]  # ör. ders hesabı
+        b = BaslikDedektoru(AYARLAR, kural_kaynagi=lambda: kurallar)
+        self.assertEqual(b.siniflandir("Akış", "instagram.com")[0], DERS)
+        self.assertEqual(b.siniflandir("Rastgele", "")[0], BELIRSIZ)  # site adı yoksa kural uygulanmaz
+
     def test_alan_eslesmesi_kenarlari(self):
         self.assertTrue(alan_eslesir_mi("github.com", "github.com"))
         self.assertFalse(alan_eslesir_mi("notgithub.com", "github.com"))

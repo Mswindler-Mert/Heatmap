@@ -128,6 +128,7 @@ class Takipci:
                 "aciklama": mevcut.aciklama,
                 "uygulama": mevcut.uygulama,
                 "baslik": mevcut.baslik,
+                "alan_adi": mevcut.alan_adi,
                 "oturum_id": self._oturum_id,
                 "oturum_baslangic": datetime.fromtimestamp(self._oturum_baslangic).isoformat(timespec="seconds"),
                 "oturum_suresi_sn": round(simdi - self._oturum_baslangic),
