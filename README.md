@@ -1,6 +1,7 @@
-# Ders Takip
+# Heatmap
 
-Windows'ta arka planda çalışıp **ders çalışma sürenizi kendiliğinden ölçen** yerel bir uygulama.
+Windows'ta arka planda çalışıp **bilgisayar başında aktif geçen çalışma sürenizi kendiliğinden ölçen**,
+bu sürenin hangi uygulama ve sitelerden geldiğini gösteren ve paylaşılabilir bir özet kartına çeviren yerel bir uygulama.
 Kronometre değildir: başlat/durdur düğmesine basmazsınız. Uygulama öndeki pencereye, tarayıcı
 sekmesinin başlığına ve klavye/fare hareketine bakar; sayacı kendisi başlatır ve durdurur.
 
@@ -51,8 +52,8 @@ kısa ayrılmalar yok sayılır; sayacın başlaması için 5 saniye kesintisiz 
 Gerekenler: Windows 10/11 ve [Python](https://www.python.org/downloads/) 3.11 veya üstü.
 
 ```bat
-git clone https://github.com/Mswindler-Mert/ders-takip.git
-cd ders-takip
+git clone https://github.com/Mswindler-Mert/Heatmap.git
+cd Heatmap
 baslat.bat
 ```
 
@@ -128,7 +129,7 @@ Süreler saniye cinsindendir (`ders_sn`).
 ## Proje yapısı
 
 ```
-ders-takip/
+Heatmap/
 ├── baslat.bat                # çift tıkla başlat
 ├── config/config.ornek.toml  # varsayılan ayarlar (kişisel kopya: config.toml)
 ├── data/                     # veritabanı ve günlük dosyası (git dışı)

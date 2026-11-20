@@ -190,7 +190,7 @@ def _ust_bolum(c, veri: dict) -> None:
     # Küçük logo (tepsi ikonundaki halka) + uygulama adı
     c.ellipse((KENAR, 100, KENAR + 36, 136), fill=YESIL)
     c.ellipse((KENAR + 11, 111, KENAR + 25, 125), fill=(13, 16, 22))
-    _aralikli_yazi(c, KENAR + 54, 100, "DERS TAKİP", _yazi(28, "yari"), YAZI, aralik=5)
+    _aralikli_yazi(c, KENAR + 54, 100, "HEATMAP", _yazi(28, "yari"), YAZI, aralik=5)
 
     etiket = "GÜNLÜK ÖZET" if veri["tur"] == "gunluk" else "HAFTALIK ÖZET"
     yazi = _yazi(26, "yari")
@@ -312,7 +312,7 @@ def kart_ciz(veri: dict) -> bytes:
     _kutucuklar(c, veri)
     _gun_grafigi(c, veri)
     _uygulama_listesi(c, veri)
-    c.text((GENISLIK / 2, YUKSEKLIK - 40), "ders-takip  ·  otomatik çalışma takibi",
+    c.text((GENISLIK / 2, YUKSEKLIK - 40), "heatmap  ·  otomatik çalışma takibi",
            font=_yazi(24), fill=(139, 147, 167, 150), anchor="ms")
 
     tampon = io.BytesIO()  # Diske yazmadan, bellekte PNG oluştur

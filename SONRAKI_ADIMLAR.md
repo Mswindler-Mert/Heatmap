@@ -14,7 +14,7 @@ Kod yazmadan önce "0. Devralan için" bölümünü oku. Bölüm 2 ve 3 **uygula
 
 Windows'ta arka planda çalışıp **bilgisayar başında aktif/verimli geçen süreyi kendiliğinden**
 ölçmek, sürenin **hangi uygulama ve sitelerden geldiğini** göstermek ve sonucu **paylaşılabilir**
-(Strava tarzı kart) hale getirmek. Proje "ders takibi" olarak başladı; kod adları hâlâ `ders`
+(Strava tarzı kart) hale getirmek. Proje "Ders Takip" adıyla başladı, sonra "Heatmap" oldu (paket: `heatmap`); iç kod adları hâlâ `ders`
 diyor ama anlamı "çalışma / aktif süre".
 
 ### Kullanıcı ve çalışma biçimi
@@ -358,9 +358,9 @@ Dosyalar: `kart.py`, `ozet.py` (`seri_hesapla`, `GUN_ADLARI`), `web/api.py` (`/a
 - **Geçmiş tarih:** `?tarih=YYYY-AA-GG` ile geçmiş bir gün/hafta için kart. `kart_verisi` zaten
   `bugun` parametresi alıyor; yalnızca API ve arayüz eksik. ⚠️ Seri, o tarihe göre hesaplanmalı.
 - **Seçenekler:** uygulama listesini gizle (yalnızca süre paylaş), renk teması, üstteki ad
-  ("DERS TAKİP" yerine kullanıcının seçtiği metin; `[kart] baslik`).
+  ("HEATMAP" yerine kullanıcının seçtiği metin; `[kart] baslik`).
 - **Panoya kopyala** (`navigator.clipboard.write` + `ClipboardItem`) ve telefona aktarma kolaylığı.
-- Uygulamanın adı kartta hâlâ "DERS TAKİP"; kullanıcı bunu bilerek bıraktı, sormadan değiştirme.
+- Uygulamanın adı kartta "HEATMAP" yazıyor (2026-11 ad değişikliği). Eski veritabanı `ders_takip.db` ilk açılışta `heatmap.db`ye taşınır (`main.eski_veritabanini_tasi`).
 
 ### Tuzaklar
 
@@ -490,11 +490,15 @@ Tuzaklar:
 - **Arayüz:** ayarları arayüzden düzenleme, düzeltmeyi geri alma, çok kısa oturumları gizleme,
   aylık görünüm, başlıktan anahtar kelime önerisi, README için ekran görüntüsü.
 - **Proje sağlığı:** lisans dosyası (yoksa "tüm hakları saklı" sayılır; kullanıcıya sor),
-  GitHub Actions ile test, `ruff`, projeyi "ders"ten bağımsız bir ada taşıma.
-- **GitHub:** depo henüz yüklenmedi. Adımlar: github.com'da boş depo aç (README/.gitignore/lisans
-  ekleme) → `git remote add origin https://github.com/Mswindler-Mert/ders-takip.git` →
-  `git push -u origin main`. Commit'lerde kullanıcının Git e-postası görünür; gizlemek isterse
-  push'tan önce `noreply` adresine çevrilmeli.
+  GitHub Actions ile test, `ruff`, iç kod adlarını (`DERS`, `ders_sn`...) "çalışma" anlamına taşıma.
+- **GitHub:** depo https://github.com/Mswindler-Mert/Heatmap (uzak ad: `origin`, dal: `main`).
+  Commit e-postası GitHub noreply adresi (`70340171+Mswindler-Mert@users.noreply.github.com`);
+  kullanıcının kişisel e-postası geçmişten temizlendi, yeni commit'lerde de kullanılmamalı.
+- **Proje klasörü** hâlâ `ders-takip` adında. Kullanıcı taşırsa `.venv` bozulur: silip
+  `baslat.bat` ile yeniden kurmak gerekir.
+- **Yıllık ısı haritası** (projenin adı da buradan): GitHub katkı grafiği gibi her gün bir kare,
+  renk koyuluğu o günkü aktif süre. Veri `/api/gunluk` ile hazır. Arayüzde "Bu yıl" bölümü ve
+  paylaşım kartına "aylık/yıllık" seçeneği olarak düşünülmeli.
 
 ## 6. Doğrulanmamış varsayımlar (ilk iş bunlara bak)
 

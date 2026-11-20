@@ -1,6 +1,6 @@
 @echo off
 rem ===================================================================
-rem  Ders Takip - cift tikla baslat
+rem  Heatmap - cift tikla baslat
 rem  Ilk calistirmada sanal ortami (.venv) kurar ve paketleri yukler.
 rem  Sonraki calistirmalarda dogrudan programi baslatir.
 rem  (Bu dosyada Turkce karakter kullanilmadi: cmd bozuk gosterebiliyor.)

@@ -44,7 +44,7 @@ class Tepsi:
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Çıkış", self._cikis),
         )
-        self.ikon = pystray.Icon("ders-takip", self._ikonlar["durdu"], "Ders Takip", menu)
+        self.ikon = pystray.Icon("heatmap", self._ikonlar["durdu"], "Heatmap", menu)
 
     # --- Menü işlemleri --------------------------------------------------
     def _arayuzu_ac(self, ikon=None, oge=None):
@@ -80,7 +80,7 @@ class Tepsi:
                 ikon.icon = self._ikonlar[anahtar]
                 onceki = anahtar
             sn = durum["bugun_ders_sn"]
-            ikon.title = f"Ders Takip · bugün {sn // 3600} sa {sn % 3600 // 60} dk · {yazi}"
+            ikon.title = f"Heatmap · bugün {sn // 3600} sa {sn % 3600 // 60} dk · {yazi}"
             time.sleep(1)
 
     def calistir(self):

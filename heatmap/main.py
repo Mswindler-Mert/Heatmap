@@ -122,7 +122,7 @@ def main() -> None:
     sunucu_thread = threading.Thread(target=sunucu.run, name="web", daemon=True)
     sunucu_thread.start()
 
-    print(f"Ders Takip çalışıyor: {adres}", flush=True)
+    print(f"Heatmap çalışıyor: {adres}", flush=True)
     if ayarlar["genel"]["acilista_arayuzu_ac"] and "--sessiz" not in sys.argv:
         webbrowser.open(adres)
 
@@ -141,4 +141,4 @@ def main() -> None:
         takipci.durdur()
         sunucu.should_exit = True
         sunucu_thread.join(timeout=5)
-        print("Ders Takip kapandı.", flush=True)
+        print("Heatmap kapandı.", flush=True)
