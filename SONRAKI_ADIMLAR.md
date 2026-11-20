@@ -328,14 +328,18 @@ Dosyalar: `ozet.py`, `depo.py` (`uygulama_dokumu`), `dedektorler/baslik.py` (`so
 
 ### Nasıl çalışıyor
 
-- `kart.kart_verisi(depo, adlandirici, hedef_sn, tur, bugun) -> dict`: kartta görünecek her şey.
+- `kart.kart_verisi(depo, adlandirici, hedef_sn, tur, tarih, bugun=None) -> dict`: kartta görünecek her şey.
+  `tur`: gunluk / haftalik / aylik / yillik; `tarih` kartın ait olduğu gün, `bugun` gerçek bugün
+  (sonraki günler "gelecek" diye boş çizilir).
 - `kart.kart_ciz(veri) -> bytes`: Pillow ile PNG. **Veritabanına erişmez.**
-- `GET /api/kart?tur=gunluk|haftalik&indir=true|false` → `image/png`.
+- `GET /api/kart?tur=gunluk|haftalik|aylik|yillik&tarih=YYYY-AA-GG&indir=true|false` → `image/png`.
 - `GET /api/seri` → hedef ve seri. Hedef: `[hedef] gunluk_dk` (varsayılan 120).
 - Arayüz: "Paylaşım kartı" bölümü, "Paylaşım kartı oluştur" düğmesi, önizleme + "PNG olarak indir".
-- Kartta: toplam aktif süre, motivasyon cümlesi, üç kutucuk (seri / hedef yüzdesi ya da günlük
-  ortalama / hafta toplamı ya da en iyi gün), 7 günlük çubuk grafik + hedef çizgisi, en çok zaman
-  geçen 5 uygulama/site (süre ve yüzde).
+- Kartta: toplam aktif süre, motivasyon cümlesi, üç kutucuk (türe göre değişir), orta bölüm
+  (günlük/haftalık: 7 günlük çubuk grafik + hedef çizgisi; aylık: takvim ısı haritası; yıllık: her
+  satırı bir ay olan ısı haritası), en çok zaman geçen 4 uygulama/site (süre ve yüzde).
+- Yerleşim: bütün içerik `GUVENLI_UST..GUVENLI_ALT` (250..1670) arasında; y değerleri dosyanın
+  başındaki `Y_*` sabitlerinde. Bu bantların dışında yalnızca zemin ve imza var.
 
 Dosyalar: `kart.py`, `ozet.py` (`seri_hesapla`, `GUN_ADLARI`), `web/api.py` (`/api/kart`,
 `/api/seri`), `web/static/index.html` + `uygulama.js` (`kartiOlustur`) + `stil.css`,
@@ -351,12 +355,10 @@ Dosyalar: `kart.py`, `ozet.py` (`seri_hesapla`, `GUN_ADLARI`), `web/api.py` (`/a
 
 ### Kalan işler 🔲
 
-- **Instagram güvenli alanı:** hikâyede üst ve alt ~250 px Instagram arayüzüyle örtülür. Şu an
-  logo/tarih satırı (y≈100–240) ve alttaki imza bu alanda. Düzeltme: içeriği y=250..1670 arasına
-  sıkıştır (`_ust_bolum`, `_buyuk_sure` ... içindeki sabit y değerleri). ❓ Güncel güvenli alan
-  ölçüsünü doğrula.
-- **Geçmiş tarih:** `?tarih=YYYY-AA-GG` ile geçmiş bir gün/hafta için kart. `kart_verisi` zaten
-  `bugun` parametresi alıyor; yalnızca API ve arayüz eksik. ⚠️ Seri, o tarihe göre hesaplanmalı.
+- ✅ Instagram güvenli alanı, geçmiş tarih, aylık ve yıllık kart yapıldı. ❓ 250 px'lik güvenli alan
+  ölçüsü ezberden; gerçek bir hikâyede deneyip gerekirse `GUVENLI_*` ve `Y_*` sabitlerini kaydır.
+- Seri, geçmiş tarihli kartta o tarihe göre hesaplanır ama "o gün henüz bitmedi" kuralı o güne de
+  uygulanır (küçük bir tutarsızlık; önemli değil).
 - **Seçenekler:** uygulama listesini gizle (yalnızca süre paylaş), renk teması, üstteki ad
   ("HEATMAP" yerine kullanıcının seçtiği metin; `[kart] baslik`).
 - **Panoya kopyala** (`navigator.clipboard.write` + `ClipboardItem`) ve telefona aktarma kolaylığı.
@@ -367,9 +369,10 @@ Dosyalar: `kart.py`, `ozet.py` (`seri_hesapla`, `GUN_ADLARI`), `web/api.py` (`/a
 - ⚠️ **Yazı tipi:** `C:\Windows\Fonts\segoeui*.ttf` kullanılıyor; bulunamazsa Pillow varsayılanına
   düşer ve Türkçe karakterler/ölçüler bozulur. Başka işletim sistemi desteği gerekirse depoya
   açık lisanslı bir yazı tipi ekle.
-- ⚠️ **Sabit koordinatlar:** bölümler elle yerleştirildi. Bir bölümün yüksekliğini değiştirince
-  alttakilerle çakışmayı gözle kontrol et (örnek veriyle PNG üretip bak). 5. uygulama satırı
-  y≈1820'de bitiyor, imza y=1880'de.
+- ⚠️ **Sabit koordinatlar:** bölümler elle yerleştirildi (`Y_*` sabitleri). Bir bölümün yüksekliğini
+  değiştirince alttakilerle çakışmayı gözle kontrol et: örnek veriyle dört türü de PNG olarak üretip
+  250 ve 1670 çizgilerini işaretleyerek bak. 4. uygulama satırı y≈1635'te bitiyor.
+- ⚠️ Aylık takvimde ay 6 haftaya yayılırsa satır yüksekliği küçülür (`_ay_takvimi` içindeki `adim_y`).
 - ⚠️ **Uzun adlar** `_sigdir` ile kesilir; kutucuklardaki uzun değerler küçük yazı tipine düşer.
   Yeni metin eklerken en uzun olası değeri dene ("12 sa 48 dk", "%227").
 - ⚠️ **Yarı saydam çizim** için `ImageDraw.Draw(resim, "RGBA")` kullanılıyor; RGB çizimde dördüncü
@@ -496,9 +499,13 @@ Tuzaklar:
   kullanıcının kişisel e-postası geçmişten temizlendi, yeni commit'lerde de kullanılmamalı.
 - **Proje klasörü** hâlâ `ders-takip` adında. Kullanıcı taşırsa `.venv` bozulur: silip
   `baslat.bat` ile yeniden kurmak gerekir.
-- **Yıllık ısı haritası** (projenin adı da buradan): GitHub katkı grafiği gibi her gün bir kare,
-  renk koyuluğu o günkü aktif süre. Veri `/api/gunluk` ile hazır. Arayüzde "Bu yıl" bölümü ve
-  paylaşım kartına "aylık/yıllık" seçeneği olarak düşünülmeli.
+- ✅ **Isı haritası** (projenin adı buradan): arayüzde "Son 12 ay" bölümü (`/api/isi-haritasi`,
+  `ozet.isi_haritasi`, `ozet.seviye`), kartta aylık/yıllık türler. Seviye 0-4 günlük hedefe göre.
+  `depo.gunluk_sureler` artık tek sorgu atıyor ve gece yarısını geçen oturumu günlere bölüyor.
+- ✅ **Windows açılışında başlatma:** `heatmap/otomatik_baslatma.py` + `baslat.pyw`; HKCU `Run`
+  anahtarına "Heatmap" değeri yazılır. Arayüzün sağ üstündeki kutu, tepsi menüsü ve
+  `/api/otomatik-baslatma` ile açılıp kapanır; klasör taşınırsa açılışta komut kendini günceller.
+  ⚠️ Testler gerçek `Run` anahtarına dokunmaz, geçici bir test anahtarı kullanır; öyle kalmalı.
 
 ## 6. Doğrulanmamış varsayımlar (ilk iş bunlara bak)
 
@@ -507,6 +514,7 @@ Tuzaklar:
   oturum olarak görünür.
 - Brave/Edge sekme başlığı temizleme düzenli ifadeleri (`baslik._TARAYICI_SONEKI`) yalnızca örnek
   başlıklarla test edildi; Brave'de profil adı ya da "ve N sekme daha" eki varsa `basligi_temizle`'ye ekle.
-- Tepsi ikonu ve menüsü gözle denenmedi.
-- Paylaşım kartı ve döküm yalnızca örnek veriyle denendi; kullanıcının gerçek verisiyle bakılmadı.
+- Tepsi ikonu ve menüsü (yeni "Windows açılışında başlat" seçeneği dahil) gözle denenmedi.
+- Paylaşım kartı, döküm ve ısı haritası arayüzü yalnızca örnek veriyle denendi; kullanıcının gerçek
+  verisiyle bakılmadı. Eski veritabanının `heatmap.db`ye taşınması gerçek veride çalıştı.
 - MediaPipe API adları, Health Connect dışa aktarım biçimi ve Instagram güvenli alan ölçüsü (yukarıda ❓).

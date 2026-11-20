@@ -78,8 +78,10 @@ Arayüzde yedi bölüm vardır:
 3. **Son 12 ay (ısı haritası):** GitHub katkı grafiği gibi her gün bir kare; ne kadar uzun
    çalıştıysan o kadar koyu yeşil, günlük hedefi tutan günler en koyu. Altında seri ve en uzun seri.
 4. **Süre nereden geldi?:** bugünkü ya da bu haftaki sürenin uygulamalara ve sitelere dağılımı.
-5. **Paylaşım kartı:** günlük ya da haftalık özeti 1080×1920 PNG olarak üretir ve indirir.
-6. **Oturumlar:** kayıtlı zaman dilimleri. Her birini “Dersti” / “Ders değildi” diye düzeltebilirsiniz.
+5. **Paylaşım kartı:** günlük, haftalık, aylık (takvim) ya da yıllık (son 12 ay ısı haritası) özeti
+   1080×1920 PNG olarak üretir ve indirir. Tarih seçerek geçmiş bir günün/ayın kartı da alınabilir.
+   İçerik, Instagram hikâyesinin üst ve alt düğmelerinin örtmediği orta alana yerleştirilir.
+6. **Oturumlar:** kayıtlı zaman dilimleri. Her birini “Çalışmaydı” / “Çalışma değildi” diye düzeltebilirsiniz.
    “Bundan sonra da böyle say” seçiliyse aynı uygulama ya da başlık artık otomatik tanınır.
    Tarayıcı oturumlarında isterseniz bir anahtar kelime (örn. kanal adı) de öğretebilirsiniz.
 7. **Öğrenilen kurallar:** düzeltmelerden oluşan kurallar; buradan silinebilir.
@@ -118,7 +120,7 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `GET /api/seri` | Günlük hedef ve üst üste hedefe ulaşılan gün sayısı |
 | `GET /api/isi-haritasi?bitis=2026-11-21&hafta=53` | Isı haritası: her gün için süre ve 0-4 seviye, seri istatistikleri |
 | `GET /api/otomatik-baslatma` · `POST` (`{"acik": true}`) | Windows açılışında başlatma durumu |
-| `GET /api/kart?tur=gunluk` | Paylaşım kartı (PNG); `tur=haftalik`, `indir=true` seçenekleri |
+| `GET /api/kart?tur=gunluk&tarih=2026-11-21` | Paylaşım kartı (PNG); `tur`: `gunluk`, `haftalik`, `aylik`, `yillik`; `indir=true` dosya olarak indirir |
 | `GET /api/oturumlar?tarih=2026-11-16` | Bir günün oturumları |
 | `POST /api/oturumlar/{id}/duzelt` | Oturumu düzelt (`{"hukum": "ders", "ogren": true, "kelime": null}`) |
 | `GET /api/kurallar` · `DELETE /api/kurallar/{id}` | Öğrenilen kurallar |
