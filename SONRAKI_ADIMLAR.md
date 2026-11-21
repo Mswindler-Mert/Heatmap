@@ -26,7 +26,9 @@ diyor ama anlamı "çalışma / aktif süre".
 - **Her anlamlı adımda commit** at (Türkçe, ASCII mesaj). Önce tasarımı anlat, onay al, sonra kodla.
 - Ortam: Windows 11, **Python 3.14.3**, komut **`py`** (`python` komutu yok), Git kurulu.
 - Çalıştırma: `baslat.bat` (tepsi ikonuyla) ya da `.venv\Scripts\python -m heatmap --tepsisiz --sessiz`.
-- Testler: `.venv\Scripts\python -m unittest` (şu an 49 test, hepsi geçiyor). pytest yok, ekleme.
+- Testler: önce `.venv\Scripts\python -m pip install -r requirements-dev.txt`, sonra
+  `.venv\Scripts\python -m unittest` (şu an 122 test, hepsi geçiyor). pytest yok, ekleme.
+  GitHub Actions her push'ta Windows'ta aynı testleri çalıştırır.
 
 ### Mimari (tek süreç, üç thread)
 
@@ -581,3 +583,8 @@ Tuzaklar:
 - Paylaşım kartı, döküm ve ısı haritası arayüzü yalnızca örnek veriyle denendi; kullanıcının gerçek
   verisiyle bakılmadı. Eski veritabanının `heatmap.db`ye taşınması gerçek veride çalıştı.
 - MediaPipe API adları, Health Connect dışa aktarım biçimi ve Instagram güvenli alan ölçüsü (yukarıda ❓).
+- Kamera modülünün arayüzü (aç/kapat, kalibrasyon) yalnızca sahte işçiyle denendi; gerçek kamerayla değil.
+- Kartın "Panoya kopyala" düğmesi uygulamanın kendi önizleme tarayıcısında izin hatası verdi
+  (`NotAllowedError`); Brave'de 127.0.0.1 üzerinde tıklamayla çalışması beklenir, denenmedi.
+- Brave eklentisi ve masaüstü dashboard'u gerçek tarayıcıda / duvar kâğıdı aracında denenmedi.
+- Sağlık verisi formu yalnızca önizlemede denendi.
