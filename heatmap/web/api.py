@@ -7,7 +7,8 @@ Otomatik API dokümantasyonu: http://127.0.0.1:8765/api/docs
 
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Literal
+from collections.abc import Callable
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -16,7 +17,10 @@ from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from heatmap import __version__, otomatik_baslatma
-from heatmap.ayarlar import UYARILAR
+from heatmap.ayar_duzenleyici import (
+    AyarDosyasiHatasi, alanlar_ve_degerler, degisenleri_bul, dogrula, dosyaya_yaz,
+)
+from heatmap.ayarlar import ORNEK_DOSYA, UYARILAR, ayarlari_yukle
 from heatmap.dedektorler.kamera import KameraDedektoru
 from heatmap.disa_aktar import gunluk_csv, oturumlar_csv
 from heatmap.dedektorler.tarayici import TarayiciDedektoru
@@ -42,6 +46,11 @@ class DuraklatIstegi(BaseModel):
 
 class OtomatikBaslatmaIstegi(BaseModel):
     acik: bool
+
+
+class AyarDegisikligi(BaseModel):
+    """Arayüzden kaydedilen ayarlar: {"hedef.gunluk_dk": 90, "pencere.ders_surecleri": [...]}"""
+    degisiklikler: dict[str, Any]
 
 
 class KameraIstegi(BaseModel):
@@ -86,13 +95,39 @@ def _oturum_json(oturum: dict, acik_oturum_id) -> dict:
     }
 
 
+class Ortam:
+    """API'nin kullandığı, AYARLARA BAĞLI nesneler. Ayarlar arayüzden değişince yenilenir.
+
+    Uçlar bu nesneleri doğrudan değil hep `ortam.` üzerinden okur; böylece "Kaydet"ten sonra
+    yeniden başlatmaya gerek kalmadan yeni ayarlarla çalışırlar.
+    """
+
+    def __init__(self, ayarlar: dict, tarayici=None, kamera=None):
+        self.guncelle(ayarlar, tarayici, kamera)
+
+    def guncelle(self, ayarlar: dict, tarayici=None, kamera=None) -> None:
+        self.ayarlar = ayarlar
+        self.adlandirici = Adlandirici(ayarlar)  # Süreç adı / sekme başlığı -> okunabilir ad
+        self.hedef_sn = int(ayarlar.get("hedef", {}).get("gunluk_dk", 0) * 60)  # Günlük hedef (saniye)
+        self.tarayici = tarayici  # Eklenti raporlarının bırakılacağı dedektör (modül kapalıysa None)
+        self.kamera = kamera      # Aç/kapat ve kalibrasyon için kamera dedektörü (kapalıysa None)
+
+
 def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
                      tarayici: TarayiciDedektoru | None = None,
-                     kamera: KameraDedektoru | None = None) -> FastAPI:
-    """tarayici: eklenti raporlarının bırakılacağı dedektör (modül kapalıysa None).
-    kamera  : aç/kapat ve kalibrasyon için kamera dedektörü (modül kapalıysa None)."""
-    adlandirici = Adlandirici(ayarlar)  # Süreç adı / sekme başlığı -> okunabilir ad
-    hedef_sn = int(ayarlar.get("hedef", {}).get("gunluk_dk", 0) * 60)  # Günlük hedef (saniye)
+                     kamera: KameraDedektoru | None = None,
+                     ayar_dosyasi: Path | None = None,
+                     yedek_klasoru: Path | None = None,
+                     yeniden_yukleyici: Callable | None = None) -> FastAPI:
+    """Web uygulamasını kurar.
+
+    ayar_dosyasi     : arayüzden kaydedilen ayarların yazılacağı config.toml. None ise (testler)
+                       ayarlar arayüzden KAYDEDİLEMEZ; böylece testler gerçek dosyaya dokunamaz.
+    yedek_klasoru    : kaydetmeden önce eski config.toml'un kopyalanacağı klasör.
+    yeniden_yukleyici: kaydettikten sonra çağrılır; ayarları takipçiye/tepsiye uygular ve
+                       (yeni ayarlar, tarayıcı dedektörü, kamera dedektörü) döndürür (bkz. main.py).
+    """
+    ortam = Ortam(ayarlar, tarayici, kamera)
 
     # Başlık "Takip Paneli" ile başlıyor ki API dokümantasyon sekmesi de yok sayılsın.
     app = FastAPI(title="Takip Paneli API", version=__version__,
@@ -130,7 +165,43 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
     @app.get("/api/ayar-uyarilari")
     def ayar_uyarilari():
         """Ayar dosyasında yazım hatası ya da yanlış türde değer varsa açıklamaları (yoksa boş liste)."""
-        return ayarlar.get(UYARILAR, [])
+        return ortam.ayarlar.get(UYARILAR, [])
+
+    @app.get("/api/ayarlar")
+    def ayarlari_getir():
+        """Arayüzden düzenlenebilen ayarlar (gruplar, alanlar, şu anki değerler)."""
+        return {
+            "gruplar": alanlar_ve_degerler(ortam.ayarlar),
+            "kaydedilebilir": ayar_dosyasi is not None,
+            "uyarilar": ortam.ayarlar.get(UYARILAR, []),
+        }
+
+    @app.post("/api/ayarlar")
+    def ayarlari_kaydet(istek: AyarDegisikligi):
+        """Ayarları doğrular, config.toml'a yorumları koruyarak yazar ve YENİDEN BAŞLATMADAN uygular.
+
+        Hatalı değer varsa hiçbir şey yazılmaz: 400 {"detail": {"hatalar": {anahtar: mesaj}}}.
+        """
+        if ayar_dosyasi is None:
+            raise HTTPException(503, "Bu çalıştırmada ayarlar arayüzden kaydedilemez")
+        temiz, hatalar = dogrula(istek.degisiklikler)
+        if hatalar:
+            raise HTTPException(400, {"hatalar": hatalar})
+        degisen = degisenleri_bul(ortam.ayarlar, temiz)
+        if not degisen:
+            return {"tamam": True, "degisen": [], "uyarilar": ortam.ayarlar.get(UYARILAR, [])}
+        try:
+            dosyaya_yaz(ayar_dosyasi, degisen, yedek_klasoru)
+        except AyarDosyasiHatasi as hata:
+            raise HTTPException(409, str(hata)) from hata
+
+        if yeniden_yukleyici is not None:
+            yeni, yeni_tarayici, yeni_kamera = yeniden_yukleyici()
+        else:  # Testler: dosyadan oku, dedektörler aynı kalsın
+            yeni = ayarlari_yukle(ORNEK_DOSYA, ayar_dosyasi)
+            yeni_tarayici, yeni_kamera = ortam.tarayici, ortam.kamera
+        ortam.guncelle(yeni, yeni_tarayici, yeni_kamera)
+        return {"tamam": True, "degisen": sorted(degisen), "uyarilar": yeni.get(UYARILAR, [])}
 
     @app.get("/api/ozet/bugun")
     def ozet_bugun():
@@ -201,9 +272,9 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
             raise HTTPException(400, "bitis, baslangic tarihinden önce olamaz")
         bas, _ = gun_araligi(ilk)
         _, bit = gun_araligi(son)
-        uygulamalar = depo.uygulama_dokumu(bas, bit, adlandirici.etiket)
+        uygulamalar = depo.uygulama_dokumu(bas, bit, ortam.adlandirici.etiket)
         if gruplama == "kategori":
-            uygulamalar = adlandirici.kategorilere_grupla(uygulamalar)
+            uygulamalar = ortam.adlandirici.kategorilere_grupla(uygulamalar)
         toplam = sum(u["sure_sn"] for u in uygulamalar)
         for u in uygulamalar:
             u["oran"] = round(u["sure_sn"] / toplam, 3) if toplam else 0  # 0-1 arası pay
@@ -223,16 +294,16 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         """
         d = takipci.durum()
         if d.get("kaynak") in ("pencere", "baslik"):
-            simdiki, _ = adlandirici.etiket({k: d.get(k) for k in ("kaynak", "uygulama", "baslik", "alan_adi")})
+            simdiki, _ = ortam.adlandirici.etiket({k: d.get(k) for k in ("kaynak", "uygulama", "baslik", "alan_adi")})
         elif d.get("kaynak") == "bosta":
             simdiki = "Bilgisayar başında değil"
         else:
             simdiki = ""
         bugun = date.today()
         bas, bit = gun_araligi(bugun)
-        dokum = depo.uygulama_dokumu(bas, bit, adlandirici.etiket)
+        dokum = depo.uygulama_dokumu(bas, bit, ortam.adlandirici.etiket)
         toplam = sum(u["sure_sn"] for u in dokum) or 1
-        isi = isi_haritasi(depo, hedef_sn, bugun, 20)
+        isi = isi_haritasi(depo, ortam.hedef_sn, bugun, 20)
         return {
             "calisiyor": d["calisiyor"],
             "duraklatildi": d["duraklatildi"],
@@ -240,7 +311,7 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
                      else "belirsiz" if d.get("hukum") == "belirsiz" else "durdu",
             "simdiki": simdiki,
             "bugun_sn": d["bugun_ders_sn"],
-            "hedef_sn": hedef_sn,
+            "hedef_sn": ortam.hedef_sn,
             "seri_gun": isi["simdiki_seri"],
             "hafta": ozet_hafta()["gunler"],
             "isi": [{"tarih": g["tarih"], "seviye": g["seviye"], "gelecek": g["gelecek"]} for g in isi["gunler"]],
@@ -254,10 +325,10 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         bugun = date.today()
         bugun_sn = depo.gunluk_sureler(bugun, bugun)[0]["ders_sn"]
         return {
-            "hedef_sn": hedef_sn,
-            "seri_gun": seri_hesapla(depo, hedef_sn, bugun),
+            "hedef_sn": ortam.hedef_sn,
+            "seri_gun": seri_hesapla(depo, ortam.hedef_sn, bugun),
             "bugun_sn": bugun_sn,
-            "bugun_hedefe_ulasildi": bool(hedef_sn) and bugun_sn >= hedef_sn,
+            "bugun_hedefe_ulasildi": bool(ortam.hedef_sn) and bugun_sn >= ortam.hedef_sn,
         }
 
     @app.get("/api/isi-haritasi")
@@ -268,7 +339,7 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         """
         if not 1 <= hafta <= 106:
             raise HTTPException(400, "hafta 1 ile 106 arasında olmalı")
-        return isi_haritasi(depo, hedef_sn, bitis or date.today(), hafta)
+        return isi_haritasi(depo, ortam.hedef_sn, bitis or date.today(), hafta)
 
     @app.get("/api/kart")
     def kart(tur: Literal["gunluk", "haftalik", "aylik", "yillik"] = "gunluk",
@@ -287,9 +358,9 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         # liste: kartın altındaki liste uygulamalardan mı, kategorilerden mi oluşsun, yoksa hiç olmasın mı.
         # (uygulamalar=false eski adres biçimi; liste=yok ile aynı anlama gelir.)
         goster = uygulamalar and liste != "yok"
-        veri = kart_verisi(depo, adlandirici, hedef_sn, tur, tarih, bugun, goster,
+        veri = kart_verisi(depo, ortam.adlandirici, ortam.hedef_sn, tur, tarih, bugun, goster,
                            kategoriye_gore=liste == "kategori")
-        veri["ust_metin"] = ayarlar.get("kart", {}).get("ust_metin", "Heatmap")
+        veri["ust_metin"] = ortam.ayarlar.get("kart", {}).get("ust_metin", "Heatmap")
         png = kart_ciz(veri)
         basliklar = {"Cache-Control": "no-store"}  # Her istekte güncel kart üretilsin
         if indir:
@@ -319,7 +390,7 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
     def oturumlar_disa_aktar(baslangic: date | None = None, bitis: date | None = None, basliklar: bool = False):
         """Bütün oturumlar (CSV). Pencere başlıkları yalnızca `basliklar=true` ile eklenir."""
         ilk, son = _aktarma_araligi(baslangic, bitis)
-        return _csv_yaniti(oturumlar_csv(depo, adlandirici, ilk, son, basliklar),
+        return _csv_yaniti(oturumlar_csv(depo, ortam.adlandirici, ilk, son, basliklar),
                            f"heatmap-oturumlar-{ilk}-{son}.csv")
 
     @app.get("/api/oturumlar")
@@ -391,35 +462,35 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
     @app.post("/api/tarayici")
     def tarayici_raporu(rapor: TarayiciRaporu):
         """Tarayıcı eklentisi buraya öndeki sekmenin site adını ve ses durumunu bildirir."""
-        if tarayici is None:
+        if ortam.tarayici is None:
             return {"tamam": False, "neden": "Tarayıcı modülü ayarlardan kapatılmış"}
-        tarayici.rapor_al(rapor.alan_adi, rapor.sesli, rapor.odakta)
+        ortam.tarayici.rapor_al(rapor.alan_adi, rapor.sesli, rapor.odakta)
         return {"tamam": True}
 
     @app.get("/api/kamera")
     def kamera_durumu():
         """Kamera modülü açık mı, kalibrasyon, canlı kafa açısı (açı kaydedilmez)."""
-        if kamera is None:
+        if ortam.kamera is None:
             return {"etkin": False}
-        return {"etkin": True, **kamera.durum_bilgisi()}
+        return {"etkin": True, **ortam.kamera.durum_bilgisi()}
 
     @app.post("/api/kamera")
     def kamera_ac_kapat(istek: KameraIstegi):
         """Kamerayı geçici olarak kapatır/açar (kapalıyken işçi durur, kamera ışığı söner)."""
-        if kamera is None:
+        if ortam.kamera is None:
             raise HTTPException(400, "Kamera modülü ayarlardan kapalı ([kamera] etkin = false)")
-        kamera.ayarla_acik(istek.acik)
-        return {"acik": kamera.acik}
+        ortam.kamera.ayarla_acik(istek.acik)
+        return {"acik": ortam.kamera.acik}
 
     @app.post("/api/kamera/kalibre")
     def kamera_kalibre():
         """~6 sn boyunca kafa açısını ölçer ve "ekrana bakma açısı" olarak kaydeder.
         Bu sırada kullanıcı ekrana normal bakmalı. (Normal def: FastAPI bunu ayrı bir
         thread'de çalıştırır, beklerken diğer istekler etkilenmez.)"""
-        if kamera is None:
+        if ortam.kamera is None:
             raise HTTPException(400, "Kamera modülü ayarlardan kapalı ([kamera] etkin = false)")
         try:
-            return {"ekran_pitch": kamera.kalibre_et()}
+            return {"ekran_pitch": ortam.kamera.kalibre_et()}
         except ValueError as hata:
             raise HTTPException(400, str(hata)) from hata
 

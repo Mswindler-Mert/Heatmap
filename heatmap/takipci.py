@@ -69,6 +69,18 @@ class Takipci:
                 self.motor.sifirla()
                 self._goruntu = {}
 
+    def ayarlari_uygula(self, ayarlar: dict, dedektorler: list[Dedektor]) -> None:
+        """Ayarlar arayüzden değişince: yeni dedektörleri ve süreleri ÇALIŞIRKEN uygular.
+
+        Karar motoru sıfırlanmaz (açık oturum bölünmez); yalnızca tolerans süreleri değişir.
+        Eski dedektörleri kapatmak (örn. kamera işçisini durdurmak) çağıranın işidir.
+        """
+        with self._kilit:  # tik() aynı anda dedektör listesini dolaşıyor olabilir
+            self.dedektorler = dedektorler
+            self.aralik_sn = ayarlar["genel"]["tarama_araligi_sn"]
+            self.motor.baslatma_sn = ayarlar["tolerans"]["baslatma_sn"]
+            self.motor.durdurma_sn = ayarlar["tolerans"]["durdurma_sn"]
+
     def _dongu(self) -> None:
         # wait(): aralık kadar bekler; durdur() çağrılırsa beklemeyi kesip True döner.
         while not self._dur.wait(self.aralik_sn):

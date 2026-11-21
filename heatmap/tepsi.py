@@ -64,7 +64,7 @@ class Tepsi:
             pystray.MenuItem("Ayar dosyasını aç", self._ayarlari_ac),
             pystray.MenuItem("Kamera açık", self._kamera_degistir,
                              checked=lambda oge: bool(self.kamera and self.kamera.acik),
-                             visible=self.kamera is not None),
+                             visible=lambda oge: self.kamera is not None),  # ayar değişince güncellenir
             # İşaret, kayıt defterindeki gerçek duruma göre her menü açılışında yeniden okunur.
             pystray.MenuItem("Windows açılışında başlat", self._otomatik_baslatma_degistir,
                              checked=lambda oge: otomatik_baslatma.acik_mi()),

@@ -18,7 +18,7 @@ from pathlib import Path
 import uvicorn
 
 from heatmap import otomatik_baslatma
-from heatmap.ayarlar import UYARILAR, VERI_KLASORU, ayarlari_yukle
+from heatmap.ayarlar import KISISEL_DOSYA, UYARILAR, VERI_KLASORU, ayarlari_yukle
 from heatmap.dedektorler.baslik import BaslikDedektoru
 from heatmap.dedektorler.bosta import BostaDedektoru
 from heatmap.dedektorler.kamera import KameraDedektoru
@@ -76,24 +76,34 @@ def _port_dolu_mu(port: int) -> bool:
         return soket.connect_ex(("127.0.0.1", port)) == 0
 
 
-def dedektorleri_kur(ayarlar: dict, depo: Depo) -> list:
+def dedektorleri_kur(ayarlar: dict, depo: Depo, onceki: list | None = None,
+                     onceki_ayarlar: dict | None = None) -> list:
     """Ayar dosyasında etkin olan modülleri oluşturur.
 
     SIRA ÖNEMLİ: başlık dedektörü hem pencere dedektörünün okuduğu başlığı hem de
     tarayıcı dedektörünün (eklentiden gelen) site adını kullanır; ikisinden sonra gelmeli.
     Yeni bir modül eklemek için buraya bir satır eklemen yeterli.
+
+    onceki / onceki_ayarlar: ayarlar çalışırken değişince verilir. Tarayıcı dedektörü (son
+    eklenti raporunu tutar) ve ayarı değişmediyse kamera dedektörü (işçi süreci, ışık yanıp
+    sönmesin) YENİDEN KURULMAZ, eskisi kullanılır. Diğerleri ucuz; her seferinde yenilenir.
     """
+    onceki = onceki or []
+    eski_tarayici = next((d for d in onceki if isinstance(d, TarayiciDedektoru)), None)
+    eski_kamera = next((d for d in onceki if isinstance(d, KameraDedektoru)), None)
+    kamera_ayari_ayni = onceki_ayarlar is not None and onceki_ayarlar.get("kamera") == ayarlar.get("kamera")
+
     dedektorler = []
     if ayarlar["pencere"]["etkin"]:
         dedektorler.append(PencereDedektoru(ayarlar, depo.ogrenilen_kurallar))
     if ayarlar.get("tarayici", {}).get("etkin", True):
-        dedektorler.append(TarayiciDedektoru())
+        dedektorler.append(eski_tarayici or TarayiciDedektoru())
     if ayarlar["baslik"]["etkin"]:
         dedektorler.append(BaslikDedektoru(ayarlar, depo.ogrenilen_kurallar))
     if ayarlar["bosta"]["etkin"]:
         dedektorler.append(BostaDedektoru(ayarlar))
     if ayarlar["kamera"]["etkin"]:
-        dedektorler.append(KameraDedektoru(ayarlar))
+        dedektorler.append(eski_kamera if (eski_kamera and kamera_ayari_ayni) else KameraDedektoru(ayarlar))
     return dedektorler
 
 
@@ -187,10 +197,38 @@ def main() -> None:
     kamera = next((d for d in dedektorler if isinstance(d, KameraDedektoru)), None)
     takipci.baslat()
 
+    # --- Ayarlar arayüzden değişince: yeniden başlatmadan uygula ---
+    calisan = {"ayarlar": ayarlar, "tepsi": None}  # Değişebilen parçalar (tepsi aşağıda kurulur)
+
+    def ayarlari_yeniden_yukle():
+        """config.toml'u yeniden okur ve takipçiye, tepsiye, yedekçiye uygular.
+        Web arayüzü (api.py) "Kaydet"ten sonra bunu çağırır."""
+        yeni = ayarlari_yukle()
+        eski_dedektorler = takipci.dedektorler
+        yeni_dedektorler = dedektorleri_kur(yeni, depo, eski_dedektorler, calisan["ayarlar"])
+        takipci.ayarlari_uygula(yeni, yeni_dedektorler)
+        for dedektor in eski_dedektorler:  # Artık kullanılmayanları kapat (örn. kamera işçisi)
+            if dedektor not in yeni_dedektorler:
+                dedektor.kapat()
+        if yedekci:
+            yedekci.saklanacak = yeni.get("yedek", {}).get("saklanacak_gun", 7)
+        yeni_tarayici = next((d for d in yeni_dedektorler if isinstance(d, TarayiciDedektoru)), None)
+        yeni_kamera = next((d for d in yeni_dedektorler if isinstance(d, KameraDedektoru)), None)
+        if calisan["tepsi"] is not None:
+            calisan["tepsi"].kamera = yeni_kamera
+        calisan["ayarlar"] = yeni
+        print("Ayarlar arayüzden değişti ve uygulandı.", flush=True)
+        for uyari in yeni.get(UYARILAR, []):
+            print(f"AYAR UYARISI: {uyari}", flush=True)
+        return yeni, yeni_tarayici, yeni_kamera
+
     # --- Web sunucusu (ayrı thread'de) ---
     # host="127.0.0.1": sadece bu bilgisayardan erişilebilir, ağdaki diğer cihazlardan değil.
     sunucu = uvicorn.Server(uvicorn.Config(
-        uygulama_olustur(takipci, depo, ayarlar, tarayici, kamera), host="127.0.0.1", port=port, log_level="warning",
+        uygulama_olustur(takipci, depo, ayarlar, tarayici, kamera,
+                         ayar_dosyasi=KISISEL_DOSYA, yedek_klasoru=VERI_KLASORU / "yedek",
+                         yeniden_yukleyici=ayarlari_yeniden_yukle),
+        host="127.0.0.1", port=port, log_level="warning",
     ))
     sunucu_thread = threading.Thread(target=sunucu.run, name="web", daemon=True)
     sunucu_thread.start()
@@ -206,7 +244,8 @@ def main() -> None:
                 time.sleep(1)
         else:
             from heatmap.tepsi import Tepsi  # pystray'i sadece gerekince yükle
-            Tepsi(takipci, adres, kamera).calistir()
+            calisan["tepsi"] = Tepsi(takipci, adres, kamera)
+            calisan["tepsi"].calistir()
     except KeyboardInterrupt:
         pass
     finally:
