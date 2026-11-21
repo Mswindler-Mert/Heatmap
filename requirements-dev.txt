@@ -3,3 +3,6 @@
 
 # FastAPI'nin test istemcisi (tests/test_api.py) bunu kullanır.
 httpx>=0.28
+
+# Kod taraması (ayarı: ruff.toml). Çalıştırma: .venv\Scripts\python -m ruff check .
+ruff>=0.6

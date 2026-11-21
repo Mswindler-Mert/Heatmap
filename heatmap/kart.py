@@ -272,7 +272,7 @@ def _zemin() -> Image.Image:
     ust, alt = (17, 22, 31), (9, 11, 15)
     for y in range(YUKSEKLIK):  # Yukarıdan aşağı satır satır renk geçişi
         oran = y / YUKSEKLIK
-        cizim.line([(0, y), (GENISLIK, y)], fill=tuple(round(u + (a - u) * oran) for u, a in zip(ust, alt)))
+        cizim.line([(0, y), (GENISLIK, y)], fill=tuple(round(u + (a - u) * oran) for u, a in zip(ust, alt, strict=True)))
 
     # Parıltıyı hız için 1/4 boyutta çizip bulanıklaştırıyor, sonra büyütüyoruz.
     kucuk = Image.new("RGBA", (GENISLIK // 4, YUKSEKLIK // 4), (0, 0, 0, 0))

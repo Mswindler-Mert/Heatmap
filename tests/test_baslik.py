@@ -30,7 +30,8 @@ class TemizlemeTestleri(unittest.TestCase):
 
     def test_edge_profil_ve_sayfa_sayisi(self):
         self.assertEqual(
-            basligi_temizle("Database Notes and 4 more pages - Personal - Microsoft​ Edge"),
+            # Edge, pencere adına "Microsoft" ile "Edge" arasına görünmez bir boşluk (\u200b) koyar.
+            basligi_temizle("Database Notes and 4 more pages - Personal - Microsoft\u200b Edge"),
             "Database Notes",
         )
 

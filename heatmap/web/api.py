@@ -359,7 +359,7 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         try:
             return {"ekran_pitch": kamera.kalibre_et()}
         except ValueError as hata:
-            raise HTTPException(400, str(hata))
+            raise HTTPException(400, str(hata)) from hata
 
     @app.post("/api/duraklat")
     def duraklat(istek: DuraklatIstegi):

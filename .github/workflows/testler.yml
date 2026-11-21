@@ -17,6 +17,8 @@ jobs:
           python-version: "3.14"
       - name: Paketleri kur
         run: python -m pip install -r requirements-dev.txt
+      - name: Kod taraması (ruff)
+        run: python -m ruff check .
       - name: Testleri çalıştır
         # İlk açılışta config.toml örnekten kopyalanır; testler gerçek ayara ihtiyaç duymaz.
         run: python -m unittest -v

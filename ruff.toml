@@ -1,0 +1,12 @@
+# Kod taraması (ruff). Yalnızca gerçek hata yakalayan kurallar seçildi; üslup kuralları yok.
+# Çalıştırmak için: .venv\Scripts\python -m ruff check .
+line-length = 120
+extend-exclude = [".venv", ".venv-kamera"]
+
+[lint]
+select = [
+    "F",    # Pyflakes: kullanılmayan içe aktarma/değişken, tanımsız ad
+    "E9",   # Sözdizimi hataları
+    "B",    # Bugbear: sık yapılan mantık hataları
+    "PLE",  # Pylint hataları
+]
