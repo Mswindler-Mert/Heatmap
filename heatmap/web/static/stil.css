@@ -483,6 +483,7 @@ code { background: var(--kart-ic); padding: 2px 6px; border-radius: 5px; font-si
   justify-content: flex-end;
   height: 100%;
   gap: 6px;
+  cursor: pointer;
 }
 .gun .deger { font-size: 11.5px; color: var(--soluk); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .gun .cubuk {
@@ -535,6 +536,206 @@ code { background: var(--kart-ic); padding: 2px 6px; border-radius: 5px; font-si
 .dokum-satir .dolgu.renk-5 { background: linear-gradient(90deg, #34d399, #10b981); }
 .dokum-satir .deger { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 12.5px; }
 
+/* ================= Zinciri Kırma ================= */
+.zincir-baslik-sol { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kademe-rozet {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(62, 207, 142, .14);
+  color: var(--yesil-acik);
+  border: 1px solid rgba(62, 207, 142, .3);
+}
+.kademe-rozet.turkuaz { background: rgba(45, 212, 191, .16); color: #5eead4; border-color: rgba(45, 212, 191, .35); }
+.kademe-rozet.gumus { background: rgba(148, 163, 184, .18); color: #e2e8f0; border-color: rgba(148, 163, 184, .4); }
+.kademe-rozet.altin { background: rgba(251, 191, 36, .18); color: #fde68a; border-color: rgba(251, 191, 36, .45); }
+.kademe-rozet.efsane { background: rgba(167, 139, 250, .2); color: #ddd6fe; border-color: rgba(167, 139, 250, .48); }
+
+.zincir-kaydirma { overflow-x: auto; padding: 6px 2px 10px; }
+.zincir-serit {
+  display: flex;
+  align-items: center;
+  min-width: max-content;
+  gap: 0;
+}
+.zincir-bag {
+  width: 18px;
+  height: 4px;
+  background: rgba(255, 255, 255, .07);
+  border-radius: 2px;
+  margin-bottom: 22px;
+  transition: background .25s, box-shadow .25s;
+}
+.zincir-bag.aktif {
+  background: linear-gradient(90deg, var(--yesil), var(--turkuaz));
+  box-shadow: 0 0 8px rgba(62, 207, 142, .45);
+}
+.zincir-bag.altin { background: linear-gradient(90deg, #fbbf24, #f59e0b); box-shadow: 0 0 8px rgba(251, 191, 36, .45); }
+.zincir-bag.kurtarma { background: linear-gradient(90deg, #d97706, #b45309); }
+.zincir-bag.kalkan { background: linear-gradient(90deg, #94a3b8, #38bdf8); }
+
+.zincir-gun {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 48px;
+  cursor: pointer;
+}
+.zincir-halka {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px dashed rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, .03);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--soluk);
+  transition: transform .18s, border-color .2s, box-shadow .2s, background .2s;
+}
+.zincir-gun:hover .zincir-halka { transform: scale(1.08); }
+
+/* Dolu halka türleri */
+.zincir-halka.tam {
+  border: 3px solid var(--yesil);
+  background: radial-gradient(circle at 30% 30%, rgba(110, 231, 183, .32), rgba(62, 207, 142, .12));
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(62, 207, 142, .35);
+}
+.zincir-kart.kademe-altin .zincir-halka.tam {
+  border-color: #fbbf24;
+  background: radial-gradient(circle at 30% 30%, rgba(253, 230, 138, .35), rgba(245, 158, 11, .16));
+  box-shadow: 0 0 16px rgba(251, 191, 36, .42);
+}
+.zincir-kart.kademe-efsane .zincir-halka.tam {
+  border-color: #a78bfa;
+  background: radial-gradient(circle at 30% 30%, rgba(221, 214, 254, .35), rgba(139, 92, 246, .18));
+  box-shadow: 0 0 16px rgba(167, 139, 250, .45);
+}
+.zincir-halka.kurtarma {
+  border: 3px solid #d97706;
+  background: radial-gradient(circle at 30% 30%, rgba(251, 191, 36, .26), rgba(180, 83, 9, .18));
+  color: #fde68a;
+  box-shadow: 0 0 10px rgba(217, 119, 6, .35);
+}
+.zincir-halka.kalkan {
+  border: 3px solid #93c5fd;
+  background: radial-gradient(circle at 30% 30%, rgba(226, 232, 240, .3), rgba(56, 189, 248, .18));
+  color: #f1f5f9;
+  box-shadow: 0 0 12px rgba(56, 189, 248, .38);
+}
+
+/* Sürükle-bırak hedef yuvası */
+.zincir-halka.hedef-yuva {
+  border: 3px dashed var(--yesil);
+  background: rgba(62, 207, 142, .08);
+  color: var(--yesil-acik);
+  animation: yuvaNabiz 1.8s infinite;
+}
+.zincir-halka.hedef-yuva.kurtarma-yuva { border-color: #f59e0b; color: #fcd34d; background: rgba(245, 158, 11, .08); }
+.zincir-halka.hedef-yuva.kalkan-yuva { border-color: #38bdf8; color: #bae6fd; background: rgba(56, 189, 248, .08); }
+.zincir-halka.surukleme-ustu {
+  transform: scale(1.22);
+  border-style: solid;
+  box-shadow: 0 0 22px rgba(62, 207, 142, .65);
+}
+.zincir-halka.yeni-takildi { animation: kenetlen .45s cubic-bezier(.18, 1.4, .4, 1); }
+
+@keyframes yuvaNabiz {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(62, 207, 142, .45); }
+  50% { box-shadow: 0 0 0 8px rgba(62, 207, 142, 0); }
+}
+@keyframes kenetlen {
+  0% { transform: scale(.65); }
+  60% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+.zincir-etiket { font-size: 11px; color: var(--soluk); white-space: nowrap; }
+.zincir-gun.bugun .zincir-etiket { color: var(--yazi); font-weight: 700; }
+
+/* Alt sürüklenebilir halka tepsisi */
+.zincir-tepsi {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cizgi);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.halka-jeton {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--yesil);
+  background: linear-gradient(135deg, rgba(62, 207, 142, .22), rgba(56, 189, 248, .12));
+  color: var(--yazi);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: grab;
+  user-select: none;
+  box-shadow: 0 0 16px rgba(62, 207, 142, .24);
+  transition: transform .15s, box-shadow .15s;
+}
+.halka-jeton:hover { transform: translateY(-1px); box-shadow: 0 0 22px rgba(62, 207, 142, .42); }
+.halka-jeton:active { cursor: grabbing; transform: scale(.97); }
+.halka-jeton.kurtarma {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, .22), rgba(180, 83, 9, .14));
+  box-shadow: 0 0 14px rgba(245, 158, 11, .24);
+}
+.halka-jeton.kalkan {
+  border-color: #38bdf8;
+  background: linear-gradient(135deg, rgba(56, 189, 248, .22), rgba(148, 163, 184, .16));
+  box-shadow: 0 0 14px rgba(56, 189, 248, .26);
+}
+.halka-jeton-daire {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid currentColor;
+  display: inline-block;
+}
+
+/* ================= En Verimli Saatlerin (24 saat) ================= */
+.verimli-saatler {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 5px;
+  align-items: end;
+  height: 136px;
+  padding-top: 8px;
+}
+.saat-sutun {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 5px;
+}
+.saat-cubuk {
+  width: 100%;
+  min-height: 3px;
+  border-radius: 5px 5px 2px 2px;
+  background: linear-gradient(180deg, rgba(56, 189, 248, .65), rgba(56, 189, 248, .22));
+  transition: height .35s ease, filter .15s;
+}
+.saat-sutun.zirve .saat-cubuk {
+  background: linear-gradient(180deg, var(--yesil-acik), var(--yesil));
+  box-shadow: 0 0 12px rgba(62, 207, 142, .4);
+}
+.saat-sutun:hover .saat-cubuk { filter: brightness(1.25); }
+.saat-etiket { font-size: 10px; color: var(--soluk); font-variant-numeric: tabular-nums; }
+.saat-sutun.zirve .saat-etiket { color: var(--yesil-acik); font-weight: 700; }
+
 /* ================= Son 12 Ay Isı Haritası ================= */
 .isi { --hucre: 14px; --aralik: 3.5px; display: grid; grid-template-columns: auto 1fr;
        grid-template-rows: auto auto; gap: 5px 8px; width: max-content; }
@@ -554,7 +755,7 @@ code { background: var(--kart-ic); padding: 2px 6px; border-radius: 5px; font-si
   background: rgba(255, 255, 255, .05);
   transition: transform .12s;
 }
-.isi-kare:hover:not(.gelecek) { transform: scale(1.25); z-index: 2; }
+.isi-kare:hover:not(.gelecek) { transform: scale(1.25); z-index: 2; cursor: pointer; }
 .isi-kare.s1 { background: rgba(62, 207, 142, .25); }
 .isi-kare.s2 { background: rgba(62, 207, 142, .48); }
 .isi-kare.s3 { background: rgba(62, 207, 142, .74); }

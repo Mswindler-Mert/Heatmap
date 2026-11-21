@@ -173,7 +173,7 @@
         <!-- 4'lü KPI Özet Şeridi -->
         <section class="kpi-izgara">
           <div class="kpi-kart">
-            <div class="kpi-etiket">Güncel Seri</div>
+            <div class="kpi-etiket">Güncel Zincir</div>
             <div class="kpi-deger yesil" id="kpi-seri">0 gün</div>
             <div class="kpi-alt" id="kpi-en-uzun-seri">En uzun: —</div>
           </div>
@@ -192,6 +192,26 @@
             <div class="kpi-deger sari" id="kpi-bekleyen">0</div>
             <div class="kpi-alt">İncelemek için tıkla →</div>
           </button>
+        </section>
+
+        <!-- Zinciri Kırma kartı (sürükle-tak / otomatik tak, bronz kurtarma, gümüş kalkan) -->
+        <section class="kart zincir-kart" id="zincir-kart">
+          <div class="kart-baslik">
+            <div class="zincir-baslik-sol">
+              <h3>Zinciri Kırma</h3>
+              <span id="zincir-kademe" class="kademe-rozet">Başlangıç</span>
+              <span id="zincir-kalkan-bilgi" class="soluk"></span>
+            </div>
+            <label class="salter" title="Açıksa hedefe ulaştığında yeni halka kendiliğinden takılır; kapalıyken sürükleyip (veya tıklayıp) sen takarsın.">
+              <input id="zincir-otomatik" type="checkbox">
+              <span class="salter-ray"></span>
+              <span>Otomatik tak</span>
+            </label>
+          </div>
+          <div class="zincir-kaydirma">
+            <div id="zincir-serit" class="zincir-serit"></div>
+          </div>
+          <div id="zincir-tepsi" class="zincir-tepsi"></div>
         </section>
 
         <!-- Orta 2 sütunlu alan: Haftalık grafik + Süre nereden geldi -->
@@ -230,6 +250,22 @@
             <div id="dokum" class="dokum"></div>
           </section>
         </div>
+
+        <!-- En verimli saatlerin (24 saatlik dağılım) -->
+        <section class="kart">
+          <div class="kart-baslik">
+            <div>
+              <h3>En verimli saatlerin</h3>
+              <span id="saatler-ozet" class="soluk">Çalışma süresinin günün saatlerine dağılımı</span>
+            </div>
+            <select id="saatler-aralik" aria-label="Saat aralığı">
+              <option value="7">Son 7 gün</option>
+              <option value="30" selected>Son 30 gün</option>
+              <option value="90">Son 90 gün</option>
+            </select>
+          </div>
+          <div id="verimli-saatler" class="verimli-saatler"></div>
+        </section>
 
         <!-- Son 12 ay ısı haritası -->
         <section class="kart">

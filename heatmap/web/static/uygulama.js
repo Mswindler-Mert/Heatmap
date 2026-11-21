@@ -97,6 +97,12 @@ for (const dugme of document.querySelectorAll(".menu-oge")) {
 }
 $("kpi-bekleyen-kart").addEventListener("click", () => sayfaAc("bekleyenler"));
 
+// Isı haritası, haftalık grafik ya da zincirden bir güne tıklayınca Oturumlar sekmesini o günle açar.
+function gunuIncele(tarih) {
+  $("tarih").value = tarih;
+  sayfaAc("oturumlar");
+}
+
 // ---------- 1) Şu an ve hedef halkası ----------
 
 let duraklatildi = false;
@@ -228,7 +234,8 @@ async function haftayiYenile() {
     const cubuk = el("div", "cubuk");
     // Üstte ve altta etiket boşluğu olduğu için çubuk yüksekliğini %78 içine ölçekle
     cubuk.style.height = `${Math.max(2, (g.ders_sn / enUzun) * 78)}%`;
-    cubuk.title = `${g.tarih}: ${sureBicimi(g.ders_sn)}`;
+    cubuk.title = `${g.tarih}: ${sureBicimi(g.ders_sn)} (oturumları incelemek için tıkla)`;
+    gun.addEventListener("click", () => gunuIncele(g.tarih));
     gun.append(el("div", "deger", g.ders_sn ? sureBicimi(g.ders_sn) : "–"), cubuk, el("div", "ad", g.gun_adi));
     kutu.append(gun);
   }
@@ -445,7 +452,8 @@ async function isiHaritasiniYenile() {
     if (g.tarih === bugun) kare.classList.add("bugun");
     if (!g.gelecek) {
       const [yil, ay, gun] = g.tarih.split("-").map(Number);
-      kare.title = `${gun} ${AY_KISA[ay - 1]} ${yil}: ${g.ders_sn ? sureBicimi(g.ders_sn) : "kayıt yok"}`;
+      kare.title = `${gun} ${AY_KISA[ay - 1]} ${yil}: ${g.ders_sn ? sureBicimi(g.ders_sn) : "kayıt yok"} (incelemek için tıkla)`;
+      kare.addEventListener("click", () => gunuIncele(g.tarih));
     }
     izgara.append(kare);
   }
@@ -724,6 +732,182 @@ async function kurallariYenile() {
   }
 }
 
+// ---------- 4b) Zinciri Kırma ----------
+
+let sonTakilanTarih = "";
+
+async function halkaTak(tarih, tur) {
+  try {
+    await apiGonder("/api/zincir/halka", "POST", { tarih, tur });
+    sonTakilanTarih = tarih;
+    await Promise.all([zinciriYenile(), haftayiYenile(), isiHaritasiniYenile()]);
+  } catch (hata) {
+    console.error(hata);
+  }
+}
+
+function zincirTepsiJetoni(tarih, tur, yazi, sinif) {
+  const jeton = el("button", `halka-jeton ${sinif || ""}`.trim());
+  jeton.type = "button";
+  jeton.draggable = true;
+  jeton.append(el("span", "halka-jeton-daire"), el("span", "", yazi));
+  jeton.title = "Zincirdeki yanıp sönen yuvaya sürükleyebilir ya da doğrudan tıklayabilirsin.";
+  jeton.addEventListener("dragstart", (olay) => {
+    olay.dataTransfer.setData("text/plain", JSON.stringify({ tarih, tur }));
+    olay.dataTransfer.effectAllowed = "move";
+  });
+  jeton.addEventListener("click", () => halkaTak(tarih, tur));
+  return jeton;
+}
+
+async function zinciriYenile() {
+  const z = await api("/api/zincir");
+  const kart = $("zincir-kart");
+  kart.className = `kart zincir-kart kademe-${z.kilometre_tasi.kod}`;
+
+  const kademe = $("zincir-kademe");
+  kademe.className = `kademe-rozet ${z.kilometre_tasi.kod}`;
+  kademe.textContent = `${z.kilometre_tasi.ad} · ${z.zincir_uzunlugu} halka`;
+
+  $("zincir-kalkan-bilgi").textContent =
+    `Kalkan: ${z.kalkan_hakki}/${z.en_fazla_kalkan} · sonraki kalkana ${z.sonraki_kalkana_kalan} tam gün`;
+  $("zincir-otomatik").checked = Boolean(z.otomatik_tak);
+
+  // KPI kartı güncel zinciri (kurtarma/kalkan dahil) göstersin
+  $("kpi-seri").textContent = `${z.zincir_uzunlugu} gün`;
+  $("kpi-en-uzun-seri").textContent = `En uzun: ${z.en_uzun_zincir} gün · sonraki hedef ${z.kilometre_tasi.sonraki}`;
+
+  const serit = $("zincir-serit");
+  serit.replaceChildren();
+  const bugunTarih = z.halkalar.length ? z.halkalar[z.halkalar.length - 1].tarih : "";
+
+  z.halkalar.forEach((h, i) => {
+    if (i > 0) {
+      const onceki = z.halkalar[i - 1];
+      const bag = el("div", "zincir-bag");
+      if (onceki.tur && h.tur) {
+        bag.classList.add("aktif");
+        if (z.kilometre_tasi.kod === "altin") bag.classList.add("altin");
+        if (h.tur === "kurtarma" || onceki.tur === "kurtarma") bag.classList.add("kurtarma");
+        if (h.tur === "kalkan" || onceki.tur === "kalkan") bag.classList.add("kalkan");
+      }
+      serit.append(bag);
+    }
+
+    const sutun = el("div", h.bugun ? "zincir-gun bugun" : "zincir-gun");
+    const halka = el("div", "zincir-halka");
+    if (h.tur) halka.classList.add(h.tur);
+    if (h.tarih === sonTakilanTarih) halka.classList.add("yeni-takildi");
+
+    const dropHedefi = h.bekliyor || (h.kalkan_adayi ? "kalkan" : null);
+    if (dropHedefi) {
+      halka.classList.add("hedef-yuva");
+      if (dropHedefi === "kurtarma") halka.classList.add("kurtarma-yuva");
+      if (dropHedefi === "kalkan") halka.classList.add("kalkan-yuva");
+      halka.addEventListener("dragover", (olay) => {
+        olay.preventDefault();
+        halka.classList.add("surukleme-ustu");
+      });
+      halka.addEventListener("dragleave", () => halka.classList.remove("surukleme-ustu"));
+      halka.addEventListener("drop", (olay) => {
+        olay.preventDefault();
+        halka.classList.remove("surukleme-ustu");
+        try {
+          const veri = JSON.parse(olay.dataTransfer.getData("text/plain"));
+          if (veri.tarih === h.tarih) halkaTak(veri.tarih, veri.tur);
+        } catch {
+          halkaTak(h.tarih, dropHedefi);
+        }
+      });
+    }
+
+    const simge = h.tur === "tam" ? "✓"
+      : h.tur === "kurtarma" ? "B"
+      : h.tur === "kalkan" ? "K"
+      : dropHedefi ? "+"
+      : String(h.gun_no);
+    halka.textContent = simge;
+
+    const turAciklama = h.tur === "tam" ? "Tam halka (hedef tuttu)"
+      : h.tur === "kurtarma" ? "Bronz kurtarma halkası"
+      : h.tur === "kalkan" ? "Gümüş kalkan halkası"
+      : dropHedefi === "tam" ? "Hedef tamam! Halkayı buraya sürükle veya tıkla"
+      : dropHedefi === "kurtarma" ? "Bronz kurtarma halkası takılabilir"
+      : dropHedefi === "kalkan" ? "Dünü kalkan halkasıyla kurtarabilirsin"
+      : "Halka yok";
+    sutun.title = `${h.tarih} (${h.gun_adi}): ${sureBicimi(h.ders_sn)} · ${turAciklama}`;
+    sutun.addEventListener("click", () => {
+      if (dropHedefi) halkaTak(h.tarih, dropHedefi);
+      else gunuIncele(h.tarih);
+    });
+
+    sutun.append(halka, el("span", "zincir-etiket", h.bugun ? "Bugün" : `${h.gun_no} ${h.gun_adi}`));
+    serit.append(sutun);
+  });
+
+  // Sağ uç (bugün) görünsün
+  const kaydirma = document.querySelector(".zincir-kaydirma");
+  kaydirma.scrollLeft = kaydirma.scrollWidth;
+
+  // Alt aksiyon tepsisi: sürüklenebilir/tıklanabilir halka jetonları veya rehber notu
+  const tepsi = $("zincir-tepsi");
+  tepsi.replaceChildren();
+  let jetonVar = false;
+
+  if (z.bekleyen_halka === "tam") {
+    tepsi.append(zincirTepsiJetoni(bugunTarih, "tam", "Bugünün halkasını zincire tak (sürükle ya da tıkla)"));
+    jetonVar = true;
+  } else if (z.bekleyen_halka === "kurtarma") {
+    tepsi.append(zincirTepsiJetoni(bugunTarih, "kurtarma", "Bronz kurtarma halkası tak (sürükle ya da tıkla)", "kurtarma"));
+    jetonVar = true;
+  }
+  if (z.kalkan_kullanilabilir_tarih) {
+    tepsi.append(zincirTepsiJetoni(z.kalkan_kullanilabilir_tarih, "kalkan", "Dünü Gümüş Kalkan ile kurtar", "kalkan"));
+    jetonVar = true;
+  }
+
+  if (!jetonVar) {
+    const mesaj = !z.hedef_sn
+      ? "Zinciri Kırma için Ayarlar'dan günlük hedef belirleyebilirsin."
+      : z.otomatik_tak
+        ? "Otomatik tak açık: günlük hedefine ulaştığın an yeni halkan kendiliğinden zincire eklenir."
+        : "Günlük hedefine ulaştığında parlak halkan burada açılacak; sürükleyip zincire takabilirsin.";
+    tepsi.append(el("span", "soluk", mesaj));
+  }
+  sonTakilanTarih = "";
+}
+
+// ---------- 4c) En verimli saatlerin (24 saatlik dağılım) ----------
+
+async function verimliSaatleriYenile() {
+  const gun = Number($("saatler-aralik").value) || 30;
+  const v = await api(`/api/verimli-saatler?gun=${gun}`);
+  const kutu = $("verimli-saatler");
+  kutu.replaceChildren();
+
+  if (v.en_verimli_saat != null) {
+    const s1 = ikiHane(v.en_verimli_saat);
+    const s2 = ikiHane((v.en_verimli_saat + 1) % 24);
+    $("saatler-ozet").textContent =
+      `En verimli saatin: ${s1}:00–${s2}:00 · En güçlü dilim: ${v.en_verimli_dilim}`;
+  } else {
+    $("saatler-ozet").textContent = "Bu aralıkta henüz çalışma verisi yok.";
+  }
+
+  for (const s of v.saatler) {
+    const zirve = s.oran >= 0.8 && s.ders_sn > 0;
+    const sutun = el("div", zirve ? "saat-sutun zirve" : "saat-sutun");
+    const cubuk = el("div", "saat-cubuk");
+    cubuk.style.height = `${Math.max(3, Math.round(s.oran * 82))}%`;
+    const saatBas = `${ikiHane(s.saat)}:00`;
+    const saatSon = `${ikiHane((s.saat + 1) % 24)}:00`;
+    sutun.title = `${saatBas}–${saatSon}: ${s.ders_sn ? sureBicimi(s.ders_sn) : "kayıt yok"}`;
+    const etiket = el("span", "saat-etiket", s.saat % 2 === 0 ? ikiHane(s.saat) : "");
+    sutun.append(cubuk, etiket);
+    kutu.append(sutun);
+  }
+}
+
 // ---------- Başlangıç ve olay bağlamaları ----------
 
 async function hepsiniYenile(zorla) {
@@ -731,6 +915,8 @@ async function hepsiniYenile(zorla) {
     await Promise.all([
       durumuYenile(),
       haftayiYenile(),
+      zinciriYenile(),
+      verimliSaatleriYenile(),
       isiHaritasiniYenile(),
       dokumuYenile(),
       oturumlariYenile(zorla),
@@ -762,6 +948,16 @@ $("bugun-dugme").addEventListener("click", () => {
 
 $("dokum-aralik").addEventListener("change", dokumuYenile);
 $("dokum-gruplama").addEventListener("change", dokumuYenile);
+$("saatler-aralik").addEventListener("change", verimliSaatleriYenile);
+$("zincir-otomatik").addEventListener("change", async (olay) => {
+  const istenen = olay.target.checked;
+  try {
+    await apiGonder("/api/ayarlar", "POST", { degisiklikler: { "zincir.otomatik_tak": istenen } });
+    await zinciriYenile();
+  } catch {
+    olay.target.checked = !istenen;
+  }
+});
 
 $("kart-olustur").addEventListener("click", kartiOlustur);
 $("kart-kopyala").addEventListener("click", kartiKopyala);

@@ -4,6 +4,13 @@ Sürüm numarası `heatmap/__init__.py` içindeki `__version__` değeridir ve ar
 
 ## Yayımlanmamış
 
+- **Zinciri Kırma:** Günlük hedefine ulaştığında sürükle-bırak (veya tıkla-tak) ile zincire yeni
+  halka takma, isteğe bağlı "Otomatik tak", yoğun günler için bronz kurtarma halkası, 7 ardışık
+  tam halkada kazanılan gümüş kalkan halkası ve kilometre taşı renkleri (şema sürümü 5).
+- **En verimli saatlerin:** Son 7/30/90 günde çalışma süresinin 24 saate dağılımı ve en güçlü
+  odak dilimi.
+- **Tıklanabilir grafikler:** Isı haritası, haftalık grafik veya zincirde bir güne tıklayınca
+  doğrudan Oturumlar sekmesi o günle açılır.
 - **Yenilenen sol menülü arayüz:** 5 net sekme (Özet, Oturumlar, Karar Bekleyenler, Paylaşım Kartı,
   Ayarlar), günlük hedef için dairesel ilerleme halkası, 4'lü KPI özet kartları, haftalık grafikte
   hedef çizgisi, renk kodlu uygulama dökümü ve canlı mini durum kutusu.

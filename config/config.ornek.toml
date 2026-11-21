@@ -223,6 +223,13 @@ video_isaretleri = ["YouTube", "Udemy", "Coursera"]
 gunluk_dk = 120
 
 # ---------------------------------------------------------------------
+#  Zinciri Kırma: hedefe ulaşınca halka takma ve zinciri koruma ayarları
+# ---------------------------------------------------------------------
+[zincir]
+otomatik_tak = false      # false: hedefe ulaşınca halkayı sen sürükleyip/tıklayıp takarsın; true: otomatik takar
+kurtarma_dk = 30          # Yoğun/hasta günlerde zinciri bronz halkayla kurtarmak için en az dakika (0 = kapalı)
+
+# ---------------------------------------------------------------------
 #  Öğrenen tahmin: düzelttiğin (ve kuralların karar verdiği) tarayıcı başlıklarındaki
 #  kelimelerden öğrenir; benzer, hiç görülmemiş başlıklar için tahmin yürütür.
 #  Tamamen bu bilgisayarda çalışır, model dosyaya kaydedilmez.

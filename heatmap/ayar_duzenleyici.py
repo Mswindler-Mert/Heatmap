@@ -23,6 +23,12 @@ ALANLAR: list[dict] = [
     # --- Hedef ve süreler ---
     {"grup": "Hedef ve süreler", "anahtar": "hedef.gunluk_dk", "tur": "tamsayi", "etiket": "Günlük hedef",
      "birim": "dk", "en_az": 0, "en_cok": 1440, "aciklama": "Seri ve kartlardaki hedef. 0 = hedef yok."},
+    {"grup": "Hedef ve süreler", "anahtar": "zincir.otomatik_tak", "tur": "evet_hayir",
+     "etiket": "Zincir halkasını otomatik tak",
+     "aciklama": "Kapalıyken hedefe ulaşınca halkayı sen sürükleyip (veya tıklayıp) zincire takarsın."},
+    {"grup": "Hedef ve süreler", "anahtar": "zincir.kurtarma_dk", "tur": "tamsayi",
+     "etiket": "Bronz kurtarma eşiği", "birim": "dk", "en_az": 0, "en_cok": 720,
+     "aciklama": "Yoğun günlerde zinciri koparmamak için gereken en az süre (0 = kapalı)."},
     {"grup": "Hedef ve süreler", "anahtar": "tolerans.baslatma_sn", "tur": "tamsayi", "etiket": "Sayacın başlaması",
      "birim": "sn", "en_az": 0, "en_cok": 600, "aciklama": "Çalışma bu kadar kesintisiz sürünce sayaç başlar."},
     {"grup": "Hedef ve süreler", "anahtar": "tolerans.durdurma_sn", "tur": "tamsayi", "etiket": "Sayacın durması",

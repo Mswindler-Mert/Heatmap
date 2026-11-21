@@ -114,10 +114,10 @@ dashboard, kart, ayarlar, takip döngüsü çalıştı. ❓ Sürüm iş akışı
 ## Faz 2: Arayüz, Motivasyon ve Kullanım Kolaylığı
 
 1. ✅ **Yenilenen sol menülü arayüz:** 5 net sekme (Özet, Oturumlar, Karar Bekleyenler, Paylaşım Kartı, Ayarlar), dairesel günlük hedef halkası, 4'lü KPI özet kartları, haftalık hedef çizgisi, renk kodlu döküm.
-2. 🔲 **Zinciri Kırma + Tıklanabilir Grafikler + En Verimli Saatler:**
-   - Barış Özcan'ın *Zinciri Kırma* yaklaşımıyla görsel zincir: hedefe ulaşınca sürükle-tak veya otomatik takılan halkalar, hak edilen kalkan halkası (7 ardışık halkada 1), bronz kurtarma halkası, kilometre taşı renkleri.
-   - Tıklanabilir ısı haritası ve haftalık çubuklar (tıklanan günün Oturumlar ekranını açar).
-   - 24 saatlik "En verimli saatlerin" grafiği.
+2. ✅ **Zinciri Kırma + Tıklanabilir Grafikler + En Verimli Saatler:**
+   - Barış Özcan'ın *Zinciri Kırma* yaklaşımıyla görsel zincir: hedefe ulaşınca sürükle-tak veya otomatik takılan halkalar, hak edilen kalkan halkası (7 ardışık halkada 1), bronz kurtarma halkası, kilometre taşı renkleri (`heatmap/zincir.py`, şema v5).
+   - Tıklanabilir ısı haritası, haftalık çubuklar ve zincir halkaları (tıklanan günün Oturumlar ekranını açar).
+   - 24 saatlik "En verimli saatlerin" grafiği (`/api/verimli-saatler`).
 3. 🔲 **İsteğe Bağlı Kayan Mini Masaüstü Sayacı + Hedef Bildirimleri:**
    - Her zaman üstte duran, sürüklenebilir, yarı saydam mini sayaç penceresi (tepsi ve arayüzden istenilen zaman aç/kapat; isteğe bağlı odak zamanlayıcısı).
    - Günlük hedefe ulaşınca ve akşam zinciri kurtarmaya az kalınca sessiz Windows bildirimi.

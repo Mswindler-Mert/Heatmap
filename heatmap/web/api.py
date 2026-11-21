@@ -26,8 +26,9 @@ from heatmap.disa_aktar import gunluk_csv, oturumlar_csv
 from heatmap.dedektorler.tarayici import TarayiciDedektoru
 from heatmap.depo import Depo, gun_araligi
 from heatmap.kart import kart_ciz, kart_verisi
-from heatmap.ozet import GUN_ADLARI, Adlandirici, isi_haritasi, seri_hesapla, zaman_cizelgesi
+from heatmap.ozet import GUN_ADLARI, Adlandirici, isi_haritasi, seri_hesapla, verimli_saatler, zaman_cizelgesi
 from heatmap.takipci import Takipci
+from heatmap.zincir import halka_tak_dogrula, zincir_durumu
 
 STATIK_KLASOR = Path(__file__).parent / "static"
 ONERI_ESIGI = 0.6  # Düzeltme ekranında öneri gösterilmesi için modelin en az bu kadar emin olması
@@ -64,6 +65,12 @@ class TopluKarar(BaseModel):
 
 class KameraIstegi(BaseModel):
     acik: bool
+
+
+class ZincirHalkaIstegi(BaseModel):
+    """Zincire elle halka takma (tam, bronz kurtarma ya da gümüş kalkan)."""
+    tarih: date
+    tur: Literal["tam", "kurtarma", "kalkan"]
 
 
 class SaglikKaydi(BaseModel):
@@ -362,6 +369,35 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         if not 1 <= hafta <= 106:
             raise HTTPException(400, "hafta 1 ile 106 arasında olmalı")
         return isi_haritasi(depo, ortam.hedef_sn, bitis or date.today(), hafta)
+
+    def _zincir_ayarlari() -> tuple[int, bool]:
+        z = ortam.ayarlar.get("zincir", {})
+        return int(z.get("kurtarma_dk", 30) * 60), bool(z.get("otomatik_tak", False))
+
+    @app.get("/api/zincir")
+    def zincir_ucu():
+        """Zinciri Kırma: son 14 günün halkaları, bekleyen halka, kalkan hakkı ve kilometre taşı."""
+        kurtarma_sn, otomatik_tak = _zincir_ayarlari()
+        return zincir_durumu(depo, ortam.hedef_sn, kurtarma_sn, otomatik_tak, date.today())
+
+    @app.post("/api/zincir/halka")
+    def zincir_halka_tak(istek: ZincirHalkaIstegi):
+        """Günlük hedefe (veya kurtarma/kalkan şartına) ulaşıldığında halkayı zincire takar."""
+        bugun = date.today()
+        kurtarma_sn, otomatik_tak = _zincir_ayarlari()
+        durum = zincir_durumu(depo, ortam.hedef_sn, kurtarma_sn, otomatik_tak, bugun)
+        hata = halka_tak_dogrula(durum, istek.tarih, istek.tur, bugun)
+        if hata:
+            raise HTTPException(400, hata)
+        depo.zincir_halkasi_kaydet(istek.tarih, istek.tur)
+        return zincir_durumu(depo, ortam.hedef_sn, kurtarma_sn, otomatik_tak, bugun)
+
+    @app.get("/api/verimli-saatler")
+    def verimli_saatler_ucu(gun: int = 30):
+        """Son N günde çalışma süresinin günün 24 saatine (00..23) dağılımı."""
+        if not 1 <= gun <= 365:
+            raise HTTPException(400, "gun 1 ile 365 arasında olmalı")
+        return verimli_saatler(depo, date.today(), gun)
 
     @app.get("/api/kart")
     def kart(tur: Literal["gunluk", "haftalik", "aylik", "yillik"] = "gunluk",

@@ -55,7 +55,8 @@ class SemaTesti(unittest.TestCase):
             self.assertEqual(surumu_oku(vt), GUNCEL_SURUM)
             self.assertIn("alan_adi", {s[1] for s in vt.execute("PRAGMA table_info(oturumlar)")})
             tablolar = {s[0] for s in vt.execute("SELECT name FROM sqlite_master")}
-        self.assertTrue({"oturumlar", "ogrenilen_kurallar", "saglik_gunluk", "oturumlar_bitis"} <= tablolar)
+        self.assertTrue({"oturumlar", "ogrenilen_kurallar", "saglik_gunluk",
+                         "zincir_halkalari", "oturumlar_bitis"} <= tablolar)
 
     def test_yeni_dosya(self):
         self.assertEqual(semayi_guncelle(self.db, self.yedekler), [n for n, _, _ in GOCLER])

@@ -7,6 +7,7 @@ Program açılınca bu numaraya bakılır ve eksik taşımalar SIRAYLA uygulanı
     sürüm 1  ->  2 : oturumlar.alan_adi sütunu (tarayıcı eklentisi)
     sürüm 2  ->  3 : saglik_gunluk tablosu
     sürüm 3  ->  4 : oturumlar(bitis) dizini (tarih aralığı sorguları hızlansın)
+    sürüm 4  ->  5 : zincir_halkalari tablosu (Zinciri Kırma halkaları ve kalkanları)
 
 Kurallar:
   * Var olan bir taşıma ASLA değiştirilmez; şema değişecekse listenin sonuna YENİ bir
@@ -76,11 +77,22 @@ def _g4_bitis_dizini(vt) -> None:
     vt.execute("CREATE INDEX IF NOT EXISTS oturumlar_bitis ON oturumlar (bitis)")
 
 
+def _g5_zincir_halkalari(vt) -> None:
+    # Zinciri Kırma: elle/otomatik takılan tam, bronz kurtarma ve gümüş kalkan halkaları.
+    vt.execute("""
+        CREATE TABLE IF NOT EXISTS zincir_halkalari (
+            tarih   TEXT PRIMARY KEY,   -- 'YYYY-AA-GG' (yerel gün)
+            tur     TEXT NOT NULL,      -- 'tam' | 'kurtarma' | 'kalkan'
+            eklenme REAL NOT NULL       -- epoch saniyesi
+        )""")
+
+
 GOCLER: list[tuple[int, str, Callable]] = [
     (1, "İlk tablolar: oturumlar, öğrenilen kurallar", _g1_ilk_tablolar),
     (2, "oturumlar.alan_adi sütunu (tarayıcı eklentisi)", _g2_alan_adi),
     (3, "saglik_gunluk tablosu (adım, egzersiz, uyku)", _g3_saglik),
     (4, "oturumlar(bitis) dizini", _g4_bitis_dizini),
+    (5, "zincir_halkalari tablosu (Zinciri Kırma)", _g5_zincir_halkalari),
 ]
 GUNCEL_SURUM = GOCLER[-1][0]
 

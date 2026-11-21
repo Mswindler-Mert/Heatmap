@@ -4,6 +4,7 @@ Tablolar (tanımları ve sürümleri: heatmap/sema.py):
   oturumlar          : Aynı durumun kesintisiz sürdüğü zaman dilimleri.
   ogrenilen_kurallar : Senin düzeltmelerinden öğrenilen kurallar.
   saglik_gunluk      : Günlük adım / egzersiz / uyku.
+  zincir_halkalari   : Zinciri Kırma halkaları (tam / kurtarma / kalkan).
 
 Zamanlar "epoch saniyesi" (1970'ten beri geçen saniye, time.time() çıktısı)
 olarak saklanır; iki zamanı çıkarmak süreyi verdiği için hesap kolaydır.
@@ -231,6 +232,60 @@ class Depo:
             sonuc.append({"tarih": gun.isoformat(), "ders_sn": round(gunluk.get(gun, 0.0))})
             gun += timedelta(days=1)
         return sonuc
+
+    def saatlik_dagilim(self, ilk_gun: date, son_gun: date) -> list[dict]:
+        """İki tarih arasındaki ders süresinin günün 24 saatine (0..23) dağılımı.
+
+        Her oturum yerel saate göre geçtiği saat dilimlerine bölünür; örneğin
+        14:40–15:20 oturumu 14. saate 20 dk, 15. saate 20 dk ekler.
+        """
+        aralik_bas, _ = gun_araligi(ilk_gun)
+        _, aralik_bit = gun_araligi(son_gun)
+        with self._baglan() as vt:
+            satirlar = vt.execute(
+                f"SELECT baslangic, bitis FROM oturumlar"
+                f" WHERE {_ETKIN_HUKUM} = ? AND bitis > ? AND baslangic < ?",
+                (DERS, aralik_bas, aralik_bit),
+            ).fetchall()
+
+        saatler = [0.0] * 24
+        for satir in satirlar:
+            bas = max(satir["baslangic"], aralik_bas)
+            bit = min(satir["bitis"], aralik_bit)
+            while bas < bit:
+                dt = datetime.fromtimestamp(bas)
+                sonraki_saat = (dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)).timestamp()
+                parca_sonu = min(bit, sonraki_saat)
+                saatler[dt.hour] += parca_sonu - bas
+                bas = parca_sonu
+
+        return [{"saat": s, "ders_sn": round(saatler[s])} for s in range(24)]
+
+    # ------------------------------------------------------------------
+    #  Zinciri Kırma halkaları (tam / kurtarma / kalkan)
+    # ------------------------------------------------------------------
+    def zincir_halkasi_kaydet(self, gun: date, tur: str, zaman: float | None = None) -> None:
+        """Bir günün zincir halkasını kaydeder (varsa türünü günceller, örn. kurtarma -> tam)."""
+        with self._baglan() as vt:
+            vt.execute(
+                "INSERT INTO zincir_halkalari (tarih, tur, eklenme) VALUES (?, ?, ?)"
+                " ON CONFLICT (tarih) DO UPDATE SET tur = excluded.tur, eklenme = excluded.eklenme",
+                (gun.isoformat(), tur, zaman if zaman is not None else time.time()),
+            )
+
+    def zincir_halkasi_sil(self, gun: date) -> bool:
+        with self._baglan() as vt:
+            imlec = vt.execute("DELETE FROM zincir_halkalari WHERE tarih = ?", (gun.isoformat(),))
+        return imlec.rowcount > 0
+
+    def zincir_halkalari_getir(self, ilk_gun: date, son_gun: date) -> dict[str, str]:
+        """İki tarih arasındaki kayıtlı zincir halkaları: {"2026-11-21": "tam", ...}."""
+        with self._baglan() as vt:
+            satirlar = vt.execute(
+                "SELECT tarih, tur FROM zincir_halkalari WHERE tarih BETWEEN ? AND ?",
+                (ilk_gun.isoformat(), son_gun.isoformat()),
+            ).fetchall()
+        return {s["tarih"]: s["tur"] for s in satirlar}
 
     # ------------------------------------------------------------------
     #  Sağlık verisi (adım, egzersiz, uyku)

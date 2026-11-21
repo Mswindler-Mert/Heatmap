@@ -210,3 +210,36 @@ def isi_haritasi(depo, hedef_sn: int, bugun: date, hafta_sayisi: int = 53) -> di
         "simdiki_seri": seri_hesapla(depo, hedef_sn, bugun),
         "aktif_gun_ortalamasi_sn": round(toplam / len(aktif)) if aktif else 0,
     }
+
+
+def verimli_saatler(depo, bugun: date, gun_sayisi: int = 30) -> dict:
+    """Son `gun_sayisi` günde hangi saatlerde daha çok çalışıldığını çıkarır (0..23)."""
+    ilk_gun = bugun - timedelta(days=max(0, gun_sayisi - 1))
+    saatler = depo.saatlik_dagilim(ilk_gun, bugun)
+    toplam = sum(s["ders_sn"] for s in saatler)
+    en_cok = max((s["ders_sn"] for s in saatler), default=0)
+
+    for s in saatler:
+        s["oran"] = round(s["ders_sn"] / en_cok, 3) if en_cok else 0.0
+
+    en_verimli_saat = max(saatler, key=lambda s: s["ders_sn"])["saat"] if en_cok > 0 else None
+
+    # Günün 4 zaman diliminden hangisinde daha çok çalışma var?
+    dilimler = [
+        ("Sabah (06:00–12:00)", range(6, 12)),
+        ("Öğleden sonra (12:00–18:00)", range(12, 18)),
+        ("Akşam (18:00–22:00)", range(18, 22)),
+        ("Gece (22:00–06:00)", [22, 23, 0, 1, 2, 3, 4, 5]),
+    ]
+    dilim_toplamlari = [(ad, sum(saatler[h]["ders_sn"] for h in aral)) for ad, aral in dilimler]
+    en_iyi_dilim = max(dilim_toplamlari, key=lambda d: d[1])[0] if toplam > 0 else None
+
+    return {
+        "gun_sayisi": gun_sayisi,
+        "baslangic": ilk_gun.isoformat(),
+        "bitis": bugun.isoformat(),
+        "toplam_sn": toplam,
+        "en_verimli_saat": en_verimli_saat,
+        "en_verimli_dilim": en_iyi_dilim,
+        "saatler": saatler,
+    }
