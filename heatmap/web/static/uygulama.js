@@ -18,20 +18,35 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 
 const $ = (id) => document.getElementById(id);
 
-// ---------- Tema (Kâğıt & Mürekkep <-> Gece Mürekkebi) ----------
-function temaUygula(geceMi) {
-  document.body.classList.toggle("gece", geceMi);
-  $("tema-dugme").textContent = geceMi ? "☀" : "☾";
+// ---------- Tema seçici (5 göz yormayan tema) ----------
+const TEMA_ADLARI = {
+  gece: "Gece",
+  kagit: "Kâğıt",
+  orman: "Orman",
+  karbon: "Karbon",
+  gruvbox: "Amber",
+};
+
+function temaUygula(ad) {
+  const gecerli = Object.prototype.hasOwnProperty.call(TEMA_ADLARI, ad) ? ad : "gece";
+  document.body.dataset.tema = gecerli;
+  $("tema-adi").textContent = TEMA_ADLARI[gecerli];
+  for (const dugme of document.querySelectorAll(".tema-nokta")) {
+    dugme.classList.toggle("aktif", dugme.dataset.tema === gecerli);
+  }
   try {
-    localStorage.setItem("heatmap_tema", geceMi ? "gece" : "kagit");
+    localStorage.setItem("heatmap_tema", gecerli);
   } catch { /* özel pencerede localStorage kapalı olabilir */ }
 }
+
 try {
-  temaUygula(localStorage.getItem("heatmap_tema") === "gece");
+  temaUygula(localStorage.getItem("heatmap_tema") || "gece");
 } catch {
-  temaUygula(false);
+  temaUygula("gece");
 }
-$("tema-dugme").addEventListener("click", () => temaUygula(!document.body.classList.contains("gece")));
+for (const dugme of document.querySelectorAll(".tema-nokta")) {
+  dugme.addEventListener("click", () => temaUygula(dugme.dataset.tema));
+}
 
 // ---------- Küçük yardımcılar ----------
 

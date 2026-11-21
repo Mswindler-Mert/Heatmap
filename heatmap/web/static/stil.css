@@ -1,58 +1,27 @@
 /* ============================================================================
-   HEATMAP — "Kâğıt & Mürekkep" + "Gece Mürekkebi" tasarım sistemi
-   Sıcak noktalı defter zemini, keskin mürekkep çizgileri, dolgun renk blokları.
+   HEATMAP — Göz yormayan 5 karakterli tema (Gece Mürekkebi, Sıcak Kâğıt,
+   Orman & Yosun, Karbon & Ateş, Retro Amber / Gruvbox)
    ============================================================================ */
 
+/* 1) Varsayılan: Gece Mürekkebi (sıcak kömür/taş — parlama yok, lacivert AI şablonu değil) */
 :root {
-  --zemin: #f3ede2;
-  --nokta: rgba(24, 24, 27, .11);
-  --kenar: #e8e0d0;
-  --kart: #fffdf8;
-  --kart-ic: #f5efe3;
-  --kart-vurgu-turuncu: #fff3e4;
-  --murekkep: #18181b;
-  --cizgi: #18181b;
-  --cizgi-ince: rgba(24, 24, 27, .16);
-  --yazi: #18181b;
-  --soluk: #5c5852;
-  --golge: 4px 4px 0 #18181b;
-  --golge-kucuk: 2px 2px 0 #18181b;
-
-  /* Vurgu renkleri */
-  --yesil: #059669;
-  --yesil-parlak: #10b981;
-  --yesil-koyu: #0b5d4b;
-  --turuncu: #ea580c;
-  --turuncu-parlak: #f97316;
-  --sari: #d97706;
-  --kirmizi: #dc2626;
-  --mavi: #2563eb;
-  --mor: #7c3aed;
-  --pembe: #db2777;
-  --turkuaz: #0d9488;
-  --mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
-  color-scheme: light;
-}
-
-/* Gece Mürekkebi (koyu ama sıcak kömür/taş — lacivert AI şablonu değil) */
-body.gece {
-  --zemin: #141311;
-  --nokta: rgba(245, 240, 230, .09);
-  --kenar: #1b1916;
-  --kart: #1f1d1a;
-  --kart-ic: #2a2723;
-  --kart-vurgu-turuncu: #2c2017;
-  --murekkep: #000000;
-  --cizgi: #3f3a34;
-  --cizgi-ince: rgba(245, 240, 230, .14);
-  --yazi: #f5f0e6;
-  --soluk: #a8a095;
-  --golge: 4px 4px 0 #000000;
-  --golge-kucuk: 2px 2px 0 #000000;
+  --zemin: #151412;
+  --nokta: rgba(235, 228, 216, .085);
+  --kenar: #1c1a17;
+  --kart: #211f1b;
+  --kart-ic: #2b2823;
+  --kart-vurgu-turuncu: #2d2118;
+  --murekkep: #080706;
+  --cizgi: #433e37;
+  --cizgi-ince: rgba(235, 228, 216, .14);
+  --yazi: #ebe4d8;
+  --soluk: #a79e92;
+  --golge: 4px 4px 0 #080706;
+  --golge-kucuk: 2px 2px 0 #080706;
 
   --yesil: #10b981;
   --yesil-parlak: #34d399;
-  --yesil-koyu: #0b5d4b;
+  --yesil-koyu: #0d5b49;
   --turuncu: #f97316;
   --turuncu-parlak: #fb923c;
   --sari: #f59e0b;
@@ -61,6 +30,157 @@ body.gece {
   --mor: #a78bfa;
   --pembe: #f472b6;
   --turkuaz: #2dd4bf;
+  --isi1: rgba(16, 185, 129, .24);
+  --isi2: rgba(16, 185, 129, .48);
+  --isi3: rgba(16, 185, 129, .74);
+  --isi4: #34d399;
+  --bosta-renk: #44403c;
+  --menu-hover: rgba(255, 255, 255, .06);
+  --mono: "Cascadia Mono", "Consolas", ui-monospace, monospace;
+  color-scheme: dark;
+}
+
+/* 2) Sıcak Kâğıt (parlak beyaz YOK — göz yormayan yumuşak parşömen/kraft defter) */
+body[data-tema="kagit"] {
+  --zemin: #ddd4c3;
+  --nokta: rgba(36, 31, 26, .13);
+  --kenar: #d2c7b4;
+  --kart: #e9e1d2;
+  --kart-ic: #dfd6c5;
+  --kart-vurgu-turuncu: #ebd9c5;
+  --murekkep: #241f1a;
+  --cizgi: #2c2620;
+  --cizgi-ince: rgba(36, 31, 26, .18);
+  --yazi: #241f1a;
+  --soluk: #60584e;
+  --golge: 4px 4px 0 #2c2620;
+  --golge-kucuk: 2px 2px 0 #2c2620;
+
+  --yesil: #0f766e;
+  --yesil-parlak: #0d9488;
+  --yesil-koyu: #115e59;
+  --turuncu: #c2410c;
+  --turuncu-parlak: #ea580c;
+  --sari: #b45309;
+  --kirmizi: #b91c1c;
+  --mavi: #1d4ed8;
+  --mor: #6d28d9;
+  --pembe: #be185d;
+  --turkuaz: #0f766e;
+  --isi1: #a7d7c5;
+  --isi2: #5cb89b;
+  --isi3: #1f8a70;
+  --isi4: #0f5c4a;
+  --bosta-renk: #a89f91;
+  --menu-hover: rgba(36, 31, 26, .08);
+  color-scheme: light;
+}
+
+/* 3) Orman & Yosun (sakin, derin çam yeşili & kehribar — uzun çalışma seansları için) */
+body[data-tema="orman"] {
+  --zemin: #0f1714;
+  --nokta: rgba(214, 232, 222, .085);
+  --kenar: #14201b;
+  --kart: #182620;
+  --kart-ic: #20312a;
+  --kart-vurgu-turuncu: #29261b;
+  --murekkep: #060b09;
+  --cizgi: #334d42;
+  --cizgi-ince: rgba(214, 232, 222, .14);
+  --yazi: #dfece5;
+  --soluk: #90aba0;
+  --golge: 4px 4px 0 #060b09;
+  --golge-kucuk: 2px 2px 0 #060b09;
+
+  --yesil: #34d399;
+  --yesil-parlak: #6ee7b7;
+  --yesil-koyu: #14533c;
+  --turuncu: #eab308;
+  --turuncu-parlak: #facc15;
+  --sari: #f59e0b;
+  --kirmizi: #f87171;
+  --mavi: #38bdf8;
+  --mor: #c084fc;
+  --pembe: #f472b6;
+  --turkuaz: #2dd4bf;
+  --isi1: rgba(52, 211, 153, .22);
+  --isi2: rgba(52, 211, 153, .45);
+  --isi3: rgba(52, 211, 153, .72);
+  --isi4: #6ee7b7;
+  --bosta-renk: #35473f;
+  --menu-hover: rgba(255, 255, 255, .06);
+  color-scheme: dark;
+}
+
+/* 4) Karbon & Ateş (mat saf karbon + Strava ateş turuncusu & volt) */
+body[data-tema="karbon"] {
+  --zemin: #0c0c0e;
+  --nokta: rgba(255, 255, 255, .07);
+  --kenar: #121215;
+  --kart: #17171b;
+  --kart-ic: #212127;
+  --kart-vurgu-turuncu: #2a1912;
+  --murekkep: #000000;
+  --cizgi: #32323a;
+  --cizgi-ince: rgba(255, 255, 255, .12);
+  --yazi: #f0f0f3;
+  --soluk: #9494a3;
+  --golge: 4px 4px 0 #000000;
+  --golge-kucuk: 2px 2px 0 #000000;
+
+  --yesil: #84cc16;
+  --yesil-parlak: #a3e635;
+  --yesil-koyu: #2b4714;
+  --turuncu: #ff5a1f;
+  --turuncu-parlak: #ff7847;
+  --sari: #facc15;
+  --kirmizi: #fb7185;
+  --mavi: #38bdf8;
+  --mor: #a78bfa;
+  --pembe: #f472b6;
+  --turkuaz: #22d3ee;
+  --isi1: rgba(163, 230, 53, .22);
+  --isi2: rgba(163, 230, 53, .45);
+  --isi3: rgba(163, 230, 53, .72);
+  --isi4: #a3e635;
+  --bosta-renk: #36363f;
+  --menu-hover: rgba(255, 255, 255, .06);
+  color-scheme: dark;
+}
+
+/* 5) Retro Amber (Gruvbox — yazılımcıların en az göz yoran klasik sıcak paleti) */
+body[data-tema="gruvbox"] {
+  --zemin: #1d2021;
+  --nokta: rgba(235, 219, 178, .09);
+  --kenar: #242424;
+  --kart: #282828;
+  --kart-ic: #32302f;
+  --kart-vurgu-turuncu: #38281c;
+  --murekkep: #111212;
+  --cizgi: #504945;
+  --cizgi-ince: rgba(235, 219, 178, .14);
+  --yazi: #ebdbb2;
+  --soluk: #a89984;
+  --golge: 4px 4px 0 #111212;
+  --golge-kucuk: 2px 2px 0 #111212;
+
+  --yesil: #98971a;
+  --yesil-parlak: #b8bb26;
+  --yesil-koyu: #425b36;
+  --turuncu: #fe8019;
+  --turuncu-parlak: #fabd2f;
+  --sari: #d79921;
+  --kirmizi: #fb4934;
+  --mavi: #83a598;
+  --mor: #d3869b;
+  --pembe: #d3869b;
+  --turkuaz: #8ec07c;
+  --isi1: rgba(184, 187, 38, .22);
+  --isi2: rgba(184, 187, 38, .45);
+  --isi3: rgba(184, 187, 38, .72);
+  --isi4: #b8bb26;
+  --bosta-renk: #504945;
+  --menu-hover: rgba(235, 219, 178, .07);
   color-scheme: dark;
 }
 
@@ -76,6 +196,14 @@ html, body {
   color: var(--yazi);
   font: 14.5px/1.55 "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Karbon temasında nokta yerine ince teknik ızgara */
+body[data-tema="karbon"] {
+  background-image:
+    linear-gradient(to right, var(--nokta) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--nokta) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
 a { color: var(--turuncu); font-weight: 600; text-decoration: none; }
@@ -146,22 +274,40 @@ code {
 }
 .surum-etiket { font: 600 11px var(--mono); color: var(--soluk); display: block; }
 
-.tema-dugme {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+/* Tema seçici şeridi (5 göz yormayan tema) */
+.tema-cubuk {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
   background: var(--kart);
-  color: var(--yazi);
   border: 2px solid var(--cizgi);
+  border-radius: 10px;
   box-shadow: var(--golge-kucuk);
-  font-size: 15px;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: transform .1s, box-shadow .1s;
 }
-.tema-dugme:hover { transform: translate(-1px, -1px); }
-.tema-dugme:active { transform: translate(1px, 1px); box-shadow: none; }
+.tema-etiket { font: 700 11px var(--mono); color: var(--soluk); text-transform: uppercase; letter-spacing: .05em; }
+.tema-noktalar { display: flex; align-items: center; gap: 6px; }
+.tema-nokta {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--cizgi);
+  cursor: pointer;
+  padding: 0;
+  transition: transform .12s, box-shadow .12s;
+}
+.tema-nokta:hover { transform: scale(1.16); }
+.tema-nokta.aktif {
+  outline: 2.5px solid var(--turuncu);
+  outline-offset: 2px;
+  transform: scale(1.08);
+}
+.tema-nokta[data-tema="gece"] { background: linear-gradient(135deg, #211f1b 50%, #f97316 50%); }
+.tema-nokta[data-tema="kagit"] { background: linear-gradient(135deg, #e5dccb 50%, #0f766e 50%); }
+.tema-nokta[data-tema="orman"] { background: linear-gradient(135deg, #182620 50%, #34d399 50%); }
+.tema-nokta[data-tema="karbon"] { background: linear-gradient(135deg, #111114 50%, #ff5a1f 50%); }
+.tema-nokta[data-tema="gruvbox"] { background: linear-gradient(135deg, #282828 50%, #fabd2f 50%); }
 
 /* Kenar çubuğu canlı mini durum kutusu */
 .mini-durum {
@@ -218,8 +364,7 @@ code {
   text-align: left;
   transition: background .12s, transform .1s, box-shadow .1s, border-color .12s;
 }
-.menu-oge:hover { background: rgba(24, 24, 27, .06); }
-body.gece .menu-oge:hover { background: rgba(255, 255, 255, .06); }
+.menu-oge:hover { background: var(--menu-hover); }
 .menu-oge.aktif {
   background: var(--yazi);
   color: var(--kart);
@@ -842,14 +987,10 @@ body.gece .menu-oge:hover { background: rgba(255, 255, 255, .06); }
   transition: transform .12s;
 }
 .isi-kare:hover:not(.gelecek) { transform: scale(1.28); z-index: 2; cursor: pointer; border-color: var(--cizgi); }
-.isi-kare.s1 { background: #a7f3d0; border-color: rgba(5, 150, 105, .35); }
-.isi-kare.s2 { background: #34d399; border-color: rgba(5, 150, 105, .45); }
-.isi-kare.s3 { background: #059669; border-color: rgba(6, 78, 59, .5); }
-.isi-kare.s4 { background: #065f46; border-color: #022c22; }
-body.gece .isi-kare.s1 { background: rgba(16, 185, 129, .24); }
-body.gece .isi-kare.s2 { background: rgba(16, 185, 129, .48); }
-body.gece .isi-kare.s3 { background: rgba(16, 185, 129, .75); }
-body.gece .isi-kare.s4 { background: #34d399; }
+.isi-kare.s1 { background: var(--isi1); border-color: transparent; }
+.isi-kare.s2 { background: var(--isi2); border-color: transparent; }
+.isi-kare.s3 { background: var(--isi3); border-color: transparent; }
+.isi-kare.s4 { background: var(--isi4); border-color: transparent; }
 .isi-kare.gelecek { background: transparent; border-color: transparent; }
 .isi-kare.bugun { outline: 2px solid var(--turuncu); outline-offset: 0; }
 .isi-alt { margin-top: 8px; }
@@ -872,8 +1013,7 @@ body.gece .isi-kare.s4 { background: #34d399; }
 .cz.ders, .cizelge .parca.ders { background: var(--yesil); }
 .cz.belirsiz, .cizelge .parca.belirsiz { background: #f59e0b; }
 .cz.ders_degil, .cizelge .parca.ders_degil { background: var(--kirmizi); }
-.cz.bosta, .cizelge .parca.bosta { background: #a8a29e; }
-body.gece .cz.bosta, body.gece .cizelge .parca.bosta { background: #44403c; }
+.cz.bosta, .cizelge .parca.bosta { background: var(--bosta-renk); }
 
 .cizelge-saatler { position: relative; height: 18px; font: 700 10.5px var(--mono); color: var(--soluk); margin-top: 4px; }
 .cizelge-saatler span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
