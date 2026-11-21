@@ -244,6 +244,76 @@ async function saglikSil() {
   }
 }
 
+// ---------- Öğrenen tahmin ve karar bekleyenler ----------
+
+// "Tahmin: Çalışma %87" rozeti; üzerine gelince hangi kelimelerden çıkarıldığı görünür.
+function oneriRozeti(oneri) {
+  const rozet = el("span", `oneri ${oneri.hukum}`,
+    `Tahmin: ${oneri.hukum === "ders" ? "çalışma" : "çalışma değil"} %${Math.round(oneri.olasilik * 100)}`);
+  rozet.title = oneri.kelimeler && oneri.kelimeler.length
+    ? `Benzer başlıklardan öğrenildi; en etkili kelimeler: ${oneri.kelimeler.join(", ")}`
+    : "Benzer başlıklardan öğrenildi";
+  return rozet;
+}
+
+async function tahminBilgisiniYenile() {
+  const b = await api("/api/tahmin");
+  let yazi = "";
+  if (b.etkin === false) yazi = "Tahmin önerileri ayarlardan kapalı.";
+  else if (!b.hazir) yazi = `Tahmin modeli için daha fazla karar gerekiyor (${b.ornek_sayisi}/${b.en_az_ornek} farklı başlık).`;
+  else {
+    yazi = `Tahmin modeli ${b.ornek_sayisi} farklı başlıktan öğrendi`;
+    if (b.dogruluk != null) yazi += `; denemede tahminlerin %${Math.round(b.dogruluk * 100)}'i doğru`;
+    yazi += ". Sen karar verdikçe gelişir.";
+  }
+  $("tahmin-bilgisi").textContent = yazi;
+}
+
+function bekleyenSatiri(k) {
+  const satir = el("div", "bekleyen-satir");
+  const sol = el("div");
+  const ust = el("div", "ust-satir");
+  ust.append(rozet("belirsiz"), el("span", "ad", k.ad));
+  if (k.alan_adi) ust.append(el("span", "soluk", k.alan_adi));
+  if (k.oneri) ust.append(oneriRozeti(k.oneri));
+  sol.append(ust);
+  if (k.tur === "baslik") sol.append(el("div", "deger", k.deger));
+  sol.append(el("div", "soluk",
+    `${k.oturum_sayisi} oturum · toplam ${sureBicimi(k.sure_sn)} · son: ${k.son_gorulme.slice(0, 16).replace("T", " ")}`));
+
+  const islemler = el("div", "islemler");
+  const dersti = el("button", "dugme ders", "Çalışmaydı");
+  const degildi = el("button", "dugme degil", "Çalışma değildi");
+  if (k.oneri) (k.oneri.hukum === "ders" ? dersti : degildi).classList.add("onerilen");
+  const etiket = el("label");
+  const ogren = el("input");
+  ogren.type = "checkbox";
+  ogren.checked = true;
+  etiket.append(ogren, document.createTextNode("bundan sonra da"));
+  islemler.append(dersti, degildi, etiket);
+
+  const karar = async (hukum) => {
+    dersti.disabled = degildi.disabled = true;
+    await apiGonder("/api/karar-bekleyenler", "POST", { tur: k.tur, deger: k.deger, hukum, ogren: ogren.checked });
+    satir.remove();  // Hemen kaybolsun; liste ve öneriler arkadan yenilenir
+    await Promise.all([bekleyenleriYenile(), hepsiniYenile(true)]);
+  };
+  dersti.addEventListener("click", () => karar("ders"));
+  degildi.addEventListener("click", () => karar("ders_degil"));
+  satir.append(sol, islemler);
+  return satir;
+}
+
+async function bekleyenleriYenile() {
+  const liste = await api("/api/karar-bekleyenler");
+  $("bekleyen-sayisi").textContent = liste.length ? `(${liste.length})` : "";
+  if ($("bekleyenler-bolumu").open) {
+    $("bekleyenler").replaceChildren(...(liste.length ? liste.map(bekleyenSatiri)
+      : [el("div", "bos", "Karar bekleyen başlık ya da uygulama yok.")]));
+    tahminBilgisiniYenile().catch(() => {});
+  }
+}
+
 // ---------- Isı haritası (son 12 ay) ----------
 
 const AY_KISA = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
@@ -479,6 +549,7 @@ function oturumSatiri(o) {
     });
     ust.append(geriAl);
   }
+  if (o.oneri) ust.append(oneriRozeti(o.oneri));
   bilgi.append(ust, el("div", "baslik-metin", o.baslik || ""), el("div", "soluk", o.aciklama || ""));
 
   // Düzeltme araçları
@@ -486,6 +557,7 @@ function oturumSatiri(o) {
   const dersti = el("button", "dugme ders" + (o.duzeltme === "ders" ? " secili" : ""), "Çalışmaydı");
   const degildi = el("button", "dugme degil" + (o.duzeltme === "ders_degil" ? " secili" : ""), "Çalışma değildi");
   islemler.append(dersti, degildi);
+  if (o.oneri) (o.oneri.hukum === "ders" ? dersti : degildi).classList.add("onerilen");
 
   // Kural öğrenme sadece uygulama ve tarayıcı oturumlarında anlamlı (boşta kalma için değil).
   let ogrenKutusu = null;
@@ -737,6 +809,10 @@ $("ayarlar-bolumu").addEventListener("toggle", () => {
   if ($("ayarlar-bolumu").open && !Object.keys(ayarOkuyucular).length) ayarlariYukle().catch(() => {});
 });
 $("ayar-formu").addEventListener("submit", ayarlariKaydet);
+$("bekleyenler-bolumu").addEventListener("toggle", () => {
+  if ($("bekleyenler-bolumu").open) bekleyenleriYenile().catch(() => {});
+});
+bekleyenleriYenile().catch(() => {});  // Başlıktaki sayı için
 $("ayar-geri").addEventListener("click", () => {
   ayarHatalariniGoster({});
   $("ayar-mesaj").textContent = "";

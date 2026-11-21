@@ -69,7 +69,7 @@ gerektiğinde ve yalnızca yerel arayüzde görünüyor.
 "Oturumlar" kartının üstünde şerit (görünen aralık kullanılan saatlere göre, en az 6 saat;
 üzerine gelince/dokununca ayrıntı). Pencere başlığı hiç döndürülmediği için gizlilik kuralı daha da sıkı.
 
-## 4. Düzeltmelerden öğrenen yerel sınıflandırıcı 🔲
+## 4. Düzeltmelerden öğrenen yerel sınıflandırıcı ✅
 
 **Neden:** Bugün öğrenme yalnızca "aynı başlık" ya da "elle girilen anahtar kelime". Kullanıcı
 yüzlerce oturumu düzelttikçe, benzer başlıklar da kendiliğinden tanınabilir.
@@ -81,6 +81,13 @@ karar vermesi açılabilir (varsayılan kapalı). Model her açılışta yeniden
 
 **Bitti sayılır:** Ayrı tutulan test verisinde doğruluk ölçülüyor, öneriler arayüzde görünüyor,
 otomatik karar kapalıyken davranış değişmiyor.
+
+**Sonuç:** `heatmap/tahmin.py` (çok terimli Naive Bayes, 5 katlı çapraz doğrulama: doğruluk + kapsam),
+`Tahminci` her düzeltmeden sonra yeniden eğitilir; `[tahmin]` ayarı (öneriler açık, otomatik karar
+kapalı, eşik %90); düzeltme listesinde öneri rozeti; yeni "Karar bekleyenler" bölümü (bütün günler,
+toplam süreye göre, tek tıkla toplu karar: `GET/POST /api/karar-bekleyenler`). Kullanıcının gerçek
+verisinin kopyasında: 9 etiketli başlıkla model hazır, çapraz doğrulama %78, bekleyen 61 başlığın 8'ine
+öneri. Kurallar her zaman tahminden önce gelir.
 
 ## 5. Tek dosya .exe ve GitHub Releases 🔲
 

@@ -78,7 +78,7 @@ ve paketleri yükler; sonraki açılışlarda doğrudan başlatır.
   başlatmayı unuttuğun günler kaybolmaz. Ayar, kullanıcı hesabının kayıt defterine (`Run` anahtarı)
   yazılır ve Görev Yöneticisi > Başlangıç uygulamaları altında da görünür.
 
-Arayüzde yedi bölüm vardır:
+Arayüzde şu bölümler vardır:
 
 1. **Şu an:** bugünkü toplam süre, sayacın durumu, algılanan uygulama ve her modülün sinyali.
 2. **Bu hafta:** gün gün çalışma süresi. Altındaki **Adım / egzersiz / uyku ekle** bölümünden günlük
@@ -95,7 +95,9 @@ Arayüzde yedi bölüm vardır:
    düzeltmeyi **Geri al** ile kaldırabilirsiniz. 1 dakikadan kısa oturumlar varsayılan olarak gizlenir.
    “Bundan sonra da böyle say” seçiliyse aynı uygulama ya da başlık artık otomatik tanınır.
    Tarayıcı oturumlarında isterseniz bir anahtar kelime (örn. kanal adı) de öğretebilirsiniz.
-7. **Öğrenilen kurallar:** düzeltmelerden oluşan kurallar; buradan silinebilir.
+7. **Karar bekleyenler:** bütün günlerde hâlâ belirsiz olan başlık ve uygulamalar, toplam süreye göre;
+   tek tıkla o başlığın bütün oturumlarına karar ver. Yanında öğrenen tahminin önerisi görünür.
+8. **Öğrenilen kurallar:** düzeltmelerden oluşan kurallar; buradan silinebilir.
 
 ## Tarayıcı eklentisi (önerilir)
 
@@ -147,6 +149,7 @@ dosyayı elle düzenle (tepsi menüsünde "Ayar dosyasını aç") ve Heatmap'i y
 | `[tarayici]` | Tarayıcı eklentisi modülü |
 | `[kategoriler]` | Kategori adı → içindeki uygulama/site adları (dökümde gruplama için) |
 | `[hedef]` | Günlük hedef (dakika); seri hesabında kullanılır |
+| `[tahmin]` | Öğrenen tahmin: öneriler, otomatik karar (varsayılan kapalı), güven eşiği |
 | `[kart]` | Paylaşım kartının sol üstündeki yazı (`ust_metin`) |
 | `[yedek]` | Günlük otomatik yedek ve kaç gün saklanacağı |
 | `[kamera]` | Kamera modülü: eşik süreleri, kalibrasyon, kamerasız deneme senaryosu |
@@ -174,6 +177,8 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `GET /api/otomatik-baslatma` · `POST` (`{"acik": true}`) | Windows açılışında başlatma durumu |
 | `GET /api/kart?tur=gunluk&tarih=2026-11-21&liste=kategori` | Paylaşım kartı (PNG); `tur`: `gunluk`, `haftalik`, `aylik`, `yillik`; `liste`: `uygulama`, `kategori`, `yok`; `indir=true` dosya olarak indirir |
 | `GET /api/zaman-cizelgesi?tarih=2026-11-16` | Günün şeridi: parçalar (günün başından dakika), hüküm, okunabilir ad; başlık içermez |
+| `GET /api/karar-bekleyenler` · `POST` (`{"tur": "baslik", "deger": "...", "hukum": "ders"}`) | Bütün günlerdeki belirsizler ve toplu karar |
+| `GET /api/tahmin` | Öğrenen modelin durumu (örnek sayısı, doğruluk, kapsam) |
 | `GET /api/oturumlar?tarih=2026-11-16` | Bir günün oturumları |
 | `POST /api/oturumlar/{id}/duzelt` | Oturumu düzelt (`{"hukum": "ders", "ogren": true, "kelime": null}`) |
 | `GET /api/kurallar` · `DELETE /api/kurallar/{id}` | Öğrenilen kurallar |

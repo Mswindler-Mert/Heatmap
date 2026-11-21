@@ -192,10 +192,28 @@ footer { padding-top: 8px; padding-bottom: 32px; text-align: center; }
 .cz { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; }
 
 /* ---------- Ayarlar ---------- */
-.ayarlar > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
-.ayarlar > summary::before { content: "▸"; color: var(--soluk); transition: transform .15s; }
-.ayarlar[open] > summary::before { transform: rotate(90deg); }
-.ayarlar > summary::-webkit-details-marker { display: none; }
+.ayarlar > summary, .acilir > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+.ayarlar > summary::before, .acilir > summary::before { content: "▸"; color: var(--soluk); transition: transform .15s; }
+.ayarlar[open] > summary::before, .acilir[open] > summary::before { transform: rotate(90deg); }
+.ayarlar > summary::-webkit-details-marker, .acilir > summary::-webkit-details-marker { display: none; }
+
+/* ---------- Öğrenen tahmin ve karar bekleyenler ---------- */
+.oneri { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 2px 8px;
+         border-radius: 999px; border: 1px dashed var(--soluk); color: var(--soluk); white-space: nowrap; }
+.oneri.ders { border-color: var(--yesil); color: var(--yesil); }
+.oneri.ders_degil { border-color: var(--kirmizi); color: var(--kirmizi); }
+.dugme.onerilen { box-shadow: 0 0 0 2px currentColor; }
+.bekleyen-satir { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; padding: 12px 0;
+            border-top: 1px solid var(--cizgi); align-items: center; }
+.bekleyen-satir:first-child { border-top: 0; }
+.bekleyen-satir .ust-satir { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.bekleyen-satir .deger { font-size: 13px; overflow-wrap: anywhere; }
+.bekleyen-satir .islemler { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.bekleyen-satir label { font-size: 13px; color: var(--soluk); display: flex; gap: 5px; align-items: center; }
+@media (max-width: 720px) {
+  .bekleyen-satir { grid-template-columns: 1fr; }
+  .bekleyen-satir .islemler { justify-content: flex-start; }
+}
 .ayarlar code { background: var(--kart-ic); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
 .ayar-formu { display: grid; gap: 16px; margin-top: 12px; }
 .ayar-grup { border: 1px solid var(--cizgi); border-radius: 10px; padding: 12px 16px 6px; margin: 0; }

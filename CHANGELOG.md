@@ -11,6 +11,11 @@ Sürüm numarası `heatmap/__init__.py` içindeki `__version__` değeridir ve ar
   arayüzden değiştirilebiliyor; `config.toml`'daki yorumlar korunuyor, eski hâli yedekleniyor ve
   değişiklik yeniden başlatmadan uygulanıyor.
 - `baslat.bat`, `requirements.txt` değiştiğinde paketleri kendiliğinden kuruyor.
+- **Öğrenen tahmin:** düzelttiğin tarayıcı başlıklarındaki kelimelerden öğrenen yerel model; karar
+  bekleyen başlıklar için "Tahmin: çalışma %87" önerisi gösterir. İstersen ayarlardan, yeterince emin
+  olduğu başlıklarda kendisi karar vermesi de açılabilir (varsayılan kapalı).
+- **Karar bekleyenler:** bütün günlerde hâlâ belirsiz olan başlıklar ve uygulamalar tek listede, en
+  çok zaman alandan başlayarak; bir tıkla o başlığın bütün oturumlarına karar verilir.
 - **Günlük zaman çizelgesi:** "Oturumlar" kartının üstünde seçili günün saat saat renkli şeridi
   (çalışma / belirsiz / çalışma değil / başında değil); üzerine gelince uygulama ve süre görünür.
 

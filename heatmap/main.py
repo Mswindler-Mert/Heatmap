@@ -26,6 +26,7 @@ from heatmap.dedektorler.pencere import PencereDedektoru
 from heatmap.dedektorler.tarayici import TarayiciDedektoru
 from heatmap.depo import Depo
 from heatmap.motor import KararMotoru
+from heatmap.tahmin import Tahminci
 from heatmap.takipci import Takipci
 from heatmap.web.api import uygulama_olustur
 from heatmap.yedek import YedekZamanlayici
@@ -77,7 +78,7 @@ def _port_dolu_mu(port: int) -> bool:
 
 
 def dedektorleri_kur(ayarlar: dict, depo: Depo, onceki: list | None = None,
-                     onceki_ayarlar: dict | None = None) -> list:
+                     onceki_ayarlar: dict | None = None, tahminci=None) -> list:
     """Ayar dosyasında etkin olan modülleri oluşturur.
 
     SIRA ÖNEMLİ: başlık dedektörü hem pencere dedektörünün okuduğu başlığı hem de
@@ -99,7 +100,7 @@ def dedektorleri_kur(ayarlar: dict, depo: Depo, onceki: list | None = None,
     if ayarlar.get("tarayici", {}).get("etkin", True):
         dedektorler.append(eski_tarayici or TarayiciDedektoru())
     if ayarlar["baslik"]["etkin"]:
-        dedektorler.append(BaslikDedektoru(ayarlar, depo.ogrenilen_kurallar))
+        dedektorler.append(BaslikDedektoru(ayarlar, depo.ogrenilen_kurallar, tahminci))
     if ayarlar["bosta"]["etkin"]:
         dedektorler.append(BostaDedektoru(ayarlar))
     if ayarlar["kamera"]["etkin"]:
@@ -190,7 +191,11 @@ def main() -> None:
                                    saklanacak=yedek_ayari.get("saklanacak_gun", 7))
         yedekci.baslat()
     motor = KararMotoru(ayarlar["tolerans"]["baslatma_sn"], ayarlar["tolerans"]["durdurma_sn"])
-    dedektorler = dedektorleri_kur(ayarlar, depo)
+    # Düzeltmelerden öğrenen model (heatmap/tahmin.py); düzeltme yapıldıkça API yeniden eğitir.
+    tahminci = Tahminci(depo)
+    bilgi = tahminci.yeniden_egit()
+    print(f"Tahmin modeli: {bilgi['ornek_sayisi']} örnek, hazır: {bilgi['hazir']}", flush=True)
+    dedektorler = dedektorleri_kur(ayarlar, depo, tahminci=tahminci)
     takipci = Takipci(ayarlar, depo, dedektorler, motor)
     # Eklenti raporlarını web sunucusu bu dedektöre bırakır (modül kapalıysa None).
     tarayici = next((d for d in dedektorler if isinstance(d, TarayiciDedektoru)), None)
@@ -205,7 +210,7 @@ def main() -> None:
         Web arayüzü (api.py) "Kaydet"ten sonra bunu çağırır."""
         yeni = ayarlari_yukle()
         eski_dedektorler = takipci.dedektorler
-        yeni_dedektorler = dedektorleri_kur(yeni, depo, eski_dedektorler, calisan["ayarlar"])
+        yeni_dedektorler = dedektorleri_kur(yeni, depo, eski_dedektorler, calisan["ayarlar"], tahminci)
         takipci.ayarlari_uygula(yeni, yeni_dedektorler)
         for dedektor in eski_dedektorler:  # Artık kullanılmayanları kapat (örn. kamera işçisi)
             if dedektor not in yeni_dedektorler:
@@ -226,7 +231,7 @@ def main() -> None:
     # host="127.0.0.1": sadece bu bilgisayardan erişilebilir, ağdaki diğer cihazlardan değil.
     sunucu = uvicorn.Server(uvicorn.Config(
         uygulama_olustur(takipci, depo, ayarlar, tarayici, kamera,
-                         ayar_dosyasi=KISISEL_DOSYA, yedek_klasoru=VERI_KLASORU / "yedek",
+                         ayar_dosyasi=KISISEL_DOSYA, yedek_klasoru=VERI_KLASORU / "yedek", tahminci=tahminci,
                          yeniden_yukleyici=ayarlari_yeniden_yukle),
         host="127.0.0.1", port=port, log_level="warning",
     ))

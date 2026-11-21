@@ -63,7 +63,8 @@ class DogrulamaTesti(unittest.TestCase):
 
     def test_arayuz_icin_gruplar(self):
         gruplar = alanlar_ve_degerler(_toml_oku(ORNEK_DOSYA))
-        self.assertEqual([g["ad"] for g in gruplar], ["Hedef ve süreler", "Uygulamalar", "Tarayıcı ve siteler", "Diğer"])
+        self.assertEqual([g["ad"] for g in gruplar],
+                         ["Hedef ve süreler", "Uygulamalar", "Tarayıcı ve siteler", "Öğrenen tahmin", "Diğer"])
         hedef = gruplar[0]["alanlar"][0]
         self.assertEqual((hedef["anahtar"], hedef["deger"]), ("hedef.gunluk_dk", 120))
 

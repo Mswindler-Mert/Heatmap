@@ -119,6 +119,38 @@ class Depo:
             )
             return imlec.rowcount
 
+    def etiketli_tarayici_oturumlari(self) -> list[dict]:
+        """Tahmin modelinin eğitim verisi: geçerli hükmü çalışma / çalışma değil olan tarayıcı oturumları.
+
+        Dönen her satırda "hukum" GEÇERLİ hükümdür (düzeltme varsa o).
+        """
+        with self._baglan() as vt:
+            satirlar = vt.execute(
+                f"SELECT baslik, alan_adi, duzeltme, {_ETKIN_HUKUM} AS hukum FROM oturumlar"
+                f" WHERE kaynak = 'baslik' AND baslik IS NOT NULL AND {_ETKIN_HUKUM} IN (?, ?)",
+                (DERS, "ders_degil"),
+            ).fetchall()
+        return [dict(s) for s in satirlar]
+
+    def karar_bekleyenler(self, en_fazla: int = 300) -> list[dict]:
+        """Bütün günlerde hâlâ BELİRSİZ olan başlıklar ve uygulamalar, toplam süreye göre çoktan aza.
+
+        tur "baslik": aynı sekme başlığı (+ site) bir satır; tur "uygulama": aynı süreç bir satır.
+        """
+        with self._baglan() as vt:
+            basliklar = vt.execute(
+                f"SELECT 'baslik' AS tur, MIN(baslik) AS deger, alan_adi, MIN(uygulama) AS uygulama,"
+                f" COUNT(*) AS oturum_sayisi, SUM(bitis - baslangic) AS sure_sn, MAX(bitis) AS son"
+                f" FROM oturumlar WHERE kaynak = 'baslik' AND {_ETKIN_HUKUM} = ? AND baslik IS NOT NULL"
+                f" GROUP BY LOWER(baslik), COALESCE(alan_adi, '')", (BELIRSIZ,)).fetchall()
+            uygulamalar = vt.execute(
+                f"SELECT 'uygulama' AS tur, MIN(uygulama) AS deger, NULL AS alan_adi, MIN(uygulama) AS uygulama,"
+                f" COUNT(*) AS oturum_sayisi, SUM(bitis - baslangic) AS sure_sn, MAX(bitis) AS son"
+                f" FROM oturumlar WHERE kaynak = 'pencere' AND {_ETKIN_HUKUM} = ? AND uygulama IS NOT NULL"
+                f" GROUP BY LOWER(uygulama)", (BELIRSIZ,)).fetchall()
+        hepsi = sorted((dict(s) for s in basliklar + uygulamalar), key=lambda s: s["sure_sn"], reverse=True)
+        return hepsi[:en_fazla]
+
     def ders_suresi(self, baslangic: float, bitis: float) -> float:
         """Verilen aralıktaki toplam ders süresi (saniye).
 

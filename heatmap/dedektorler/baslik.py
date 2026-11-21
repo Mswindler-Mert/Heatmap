@@ -97,7 +97,8 @@ def _kelimelerle_karar(metin: str, ders_kelimeleri, ders_degil_kelimeleri):
 class BaslikDedektoru(Dedektor):
     ad = "baslik"
 
-    def __init__(self, ayarlar: dict, kural_kaynagi=None):
+    def __init__(self, ayarlar: dict, kural_kaynagi=None, tahminci=None):
+        """tahminci: heatmap.tahmin.Tahminci (düzeltmelerden öğrenen model) ya da None."""
         bolum = ayarlar["baslik"]
         self.ders_kelimeleri = bolum["ders_kelimeleri"]
         self.ders_degil_kelimeleri = bolum["ders_degil_kelimeleri"]
@@ -108,6 +109,11 @@ class BaslikDedektoru(Dedektor):
         # Bu başlıklar sayacı hiç etkilemez (örn. takip panelinin kendi sekmesi).
         self.yok_sayilanlar = bolum.get("yok_sayilan_basliklar", [])
         self.kural_kaynagi = kural_kaynagi or (lambda: [])
+        # Öğrenen tahmin: yalnızca ayarlardan açıkça izin verilirse ve güven eşiği geçilirse karar verir.
+        tahmin = ayarlar.get("tahmin", {})
+        self.tahminci = tahminci
+        self.tahmin_otomatik = bool(tahmin.get("etkin", True) and tahmin.get("otomatik_karar", False))
+        self.tahmin_esigi = tahmin.get("esik_yuzde", 90) / 100
 
     def siniflandir(self, temiz_baslik: str, alan_adi: str = "") -> tuple[str, str]:
         """Temizlenmiş başlık (ve eklenti varsa site adı) için (hüküm, açıklama) döndürür."""
@@ -144,7 +150,14 @@ class BaslikDedektoru(Dedektor):
         if hukum is not None:
             return hukum, "Anahtar kelime: " + ", ".join(eslesen)
 
-        # 5) Karar verilemedi
+        # 5) Hiçbir kural tutmadı: izin verildiyse öğrenen modelin güvenli tahmini
+        if self.tahminci is not None and self.tahmin_otomatik:
+            tahmin = self.tahminci.tahmin_et(temiz_baslik, alan_adi)
+            if tahmin and tahmin["olasilik"] >= self.tahmin_esigi:
+                return tahmin["hukum"], (f"Tahmin %{round(tahmin['olasilik'] * 100)}: benzer başlıklardan "
+                                         f"({', '.join(tahmin['kelimeler'])})")
+
+        # 6) Karar verilemedi
         return BELIRSIZ, "Başlıkta tanıdık bir kelime yok"
 
     def oku(self, onceki: dict[str, Sinyal]) -> Sinyal:

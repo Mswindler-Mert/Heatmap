@@ -58,6 +58,15 @@ ALANLAR: list[dict] = [
     {"grup": "Tarayıcı ve siteler", "anahtar": "baslik.yok_sayilan_basliklar", "tur": "liste",
      "etiket": "Yok sayılan sekmeler", "aciklama": "Bunlara bakmak sayacı etkilemez. 'Takip Paneli'ni silme."},
 
+    # --- Öğrenen tahmin ---
+    {"grup": "Öğrenen tahmin", "anahtar": "tahmin.etkin", "tur": "evet_hayir", "etiket": "Tahmin önerileri",
+     "aciklama": "Karar bekleyen başlıklar için 'Tahmin: çalışma %87' önerisi göster."},
+    {"grup": "Öğrenen tahmin", "anahtar": "tahmin.otomatik_karar", "tur": "evet_hayir",
+     "etiket": "Tahmin karar versin",
+     "aciklama": "Açıksa, kuralların karar veremediği başlıklarda yeterince emin tahmin karar verir."},
+    {"grup": "Öğrenen tahmin", "anahtar": "tahmin.esik_yuzde", "tur": "tamsayi", "etiket": "Güven eşiği",
+     "birim": "%", "en_az": 50, "en_cok": 99, "aciklama": "Otomatik karar için model en az bu kadar emin olmalı."},
+
     # --- Diğer ---
     {"grup": "Diğer", "anahtar": "kart.ust_metin", "tur": "metin", "etiket": "Kartın üst yazısı", "en_uzun": 22,
      "aciklama": "Paylaşım kartının sol üstünde görünür (örn. adın)."},

@@ -27,7 +27,7 @@ diyor ama anlamı "çalışma / aktif süre".
 - Ortam: Windows 11, **Python 3.14.3**, komut **`py`** (`python` komutu yok), Git kurulu.
 - Çalıştırma: `baslat.bat` (tepsi ikonuyla) ya da `.venv\Scripts\python -m heatmap --tepsisiz --sessiz`.
 - Testler: önce `.venv\Scripts\python -m pip install -r requirements-dev.txt`, sonra
-  `.venv\Scripts\python -m unittest` (şu an 184 test, hepsi geçiyor). pytest yok, ekleme.
+  `.venv\Scripts\python -m unittest` (şu an 194 test, hepsi geçiyor). pytest yok, ekleme.
   GitHub Actions her push'ta Windows'ta aynı testleri çalıştırır.
 
 ### Mimari (tek süreç, üç thread)

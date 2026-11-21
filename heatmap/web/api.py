@@ -30,6 +30,7 @@ from heatmap.ozet import GUN_ADLARI, Adlandirici, isi_haritasi, seri_hesapla, za
 from heatmap.takipci import Takipci
 
 STATIK_KLASOR = Path(__file__).parent / "static"
+ONERI_ESIGI = 0.6  # Düzeltme ekranında öneri gösterilmesi için modelin en az bu kadar emin olması
 
 
 # --- İstek gövdeleri (FastAPI gelen JSON'u bu kalıplara göre doğrular) ---
@@ -51,6 +52,14 @@ class OtomatikBaslatmaIstegi(BaseModel):
 class AyarDegisikligi(BaseModel):
     """Arayüzden kaydedilen ayarlar: {"hedef.gunluk_dk": 90, "pencere.ders_surecleri": [...]}"""
     degisiklikler: dict[str, Any]
+
+
+class TopluKarar(BaseModel):
+    """Karar bekleyen bir başlığın/uygulamanın BÜTÜN belirsiz oturumlarına tek seferde karar."""
+    tur: Literal["baslik", "uygulama"]
+    deger: str = Field(min_length=1, max_length=2000)
+    hukum: Literal["ders", "ders_degil"]
+    ogren: bool = True   # Kalıcı kural da oluşturulsun (aynı başlık/uygulama bir dahaki sefere tanınsın)
 
 
 class KameraIstegi(BaseModel):
@@ -118,7 +127,8 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
                      kamera: KameraDedektoru | None = None,
                      ayar_dosyasi: Path | None = None,
                      yedek_klasoru: Path | None = None,
-                     yeniden_yukleyici: Callable | None = None) -> FastAPI:
+                     yeniden_yukleyici: Callable | None = None,
+                     tahminci=None) -> FastAPI:
     """Web uygulamasını kurar.
 
     ayar_dosyasi     : arayüzden kaydedilen ayarların yazılacağı config.toml. None ise (testler)
@@ -126,8 +136,20 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
     yedek_klasoru    : kaydetmeden önce eski config.toml'un kopyalanacağı klasör.
     yeniden_yukleyici: kaydettikten sonra çağrılır; ayarları takipçiye/tepsiye uygular ve
                        (yeni ayarlar, tarayıcı dedektörü, kamera dedektörü) döndürür (bkz. main.py).
+    tahminci         : heatmap.tahmin.Tahminci; öneriler için. Düzeltme yapılınca yeniden eğitilir.
     """
     ortam = Ortam(ayarlar, tarayici, kamera)
+
+    def oneri(baslik: str | None, alan_adi: str | None) -> dict | None:
+        """Belirsiz bir tarayıcı oturumu için modelin önerisi (yeterince eminse)."""
+        if tahminci is None or not ortam.ayarlar.get("tahmin", {}).get("etkin", True) or not baslik:
+            return None
+        t = tahminci.tahmin_et(baslik, alan_adi or "")
+        return t if t and t["olasilik"] >= ONERI_ESIGI else None
+
+    def modeli_guncelle() -> None:
+        if tahminci is not None:
+            tahminci.yeniden_egit()
 
     # Başlık "Takip Paneli" ile başlıyor ki API dokümantasyon sekmesi de yok sayılsın.
     app = FastAPI(title="Takip Paneli API", version=__version__,
@@ -403,7 +425,48 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         """Bir güne ait oturumlar (varsayılan: bugün), yeniden eskiye."""
         bas, bit = gun_araligi(tarih or date.today())
         acik = takipci.durum().get("oturum_id")
-        return [_oturum_json(o, acik) for o in depo.oturumlari_getir(bas, bit)]
+        sonuc = []
+        for o in depo.oturumlari_getir(bas, bit):
+            satir = _oturum_json(o, acik)
+            if satir["etkin_hukum"] == "belirsiz" and o["kaynak"] == "baslik":
+                satir["oneri"] = oneri(o["baslik"], o.get("alan_adi"))
+            sonuc.append(satir)
+        return sonuc
+
+    @app.get("/api/tahmin")
+    def tahmin_bilgisi():
+        """Öğrenen modelin durumu: kaç örnekten öğrendi, hazır mı, çapraz doğrulama doğruluğu."""
+        if tahminci is None:
+            return {"etkin": False}
+        return {"etkin": ortam.ayarlar.get("tahmin", {}).get("etkin", True), **tahminci.bilgi}
+
+    @app.get("/api/karar-bekleyenler")
+    def karar_bekleyenler():
+        """BÜTÜN günlerde hâlâ belirsiz olan başlıklar/uygulamalar (toplam süreye göre) ve öneriler."""
+        sonuc = []
+        for k in depo.karar_bekleyenler():
+            if k["tur"] == "baslik":
+                ad, _ = ortam.adlandirici.etiket({"kaynak": "baslik", "baslik": k["deger"], "alan_adi": k["alan_adi"]})
+            else:
+                ad = ortam.adlandirici.uygulama_adi(k["deger"])
+            sonuc.append({
+                "tur": k["tur"], "deger": k["deger"], "ad": ad, "alan_adi": k["alan_adi"] or "",
+                "oturum_sayisi": k["oturum_sayisi"], "sure_sn": round(k["sure_sn"]),
+                "son_gorulme": _saat(k["son"]),
+                "oneri": oneri(k["deger"], k["alan_adi"]) if k["tur"] == "baslik" else None,
+            })
+        return sonuc
+
+    @app.post("/api/karar-bekleyenler")
+    def toplu_karar(istek: TopluKarar):
+        """Bir başlığın ya da uygulamanın bütün belirsiz oturumlarını tek seferde düzeltir."""
+        kaynak = "baslik" if istek.tur == "baslik" else "pencere"
+        anahtar = "baslik" if istek.tur == "baslik" else "uygulama"
+        sayi = depo.benzerleri_duzelt({"kaynak": kaynak, anahtar: istek.deger}, istek.hukum)
+        if istek.ogren:
+            depo.kural_ekle("baslik" if istek.tur == "baslik" else "surec", istek.deger, istek.hukum)
+        modeli_guncelle()
+        return {"tamam": True, "duzeltilen": sayi}
 
     @app.get("/api/kurallar")
     def kurallar():
@@ -444,6 +507,7 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
             depo.kural_ekle("kelime", kelime, istek.hukum)
             ogrenilenler.append({"tur": "kelime", "desen": kelime})
 
+        modeli_guncelle()
         return {"tamam": True, "ogrenilenler": ogrenilenler, "benzer_duzeltilen": benzer_sayisi}
 
     @app.delete("/api/oturumlar/{oturum_id}/duzelt")
@@ -456,6 +520,7 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         if oturum is None:
             raise HTTPException(404, "Oturum bulunamadı")
         depo.oturum_duzelt(oturum_id, None)
+        modeli_guncelle()
         return {"tamam": True, "hukum": oturum["hukum"]}
 
     @app.delete("/api/kurallar/{kural_id}")

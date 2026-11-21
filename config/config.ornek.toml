@@ -223,6 +223,16 @@ video_isaretleri = ["YouTube", "Udemy", "Coursera"]
 gunluk_dk = 120
 
 # ---------------------------------------------------------------------
+#  Öğrenen tahmin: düzelttiğin (ve kuralların karar verdiği) tarayıcı başlıklarındaki
+#  kelimelerden öğrenir; benzer, hiç görülmemiş başlıklar için tahmin yürütür.
+#  Tamamen bu bilgisayarda çalışır, model dosyaya kaydedilmez.
+# ---------------------------------------------------------------------
+[tahmin]
+etkin = true             # Düzeltme ekranında "Tahmin: çalışma %87" önerileri gösterilsin
+otomatik_karar = false   # true: kuralların karar veremediği başlıklarda tahmin KARAR VERSİN
+esik_yuzde = 90          # Otomatik karar için en az bu kadar emin olmalı (50-99)
+
+# ---------------------------------------------------------------------
 #  Paylaşım kartı
 # ---------------------------------------------------------------------
 [kart]
