@@ -100,6 +100,18 @@ footer { padding-top: 8px; padding-bottom: 32px; text-align: center; }
 .gun.bugun .cubuk { background: var(--yesil); }
 .gun.bugun .ad, .gun.bugun .deger { color: var(--yazi); font-weight: 600; }
 
+/* ---------- Sağlık verisi (adım / egzersiz) ---------- */
+.hafta-saglik { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 6px;
+                font-size: 11px; color: var(--soluk); text-align: center; line-height: 1.35; }
+.hafta-saglik:empty { display: none; }
+.saglik-giris { margin-top: 14px; border-top: 1px solid var(--cizgi); padding-top: 10px; }
+.saglik-giris summary { cursor: pointer; color: var(--soluk); font-size: 13px; }
+.saglik-form { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; margin-top: 12px; }
+.saglik-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--soluk); }
+.saglik-form input[type="number"] { width: 110px; background: var(--kart-ic); color: var(--yazi);
+  border: 1px solid var(--cizgi); border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; }
+.saglik-dugmeler { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
 /* ---------- Isı haritası (GitHub katkı grafiği gibi) ---------- */
 /* Hücre boyu ve aralık tek yerden ayarlansın diye değişken. */
 .isi { --hucre: 13px; --aralik: 3px; display: grid; grid-template-columns: auto 1fr;

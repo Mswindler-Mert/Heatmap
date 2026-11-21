@@ -45,6 +45,17 @@ CREATE TABLE IF NOT EXISTS ogrenilen_kurallar (
     olusturma REAL NOT NULL,
     UNIQUE (tur, desen)
 );
+
+-- Telefondan (Health Connect) ya da elle girilen günlük sağlık verisi.
+-- Her gün tek satır; NULL = o gün için bilgi yok.
+CREATE TABLE IF NOT EXISTS saglik_gunluk (
+    tarih       TEXT PRIMARY KEY,   -- 'YYYY-AA-GG' (yerel gün)
+    adim        INTEGER,
+    egzersiz_dk INTEGER,
+    uyku_dk     INTEGER,
+    kaynak      TEXT NOT NULL,      -- 'elle' | 'health_connect'
+    guncelleme  REAL NOT NULL
+);
 """
 
 # Geçerli hüküm: düzeltme varsa o, yoksa programın kararı.
@@ -228,6 +239,57 @@ class Depo:
         while gun <= son_gun:
             sonuc.append({"tarih": gun.isoformat(), "ders_sn": round(gunluk.get(gun, 0.0))})
             gun += timedelta(days=1)
+        return sonuc
+
+    # ------------------------------------------------------------------
+    #  Sağlık verisi (adım, egzersiz, uyku)
+    # ------------------------------------------------------------------
+    SAGLIK_ALANLARI = ("adim", "egzersiz_dk", "uyku_dk")
+
+    def saglik_kaydet(self, gun: date, adim: int | None = None, egzersiz_dk: int | None = None,
+                      uyku_dk: int | None = None, kaynak: str = "elle") -> None:
+        """Bir günün sağlık verisini kaydeder.
+
+        None verilen alan DEĞİŞMEZ (örn. yalnızca adımı girmek egzersizi silmez).
+        Aynı gün tekrar kaydedilirse üzerine yazılır; yani içe aktarma tekrar
+        çalıştırılabilir, veri çiftlenmez.
+        """
+        with self._baglan() as vt:
+            vt.execute(
+                "INSERT INTO saglik_gunluk (tarih, adim, egzersiz_dk, uyku_dk, kaynak, guncelleme)"
+                " VALUES (?, ?, ?, ?, ?, ?)"
+                " ON CONFLICT (tarih) DO UPDATE SET"
+                "  adim = COALESCE(excluded.adim, saglik_gunluk.adim),"
+                "  egzersiz_dk = COALESCE(excluded.egzersiz_dk, saglik_gunluk.egzersiz_dk),"
+                "  uyku_dk = COALESCE(excluded.uyku_dk, saglik_gunluk.uyku_dk),"
+                "  kaynak = excluded.kaynak, guncelleme = excluded.guncelleme",
+                (gun.isoformat(), adim, egzersiz_dk, uyku_dk, kaynak, time.time()),
+            )
+
+    def saglik_sil(self, gun: date) -> bool:
+        with self._baglan() as vt:
+            imlec = vt.execute("DELETE FROM saglik_gunluk WHERE tarih = ?", (gun.isoformat(),))
+        return imlec.rowcount > 0
+
+    def saglik_getir(self, ilk_gun: date, son_gun: date) -> dict[str, dict]:
+        """İki tarih arasındaki (dahil) sağlık kayıtları: {"2026-11-21": {"adim": 8200, ...}}."""
+        with self._baglan() as vt:
+            satirlar = vt.execute(
+                "SELECT * FROM saglik_gunluk WHERE tarih BETWEEN ? AND ?",
+                (ilk_gun.isoformat(), son_gun.isoformat()),
+            ).fetchall()
+        return {s["tarih"]: dict(s) for s in satirlar}
+
+    def gunluk_birlesik(self, ilk_gun: date, son_gun: date) -> list[dict]:
+        """Gün gün çalışma süresi + sağlık verisi tek listede (dashboard / Health Connect için).
+
+        Örn: {"tarih": "2026-11-21", "ders_sn": 7200, "adim": 8200, "egzersiz_dk": 30, "uyku_dk": null}
+        """
+        saglik = self.saglik_getir(ilk_gun, son_gun)
+        sonuc = []
+        for gun in self.gunluk_sureler(ilk_gun, son_gun):
+            kayit = saglik.get(gun["tarih"], {})
+            sonuc.append({**gun, **{alan: kayit.get(alan) for alan in self.SAGLIK_ALANLARI}})
         return sonuc
 
     # ------------------------------------------------------------------

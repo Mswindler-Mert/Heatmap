@@ -1,0 +1,5 @@
+# Yalnızca geliştirme / test için (uygulamayı kullanmak için gerekmez).
+-r requirements.txt
+
+# FastAPI'nin test istemcisi (tests/test_api.py) bunu kullanır.
+httpx>=0.28

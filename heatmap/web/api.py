@@ -41,6 +41,14 @@ class OtomatikBaslatmaIstegi(BaseModel):
     acik: bool
 
 
+class SaglikKaydi(BaseModel):
+    """Elle girilen günlük sağlık verisi. Boş bırakılan (null) alan değişmez."""
+    tarih: date
+    adim: int | None = Field(default=None, ge=0, le=200_000)
+    egzersiz_dk: int | None = Field(default=None, ge=0, le=1440)
+    uyku_dk: int | None = Field(default=None, ge=0, le=1440)
+
+
 class TarayiciRaporu(BaseModel):
     """Tarayıcı eklentisinin gönderdiği rapor (bkz. eklenti/arkaplan.js)."""
     alan_adi: str = Field(default="", max_length=253)
@@ -114,7 +122,7 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         """Bu haftanın (Pazartesi-Pazar) gün gün ders süreleri."""
         bugun = date.today()
         pazartesi = bugun - timedelta(days=bugun.weekday())
-        gunler = depo.gunluk_sureler(pazartesi, pazartesi + timedelta(days=6))
+        gunler = depo.gunluk_birlesik(pazartesi, pazartesi + timedelta(days=6))
         for sira, gun in enumerate(gunler):
             gun["gun_adi"] = GUN_ADLARI[sira]
             gun["bugun"] = gun["tarih"] == bugun.isoformat()
@@ -122,12 +130,42 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
 
     @app.get("/api/gunluk")
     def gunluk(baslangic: date, bitis: date):
-        """Tarih aralığı için gün gün ders süresi. Örn: /api/gunluk?baslangic=2026-11-01&bitis=2026-11-30"""
+        """Tarih aralığı için gün gün çalışma süresi + sağlık verisi (adım, egzersiz, uyku).
+
+        Örn: /api/gunluk?baslangic=2026-11-01&bitis=2026-11-30
+        Sağlık alanları o gün için kayıt yoksa null'dır.
+        """
         if bitis < baslangic:
             raise HTTPException(400, "bitis, baslangic tarihinden önce olamaz")
         if (bitis - baslangic).days > 366:
             raise HTTPException(400, "En fazla 366 günlük aralık istenebilir")
-        return depo.gunluk_sureler(baslangic, bitis)
+        return depo.gunluk_birlesik(baslangic, bitis)
+
+    @app.get("/api/saglik")
+    def saglik_listesi(baslangic: date | None = None, bitis: date | None = None):
+        """Kayıtlı sağlık verisi (varsayılan: bu hafta). Yalnızca kaydı olan günler döner."""
+        bugun = date.today()
+        ilk = baslangic or bugun - timedelta(days=bugun.weekday())
+        son = bitis or ilk + timedelta(days=6)
+        if son < ilk:
+            raise HTTPException(400, "bitis, baslangic tarihinden önce olamaz")
+        return sorted(depo.saglik_getir(ilk, son).values(), key=lambda k: k["tarih"])
+
+    @app.post("/api/saglik")
+    def saglik_kaydet(kayit: SaglikKaydi):
+        """Bir günün adım / egzersiz / uyku verisini elle kaydeder."""
+        if kayit.tarih > date.today():
+            raise HTTPException(400, "Gelecekteki bir gün için veri girilemez")
+        if kayit.adim is None and kayit.egzersiz_dk is None and kayit.uyku_dk is None:
+            raise HTTPException(400, "En az bir değer girilmeli")
+        depo.saglik_kaydet(kayit.tarih, kayit.adim, kayit.egzersiz_dk, kayit.uyku_dk, kaynak="elle")
+        return depo.saglik_getir(kayit.tarih, kayit.tarih)[kayit.tarih.isoformat()]
+
+    @app.delete("/api/saglik/{tarih}")
+    def saglik_sil(tarih: date):
+        if not depo.saglik_sil(tarih):
+            raise HTTPException(404, "Bu gün için sağlık kaydı yok")
+        return {"tamam": True}
 
     @app.get("/api/dokum")
     def dokum(baslangic: date | None = None, bitis: date | None = None):

@@ -47,6 +47,26 @@
         <span class="soluk"><span id="seri"></span><span id="hafta-toplam"></span></span>
       </div>
       <div id="hafta" class="hafta"></div>
+      <!-- Günlerin altında adım / egzersiz (kayıt varsa) -->
+      <div id="hafta-saglik" class="hafta-saglik"></div>
+
+      <!-- Sağlık verisini elle girme (Health Connect bağlanana kadar) -->
+      <details class="saglik-giris">
+        <summary>Adım / egzersiz / uyku ekle</summary>
+        <form id="saglik-form" class="saglik-form">
+          <label>Gün <input id="saglik-tarih" type="date" required></label>
+          <label>Adım <input id="saglik-adim" type="number" min="0" max="200000" step="1" placeholder="8200"></label>
+          <label>Egzersiz (dk) <input id="saglik-egzersiz" type="number" min="0" max="1440" step="1" placeholder="30"></label>
+          <label>Uyku (saat) <input id="saglik-uyku" type="number" min="0" max="24" step="0.25" placeholder="7.5"></label>
+          <div class="saglik-dugmeler">
+            <button type="submit" class="dugme vurgu">Kaydet</button>
+            <button type="button" id="saglik-sil" class="dugme">Bu günü sil</button>
+            <span id="saglik-mesaj" class="soluk"></span>
+          </div>
+        </form>
+        <p class="soluk ipucu">Boş bıraktığın alan değişmez. Bu veri yalnızca bu bilgisayarda kalır;
+          paylaşım kartına ve masaüstü dashboard'una girmez.</p>
+      </details>
     </section>
 
     <!-- Isı haritası: son 12 ayın her günü bir kare -->

@@ -137,11 +137,75 @@ async function haftayiYenile() {
   }
   $("hafta-toplam").textContent = `Toplam: ${sureBicimi(h.toplam_sn)}`;
 
+  // Günlerin altında sağlık verisi (yalnızca hafta içinde en az bir kayıt varsa)
+  const saglikVar = h.gunler.some((g) => g.adim != null || g.egzersiz_dk != null || g.uyku_dk != null);
+  $("hafta-saglik").replaceChildren(...(saglikVar ? h.gunler.map(saglikHucresi) : []));
+
   // Seri: günlük hedefe üst üste kaç gündür ulaşıldı
   const s = await api("/api/seri");
   $("seri").textContent = s.hedef_sn
     ? `Seri: ${s.seri_gun} gün · Günlük hedef: ${sureBicimi(s.hedef_sn)} · `
     : "";
+}
+
+// ---------- Sağlık verisi ----------
+
+// 8200 -> "8,2 bin", 950 -> "950"
+function adimBicimi(adim) {
+  return adim >= 1000 ? `${(adim / 1000).toFixed(1).replace(".", ",")} bin` : String(adim);
+}
+
+function saglikHucresi(g) {
+  const hucre = el("div");
+  const satirlar = [];
+  if (g.adim != null) satirlar.push(`${adimBicimi(g.adim)} adım`);
+  if (g.egzersiz_dk) satirlar.push(`${g.egzersiz_dk} dk spor`);
+  if (g.uyku_dk) satirlar.push(`${(g.uyku_dk / 60).toFixed(1).replace(".", ",")} sa uyku`);
+  for (const s of satirlar) hucre.append(el("div", "", s));
+  return hucre;
+}
+
+// Seçili günün kayıtlı değerlerini forma doldurur (yoksa boşaltır).
+async function saglikFormunuDoldur() {
+  const tarih = $("saglik-tarih").value;
+  const kayitlar = await api(`/api/saglik?baslangic=${tarih}&bitis=${tarih}`);
+  const k = kayitlar[0] || {};
+  $("saglik-adim").value = k.adim ?? "";
+  $("saglik-egzersiz").value = k.egzersiz_dk ?? "";
+  $("saglik-uyku").value = k.uyku_dk != null ? k.uyku_dk / 60 : "";
+  $("saglik-mesaj").textContent = kayitlar.length ? "Bu gün için kayıt var; değiştirip kaydedebilirsin." : "";
+}
+
+function sayiVeyaNull(id, carpan = 1) {
+  const deger = $(id).value.trim();
+  return deger === "" ? null : Math.round(Number(deger) * carpan);
+}
+
+async function saglikKaydet(olay) {
+  olay.preventDefault();  // Formun sayfayı yeniden yüklemesini engelle
+  try {
+    await apiGonder("/api/saglik", "POST", {
+      tarih: $("saglik-tarih").value,
+      adim: sayiVeyaNull("saglik-adim"),
+      egzersiz_dk: sayiVeyaNull("saglik-egzersiz"),
+      uyku_dk: sayiVeyaNull("saglik-uyku", 60),  // Saat olarak girilir, dakika olarak saklanır
+    });
+    $("saglik-mesaj").textContent = "Kaydedildi.";
+    await haftayiYenile();
+  } catch {
+    $("saglik-mesaj").textContent = "Kaydedilemedi: değerleri kontrol et (en az bir alan dolu olmalı).";
+  }
+}
+
+async function saglikSil() {
+  try {
+    await apiGonder(`/api/saglik/${$("saglik-tarih").value}`, "DELETE");
+    await saglikFormunuDoldur();
+    $("saglik-mesaj").textContent = "Silindi.";
+    await haftayiYenile();
+  } catch {
+    $("saglik-mesaj").textContent = "Bu gün için silinecek kayıt yok.";
+  }
 }
 
 // ---------- Isı haritası (son 12 ay) ----------
@@ -383,6 +447,12 @@ $("filtre").addEventListener("change", () => oturumlariYenile(true));
 $("dokum-aralik").addEventListener("change", dokumuYenile);
 $("kart-olustur").addEventListener("click", kartiOlustur);
 $("kart-tarih").value = $("kart-tarih").max = tarihMetni(new Date());  // Gelecek seçilemesin
+
+$("saglik-tarih").value = $("saglik-tarih").max = tarihMetni(new Date());
+$("saglik-tarih").addEventListener("change", saglikFormunuDoldur);
+$("saglik-form").addEventListener("submit", saglikKaydet);
+$("saglik-sil").addEventListener("click", saglikSil);
+saglikFormunuDoldur();
 
 // Windows açılışında otomatik başlatma (gerçek durum kayıt defterinden okunur)
 api("/api/otomatik-baslatma").then((d) => { $("otomatik-baslatma").checked = d.acik; }).catch(() => {});
