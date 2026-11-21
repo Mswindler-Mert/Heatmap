@@ -148,6 +148,42 @@ async function haftayiYenile() {
     : "";
 }
 
+// ---------- Kamera (yalnızca modül etkinse) ----------
+
+async function kamerayiYenile() {
+  const k = await api("/api/kamera");
+  $("kamera-ayar").hidden = !k.etkin;
+  if (!k.etkin) return;
+  $("kamera-acik").checked = k.acik;
+  $("kamera-kalibre").disabled = !k.acik;
+  const anlik = k.anlik_pitch != null ? `şu an ${k.anlik_pitch}°` : "ölçüm yok";
+  $("kamera-aci").textContent = k.acik
+    ? `Kafa açısı: ${anlik} · ekrana bakma ${k.ekran_pitch}° · aşağı sayılan < ${k.asagi_esigi}°`
+    : "";
+}
+
+async function kameraAcKapat(olay) {
+  const d = await apiGonder("/api/kamera", "POST", { acik: olay.target.checked });
+  olay.target.checked = d.acik;
+  $("kamera-mesaj").textContent = d.acik ? "" : "Kamera kapalı; ışığı birkaç saniye içinde söner.";
+  await kamerayiYenile();
+}
+
+async function kameraKalibre() {
+  const dugme = $("kamera-kalibre");
+  dugme.disabled = true;
+  $("kamera-mesaj").textContent = "6 saniye boyunca ekrana normal bak…";
+  try {
+    const d = await apiGonder("/api/kamera/kalibre", "POST");
+    $("kamera-mesaj").textContent = `Kaydedildi: ekrana bakma açısı ${d.ekran_pitch}°`;
+  } catch {
+    $("kamera-mesaj").textContent = "Ölçülemedi: kamera açık olmalı ve yüzün görünmeli.";
+  } finally {
+    dugme.disabled = false;
+    await kamerayiYenile();
+  }
+}
+
 // ---------- Sağlık verisi ----------
 
 // 8200 -> "8,2 bin", 950 -> "950"
@@ -447,6 +483,11 @@ $("filtre").addEventListener("change", () => oturumlariYenile(true));
 $("dokum-aralik").addEventListener("change", dokumuYenile);
 $("kart-olustur").addEventListener("click", kartiOlustur);
 $("kart-tarih").value = $("kart-tarih").max = tarihMetni(new Date());  // Gelecek seçilemesin
+
+$("kamera-acik").addEventListener("change", kameraAcKapat);
+$("kamera-kalibre").addEventListener("click", kameraKalibre);
+kamerayiYenile().catch(() => {});
+setInterval(() => kamerayiYenile().catch(() => {}), 3000);  // Canlı açı (yalnızca ekranda, kaydedilmez)
 
 $("saglik-tarih").value = $("saglik-tarih").max = tarihMetni(new Date());
 $("saglik-tarih").addEventListener("change", saglikFormunuDoldur);

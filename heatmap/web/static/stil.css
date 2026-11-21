@@ -57,6 +57,7 @@ footer { padding-top: 8px; padding-bottom: 32px; text-align: center; }
 }
 .dugme { cursor: pointer; }
 .dugme:hover { border-color: var(--soluk); }
+.dugme:disabled { opacity: .45; cursor: not-allowed; }
 .dugme.kucuk { padding: 6px 9px; }
 .dugme.ders { border-color: var(--yesil); color: var(--yesil); }
 .dugme.degil { border-color: var(--kirmizi); color: var(--kirmizi); }
@@ -90,6 +91,9 @@ footer { padding-top: 8px; padding-bottom: 32px; text-align: center; }
 .sinyaller { list-style: none; margin: 6px 0 0; padding: 0; }
 .sinyaller li { display: grid; grid-template-columns: 80px 110px 1fr; gap: 8px; align-items: baseline; padding: 4px 0; border-top: 1px solid var(--cizgi); font-size: 13px; }
 .sinyaller li:first-child { border-top: 0; }
+.kamera-ayar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: 12px;
+               padding-top: 10px; border-top: 1px solid var(--cizgi); font-size: 13px; }
+.kamera-ayar[hidden] { display: none; }
 
 /* ---------- Haftalık çubuk grafik ---------- */
 .hafta { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; align-items: end; height: 190px; }

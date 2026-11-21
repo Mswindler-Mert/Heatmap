@@ -7,12 +7,18 @@
 """
 
 import re
+import tempfile
 import time
 import unittest
+from pathlib import Path
 
 from heatmap.dedektorler.kamera import ISCI_BETIGI, IsciSureci, KameraDedektoru, isci_komutu
 from heatmap.motor import anlik_karar
 from heatmap.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK, Sinyal
+
+# Testler gerçek data/kamera_kalibrasyon.json dosyasını okumasın/yazmasın
+_GECICI = tempfile.TemporaryDirectory()
+KALIBRASYON = Path(_GECICI.name) / "kalibrasyon.json"
 
 AYAR = {"kamera": {"yuz_yok_esik_sn": 30, "telefon_esik_sn": 20, "not_alma_esik_sn": 600,
                    "ekran_pitch": -5.0, "asagi_fark_derece": 18}}
@@ -39,7 +45,7 @@ class DedektorTesti(unittest.TestCase):
     def setUp(self):
         self.t = 1000.0
         self.kaynak = SahteKaynak()
-        self.d = KameraDedektoru(AYAR, kaynak=self.kaynak, saat=lambda: self.t)
+        self.d = KameraDedektoru(AYAR, kaynak=self.kaynak, saat=lambda: self.t, kalibrasyon_dosyasi=KALIBRASYON)
 
     def gozle(self, saniye=0, **alanlar):
         """`saniye` kadar zaman ilerlet, o anki gözlemi ver ve sinyali oku."""
@@ -117,6 +123,44 @@ YOK = (DERS_DEGIL, "yok", False, False)
 BILINMIYOR = (FIKRIM_YOK, "bilinmiyor", None, False)
 
 
+class AcKapatKalibrasyonTesti(unittest.TestCase):
+    def setUp(self):
+        self.t = 1000.0
+        self.kaynak = SahteKaynak()
+        self.dosya = Path(_GECICI.name) / f"kal_{id(self)}.json"
+        self.d = KameraDedektoru(AYAR, kaynak=self.kaynak, saat=lambda: self.t, kalibrasyon_dosyasi=self.dosya)
+
+    def ilerle(self, saniye):
+        """kalibre_et() içindeki beklemeyi taklit eder: zamanı ilerletir, yeni bir gözlem üretir."""
+        self.t += saniye
+        self._sira = getattr(self, "_sira", -1) + 1
+        pitch = (-12.0, -11.0, -10.0)[self._sira % 3]  # Sırayla -12, -11, -10: ortanca -11
+        self.kaynak.gozlem = {"zaman": self.t, "yuz_var": True, "pitch": pitch, "hata": None}
+
+    def test_kapatinca_isci_durur_sinyal_kapali(self):
+        self.d.oku({})
+        self.d.ayarla_acik(False)
+        self.assertTrue(self.kaynak.kapatildi)
+        self.assertEqual(self.d.oku({}).detay["kamera_durumu"], "kapali")
+        self.d.ayarla_acik(True)
+        self.kaynak.gozlem = {"zaman": self.t, "yuz_var": True, "pitch": -5.0, "hata": None}
+        self.assertEqual(self.d.oku({}).detay["kamera_durumu"], "ekrana_bakiyor")
+
+    def test_kalibrasyon_ortancayi_kaydeder_ve_yeniden_okunur(self):
+        self.d.oku({})  # işçiyi başlat
+        deger = self.d.kalibre_et(sure_sn=6, bekle=self.ilerle)
+        self.assertEqual(deger, -11.0)
+        self.assertEqual(self.d.durum_bilgisi()["asagi_esigi"], -29.0)   # -11 - 18
+        yeni = KameraDedektoru(AYAR, kaynak=SahteKaynak(), kalibrasyon_dosyasi=self.dosya)
+        self.assertEqual(yeni.ekran_pitch, -11.0)                        # ayardaki -5 yerine ölçülen
+
+    def test_yuz_yokken_kalibrasyon_hata_verir(self):
+        self.d.oku({})
+        with self.assertRaises(ValueError):
+            self.d.kalibre_et(sure_sn=2, bekle=lambda s: setattr(self, "t", self.t + s))
+        self.assertFalse(self.dosya.exists())
+
+
 class KararTablosuTesti(unittest.TestCase):
     def hukum(self, **kw):
         return anlik_karar(sinyaller(**kw)).hukum
@@ -176,7 +220,7 @@ class AltSurecTesti(unittest.TestCase):
         try:
             g = self.bekle(isci, lambda g: g.get("yuz_var") is True)
             self.assertEqual(g["pitch"], -30.0)
-            d = KameraDedektoru(AYAR, kaynak=isci)
+            d = KameraDedektoru(AYAR, kaynak=isci, kalibrasyon_dosyasi=KALIBRASYON)
             self.assertEqual(d.oku({}).detay["kamera_durumu"], "asagi_bakiyor")
         finally:
             isci.kapat()

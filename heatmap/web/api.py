@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from heatmap import otomatik_baslatma
+from heatmap.dedektorler.kamera import KameraDedektoru
 from heatmap.dedektorler.tarayici import TarayiciDedektoru
 from heatmap.depo import Depo, gun_araligi
 from heatmap.kart import kart_ciz, kart_verisi
@@ -38,6 +39,10 @@ class DuraklatIstegi(BaseModel):
 
 
 class OtomatikBaslatmaIstegi(BaseModel):
+    acik: bool
+
+
+class KameraIstegi(BaseModel):
     acik: bool
 
 
@@ -80,8 +85,10 @@ def _oturum_json(oturum: dict, acik_oturum_id) -> dict:
 
 
 def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
-                     tarayici: TarayiciDedektoru | None = None) -> FastAPI:
-    """tarayici: eklenti raporlarının bırakılacağı dedektör (modül kapalıysa None)."""
+                     tarayici: TarayiciDedektoru | None = None,
+                     kamera: KameraDedektoru | None = None) -> FastAPI:
+    """tarayici: eklenti raporlarının bırakılacağı dedektör (modül kapalıysa None).
+    kamera  : aç/kapat ve kalibrasyon için kamera dedektörü (modül kapalıysa None)."""
     adlandirici = Adlandirici(ayarlar)  # Süreç adı / sekme başlığı -> okunabilir ad
     hedef_sn = int(ayarlar.get("hedef", {}).get("gunluk_dk", 0) * 60)  # Günlük hedef (saniye)
 
@@ -325,6 +332,33 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
             return {"tamam": False, "neden": "Tarayıcı modülü ayarlardan kapatılmış"}
         tarayici.rapor_al(rapor.alan_adi, rapor.sesli, rapor.odakta)
         return {"tamam": True}
+
+    @app.get("/api/kamera")
+    def kamera_durumu():
+        """Kamera modülü açık mı, kalibrasyon, canlı kafa açısı (açı kaydedilmez)."""
+        if kamera is None:
+            return {"etkin": False}
+        return {"etkin": True, **kamera.durum_bilgisi()}
+
+    @app.post("/api/kamera")
+    def kamera_ac_kapat(istek: KameraIstegi):
+        """Kamerayı geçici olarak kapatır/açar (kapalıyken işçi durur, kamera ışığı söner)."""
+        if kamera is None:
+            raise HTTPException(400, "Kamera modülü ayarlardan kapalı ([kamera] etkin = false)")
+        kamera.ayarla_acik(istek.acik)
+        return {"acik": kamera.acik}
+
+    @app.post("/api/kamera/kalibre")
+    def kamera_kalibre():
+        """~6 sn boyunca kafa açısını ölçer ve "ekrana bakma açısı" olarak kaydeder.
+        Bu sırada kullanıcı ekrana normal bakmalı. (Normal def: FastAPI bunu ayrı bir
+        thread'de çalıştırır, beklerken diğer istekler etkilenmez.)"""
+        if kamera is None:
+            raise HTTPException(400, "Kamera modülü ayarlardan kapalı ([kamera] etkin = false)")
+        try:
+            return {"ekran_pitch": kamera.kalibre_et()}
+        except ValueError as hata:
+            raise HTTPException(400, str(hata))
 
     @app.post("/api/duraklat")
     def duraklat(istek: DuraklatIstegi):

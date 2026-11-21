@@ -40,6 +40,14 @@ Her saniye bir JSON satırı yazar; `Ctrl+C` ile durur. Senaryolar: `masada`, `y
 ## Kalibrasyon
 
 Dizüstü kamerası ekranın üstünde olduğu için ekrana bakarken bile kafa biraz aşağı görünür.
-Ekrana normal bakarken arayüzdeki Kamera satırında görünen açıyı `config.toml` içinde
-`[kamera] ekran_pitch` olarak yaz. Bundan `asagi_fark_derece` (varsayılan 18) kadar aşağısı
-"kafa aşağıda" sayılır.
+Arayüzde "Modül sinyalleri"nin altındaki **Kalibre et** düğmesine bas ve 6 saniye boyunca ekrana
+normal bak: ölçülen açı "ekrana bakıyor" kabul edilir ve `data/kamera_kalibrasyon.json` dosyasına
+kaydedilir. Bundan `asagi_fark_derece` (varsayılan 18) kadar aşağısı "kafa aşağıda" sayılır.
+İstersen açıyı `config.toml` içinde `[kamera] ekran_pitch` olarak elle de yazabilirsin; düğmeyle
+ölçülen değer varsa o geçerli olur.
+
+## Kamerayı geçici olarak kapatmak
+
+Arayüzdeki **Kamera açık** kutusu ya da tepsi menüsündeki **Kamera açık** seçeneği kamerayı
+kapatır: işçi süreci durur ve kamera ışığı söner. Bu ayar program kapanınca sıfırlanır; kalıcı
+kapatmak için `config.toml` içinde `etkin = false` yap.

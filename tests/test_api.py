@@ -10,12 +10,14 @@ değiştirirdi. O modülün kendi testleri (test_otomatik_baslatma.py) geçici b
 import io
 import os
 import tempfile
+import time
 import unittest
 from datetime import date, datetime, timedelta
 
 from fastapi.testclient import TestClient
 from PIL import Image
 
+from heatmap.dedektorler.kamera import KameraDedektoru
 from heatmap.dedektorler.tarayici import TarayiciDedektoru
 from heatmap.depo import Depo
 from heatmap.motor import Durum, KararMotoru
@@ -127,6 +129,53 @@ class ApiTesti(unittest.TestCase):
         self.assertEqual(y.json()["ogrenilenler"], [{"tur": "alan", "desen": "geeksforgeeks.org"}])
         kurallar = self.istemci.get("/api/kurallar").json()
         self.assertEqual([(k["tur"], k["desen"], k["hukum"]) for k in kurallar], [("alan", "geeksforgeeks.org", "ders")])
+
+
+class KameraApiTesti(unittest.TestCase):
+    """Kamera uçları; gerçek kamera yerine elle beslenen sahte bir gözlem kaynağı."""
+
+    class SahteKaynak:
+        def __init__(self):
+            self.gozlem = None
+        def baslat(self): pass
+        def kapat(self): pass
+        def son_gozlem(self):
+            return self.gozlem
+
+    def setUp(self):
+        self.klasor = tempfile.TemporaryDirectory()
+        depo = Depo(os.path.join(self.klasor.name, "api.db"))
+        self.kaynak = self.SahteKaynak()
+        self.kamera = KameraDedektoru({"kamera": {"ekran_pitch": -5.0}}, kaynak=self.kaynak,
+                                      kalibrasyon_dosyasi=os.path.join(self.klasor.name, "kal.json"))
+        takipci = Takipci(AYARLAR, depo, [self.kamera], KararMotoru(5, 15))
+        self.istemci = TestClient(uygulama_olustur(takipci, depo, AYARLAR, None, self.kamera),
+                                  base_url="http://127.0.0.1")
+
+    def tearDown(self):
+        self.istemci.close()
+        self.klasor.cleanup()
+
+    def test_kamera_kapaliyken_etkin_degil(self):
+        depo = Depo(os.path.join(self.klasor.name, "b.db"))
+        istemci = TestClient(uygulama_olustur(Takipci(AYARLAR, depo, [], KararMotoru(5, 15)), depo, AYARLAR),
+                             base_url="http://127.0.0.1")
+        self.assertEqual(istemci.get("/api/kamera").json(), {"etkin": False})
+        self.assertEqual(istemci.post("/api/kamera", json={"acik": False}, headers=BASLIK).status_code, 400)
+        istemci.close()
+
+    def test_durum_ac_kapat(self):
+        self.kamera.oku({})  # işçiyi başlatır
+        self.kaynak.gozlem = {"zaman": time.time(), "yuz_var": True, "pitch": -7.04, "hata": None}
+        d = self.istemci.get("/api/kamera").json()
+        self.assertEqual((d["etkin"], d["acik"], d["anlik_pitch"], d["asagi_esigi"]), (True, True, -7.0, -23.0))
+        self.assertEqual(self.istemci.post("/api/kamera", json={"acik": False}, headers=BASLIK).json(), {"acik": False})
+        self.assertEqual(self.kamera.oku({}).detay["kamera_durumu"], "kapali")
+
+    def test_olcum_yoksa_kalibrasyon_400(self):
+        self.kamera.ayarla_acik(False)
+        y = self.istemci.post("/api/kamera/kalibre", headers=BASLIK)
+        self.assertEqual(y.status_code, 400)
 
 
 if __name__ == "__main__":

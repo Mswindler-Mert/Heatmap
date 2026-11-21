@@ -76,7 +76,9 @@ ve paketleri yükler; sonraki açılışlarda doğrudan başlatır.
 Arayüzde yedi bölüm vardır:
 
 1. **Şu an:** bugünkü toplam süre, sayacın durumu, algılanan uygulama ve her modülün sinyali.
-2. **Bu hafta:** gün gün çalışma süresi.
+2. **Bu hafta:** gün gün çalışma süresi. Altındaki **Adım / egzersiz / uyku ekle** bölümünden günlük
+   sağlık verisini elle girebilirsin; girilen değerler günlerin altında görünür. (Telefondan otomatik
+   aktarma için plan: SONRAKI_ADIMLAR.md 4.2. Bu veri paylaşım kartına ve dashboard'a girmez.)
 3. **Son 12 ay (ısı haritası):** GitHub katkı grafiği gibi her gün bir kare; ne kadar uzun
    çalıştıysan o kadar koyu yeşil, günlük hedefi tutan günler en koyu. Altında seri ve en uzun seri.
 4. **Süre nereden geldi?:** bugünkü ya da bu haftaki sürenin uygulamalara ve sitelere dağılımı.
@@ -147,7 +149,9 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `GET /api/durum` | Şu an algılanan durum, sayaç, bugünkü toplam |
 | `GET /api/ozet/bugun` | Bugünkü ders süresi |
 | `GET /api/ozet/hafta` | Bu haftanın gün gün süreleri |
-| `GET /api/gunluk?baslangic=2026-11-01&bitis=2026-11-30` | Tarih aralığı için gün gün süre |
+| `GET /api/gunluk?baslangic=2026-11-01&bitis=2026-11-30` | Tarih aralığı için gün gün çalışma süresi + sağlık verisi (adım, egzersiz, uyku; yoksa `null`) |
+| `GET /api/saglik` · `POST /api/saglik` · `DELETE /api/saglik/{tarih}` | Günlük sağlık verisi (`{"tarih": "2026-11-21", "adim": 8200, "egzersiz_dk": 30, "uyku_dk": 450}`; boş alan değişmez) |
+| `GET /api/kamera` · `POST /api/kamera` (`{"acik": false}`) · `POST /api/kamera/kalibre` | Kamera durumu, geçici aç/kapat, kalibrasyon |
 | `GET /api/dokum?baslangic=2026-11-16&bitis=2026-11-22` | Sürenin uygulamalara ve sitelere dağılımı (tarih verilmezse bugün) |
 | `GET /api/seri` | Günlük hedef ve üst üste hedefe ulaşılan gün sayısı |
 | `GET /api/isi-haritasi?bitis=2026-11-21&hafta=53` | Isı haritası: her gün için süre ve 0-4 seviye, seri istatistikleri |
@@ -206,6 +210,7 @@ Kodu okumaya `sinyal.py` → `dedektorler/` → `motor.py` → `takipci.py` sır
 ## Geliştirme
 
 ```bat
+.venv\Scripts\python -m pip install -r requirements-dev.txt
 .venv\Scripts\python -m unittest -v
 .venv\Scripts\python -m heatmap --tepsisiz
 ```

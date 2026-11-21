@@ -24,24 +24,29 @@ kamera_durumu değerleri ve verilen hüküm:
     yok            : yüz `yuz_yok_esik_sn` boyunca görünmüyor    -> DERS_DEGIL
     telefon        : telefon görüldü, `telefon_esik_sn` doldu    -> DERS_DEGIL
     bilinmiyor     : işçi çalışmıyor / veri bayat / kamera meşgul -> FIKRIM_YOK
+    kapali         : kullanıcı kamerayı arayüzden/tepsiden kapattı -> FIKRIM_YOK
 
 Kamera hiçbir zaman "ders" demez; yalnızca veto eder ya da (motor.py) boşta kalma
 kuralını askıya alır. Kuralların nasıl birleştiği motor.anlik_karar() içinde.
 """
 
 import json
+import statistics
 import subprocess
 import sys
 import threading
 import time
 from pathlib import Path
 
-from heatmap.ayarlar import KOK
+from heatmap.ayarlar import KOK, VERI_KLASORU
 from heatmap.sinyal import DERS_DEGIL, FIKRIM_YOK, Dedektor, Sinyal
 
 ISCI_BETIGI = KOK / "kamera_isci" / "isci.py"
 KAMERA_VENV_PYTHON = KOK / ".venv-kamera" / "Scripts" / "python.exe"
 BAYAT_SN = 10  # Bundan eski gözleme güvenme (işçi takıldı ya da kapandı)
+# Arayüzdeki "Kalibre et" düğmesinin sonucu burada saklanır (data/ Git dışıdır).
+# Ayar dosyasına yazmıyoruz: program config.toml'u yeniden yazarsa senin yorumların silinirdi.
+KALIBRASYON_DOSYASI = VERI_KLASORU / "kamera_kalibrasyon.json"
 
 
 def isci_komutu(bolum: dict) -> list[str]:
@@ -128,17 +133,23 @@ class IsciSureci:
 class KameraDedektoru(Dedektor):
     ad = "kamera"
 
-    def __init__(self, ayarlar: dict, kaynak=None, saat=time.time):
+    def __init__(self, ayarlar: dict, kaynak=None, saat=time.time, kalibrasyon_dosyasi: Path = KALIBRASYON_DOSYASI):
         """kaynak: son_gozlem() / baslat() / kapat() metotları olan nesne (testlerde sahte verilir).
-        saat  : şimdiki zamanı veren fonksiyon (testlerde sahte saat verilir)."""
+        saat  : şimdiki zamanı veren fonksiyon (testlerde sahte saat verilir).
+        kalibrasyon_dosyasi: "Kalibre et" sonucunun saklandığı dosya (testlerde geçici dosya)."""
         bolum = ayarlar.get("kamera", {})
         self.yuz_yok_esik_sn = bolum.get("yuz_yok_esik_sn", 30)
         self.telefon_esik_sn = bolum.get("telefon_esik_sn", 20)
         self.not_alma_esik_sn = bolum.get("not_alma_esik_sn", 600)
-        self.ekran_pitch = bolum.get("ekran_pitch", 0.0)          # Kalibrasyon: ekrana bakarkenki açı
         self.asagi_fark_derece = bolum.get("asagi_fark_derece", 18)
-        self.kaynak = kaynak if kaynak is not None else IsciSureci(isci_komutu(bolum))
+        self.kalibrasyon_dosyasi = Path(kalibrasyon_dosyasi)
+        # Kalibrasyon: ekrana normal bakarkenki açı. Önce düğmeyle ölçülen değer, yoksa ayar dosyası.
+        self.ekran_pitch = self._kalibrasyonu_oku(bolum.get("ekran_pitch", 0.0))
+        # Kullanıcı kamerayı kapatıp açınca işçi yeniden kurulabilsin diye "fabrika" tutulur.
+        self._kaynak_fabrikasi = None if kaynak is not None else (lambda: IsciSureci(isci_komutu(bolum)))
+        self.kaynak = kaynak if kaynak is not None else self._kaynak_fabrikasi()
         self.saat = saat
+        self.acik = True        # Kullanıcı arayüzden/tepsiden kapatabilir (kamera ışığı söner)
         self._baslatildi = False
         # "Ne zamandan beri" sayaçları (None = o durum şu an yok)
         self._yok_baslangic = None
@@ -148,7 +159,68 @@ class KameraDedektoru(Dedektor):
     def _sifirla(self) -> None:
         self._yok_baslangic = self._asagi_baslangic = self._telefon_baslangic = None
 
+    # ------------------------------------------------------------------
+    #  Aç / kapat ve kalibrasyon (arayüz ve tepsi menüsü kullanır)
+    # ------------------------------------------------------------------
+    def ayarla_acik(self, acik: bool) -> None:
+        """Kamerayı kapatır (işçi durur, kamera ışığı söner) ya da yeniden açar."""
+        if acik == self.acik:
+            return
+        self.acik = acik
+        if not acik:
+            if self._baslatildi:
+                self.kaynak.kapat()
+                self._baslatildi = False
+            if self._kaynak_fabrikasi:  # Kapanan işçi yeniden başlatılamaz; yenisini hazırla
+                self.kaynak = self._kaynak_fabrikasi()
+            self._sifirla()
+
+    def _kalibrasyonu_oku(self, varsayilan: float) -> float:
+        try:
+            return float(json.loads(self.kalibrasyon_dosyasi.read_text(encoding="utf-8"))["ekran_pitch"])
+        except (OSError, ValueError, KeyError, TypeError):
+            return float(varsayilan)
+
+    def kalibre_et(self, sure_sn: float = 6.0, bekle=time.sleep) -> float:
+        """`sure_sn` boyunca kafa açısını ölçer, ortancasını "ekrana bakma açısı" olarak kaydeder.
+
+        Kullanıcı bu sırada ekrana normal bakmalı. Yeni ekran açısını döndürür;
+        yeterli ölçüm yoksa (kamera kapalı, yüz görünmüyor) ValueError verir.
+        """
+        if not self.acik or not self._baslatildi:
+            raise ValueError("Kamera kapalı ya da henüz başlamadı")
+        ornekler, son_zaman = [], None
+        bitis = self.saat() + sure_sn
+        while self.saat() < bitis:
+            g = self.kaynak.son_gozlem() or {}
+            if g.get("yuz_var") and g.get("pitch") is not None and g.get("zaman") != son_zaman:
+                ornekler.append(g["pitch"])
+                son_zaman = g.get("zaman")
+            bekle(0.25)
+        if len(ornekler) < 2:
+            raise ValueError("Yeterli ölçüm alınamadı: kamera açık ve yüzün görünür olmalı")
+        self.ekran_pitch = round(statistics.median(ornekler), 1)
+        self.kalibrasyon_dosyasi.parent.mkdir(parents=True, exist_ok=True)
+        self.kalibrasyon_dosyasi.write_text(json.dumps({"ekran_pitch": self.ekran_pitch}), encoding="utf-8")
+        return self.ekran_pitch
+
+    def durum_bilgisi(self) -> dict:
+        """Arayüz için canlı bilgi. Açı yalnızca burada gösterilir, kaydedilmez."""
+        g = self.kaynak.son_gozlem() if self._baslatildi else None
+        taze = bool(g) and not g.get("hata") and self.saat() - g.get("zaman", 0) <= BAYAT_SN
+        return {
+            "acik": self.acik,
+            "ekran_pitch": self.ekran_pitch,
+            "asagi_esigi": round(self.ekran_pitch - self.asagi_fark_derece, 1),
+            "anlik_pitch": round(g["pitch"], 1) if taze and g.get("pitch") is not None else None,
+            "hata": (g or {}).get("hata"),
+        }
+
+    # ------------------------------------------------------------------
     def oku(self, onceki: dict[str, Sinyal]) -> Sinyal:
+        if not self.acik:
+            return Sinyal(self.ad, FIKRIM_YOK, "Kamera kapalı (sen kapattın)",
+                          {"kamera_durumu": "kapali", "masada": None})
         if not self._baslatildi:  # İşçiyi ilk okumada başlat: program hızlı açılsın
             self.kaynak.baslat()
             self._baslatildi = True

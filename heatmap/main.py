@@ -129,12 +129,13 @@ def main() -> None:
     takipci = Takipci(ayarlar, depo, dedektorler, motor)
     # Eklenti raporlarını web sunucusu bu dedektöre bırakır (modül kapalıysa None).
     tarayici = next((d for d in dedektorler if isinstance(d, TarayiciDedektoru)), None)
+    kamera = next((d for d in dedektorler if isinstance(d, KameraDedektoru)), None)
     takipci.baslat()
 
     # --- Web sunucusu (ayrı thread'de) ---
     # host="127.0.0.1": sadece bu bilgisayardan erişilebilir, ağdaki diğer cihazlardan değil.
     sunucu = uvicorn.Server(uvicorn.Config(
-        uygulama_olustur(takipci, depo, ayarlar, tarayici), host="127.0.0.1", port=port, log_level="warning",
+        uygulama_olustur(takipci, depo, ayarlar, tarayici, kamera), host="127.0.0.1", port=port, log_level="warning",
     ))
     sunucu_thread = threading.Thread(target=sunucu.run, name="web", daemon=True)
     sunucu_thread.start()
@@ -150,7 +151,7 @@ def main() -> None:
                 time.sleep(1)
         else:
             from heatmap.tepsi import Tepsi  # pystray'i sadece gerekince yükle
-            Tepsi(takipci, adres).calistir()
+            Tepsi(takipci, adres, kamera).calistir()
     except KeyboardInterrupt:
         pass
     finally:

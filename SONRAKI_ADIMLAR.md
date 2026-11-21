@@ -103,8 +103,11 @@ tepsi.py (pystray, ana thread)
 
 **Kalanlar (kullanıcının katılımı gerekir):** 🔲 Python 3.12 kurulumu (makinede yalnızca 3.14 var),
 🔲 model dosyasının indirilmesi, 🔲 gerçek kamerayla ilk çalıştırma ve açı doğrulaması,
-🔲 arayüzde kalibrasyon düğmesi (şimdilik `ekran_pitch` elle yazılıyor), 🔲 arayüz/tepside
-"kamera açık" göstergesi ve aç/kapat, 🔲 telefon nesne tespiti. ⚠️ 1.7'deki "ikili gecikme"
+🔲 telefon nesne tespiti. ✅ Arayüzde kalibrasyon düğmesi (`POST /api/kamera/kalibre`,
+`KameraDedektoru.kalibre_et`: 6 sn ölçüm, ortanca, `data/kamera_kalibrasyon.json`) ve arayüz/tepside
+geçici aç/kapat (`ayarla_acik`: işçi durur, kapatınca yeni `IsciSureci` hazırlanır) yapıldı; sahte
+işçiyle uçtan uca denendi (kapalıyken işçi süreci kalmıyor). ⚠️ Testler kalibrasyon dosyası için
+HER ZAMAN geçici yol vermeli (`kalibrasyon_dosyasi=`), yoksa kullanıcının gerçek kalibrasyonunu okur. ⚠️ 1.7'deki "ikili gecikme"
 tuzağı hâlâ geçerli: yüz yok eşiği (30 sn) + motor toleransı (15 sn) üst üste biniyor.
 
 Aşağıdaki tasarım metni bu kalanlar için hâlâ geçerli.
@@ -463,6 +466,15 @@ Tuzaklar:
 
 ### 4.2 Health Connect birleştirmesi
 
+> ✅ **Veri modeli ve elle giriş (yol C) yapıldı:** `saglik_gunluk` tablosu (`depo.saglik_kaydet`
+> boş alanı değiştirmez, aynı gün tekrar kaydedilince üzerine yazar), `GET/POST/DELETE /api/saglik`,
+> `/api/gunluk` artık sağlık alanlarını da döndürür (`depo.gunluk_birlesik`), arayüzde form ve
+> haftalık grafikte gün altı satırı. Kart ve dashboard'a bilerek eklenmedi.
+> Kalan: 🔲 yol A (dışa aktarım dosyası içe aktarıcı, `saglik.py`): kullanıcıdan gerçek bir dışa
+> aktarım dosyası gelmeden yazma; biçim bilinmiyor. İçe aktarıcı `depo.saglik_kaydet(..., kaynak="health_connect")`
+> çağırmalı. Şema sürümleme hâlâ yok; yeni tablo eklemek için gerekmedi, ama mevcut tabloya sütun
+> eklenecekse `Depo._semayi_guncelle` kalıbını kullan.
+
 Hedef: telefondaki adım ve spor verisini günlük çalışma süresiyle aynı tabloda/kartta göstermek.
 
 Temel kısıt: Health Connect verisi **telefonda** durur; bilgisayardan doğrudan okunacak bir bulut
@@ -524,6 +536,13 @@ Tuzaklar:
 ---
 
 ## 5. Diğer işler (kısa)
+
+- **API testleri:** `tests/test_api.py` FastAPI `TestClient` kullanır; `httpx` gerekir
+  (`requirements-dev.txt`, CI bunu kurar). ⚠️ `TestClient(app, base_url="http://127.0.0.1")` şart:
+  varsayılan "testserver" adı `TrustedHostMiddleware`'e takılır. ⚠️ Kurulu Starlette sürümü
+  "httpx yerine httpx2 kullanın" diye kullanımdan kaldırma uyarısı basıyor; şimdilik zararsız,
+  ileride `requirements-dev.txt` güncellenmeli (önce httpx2'nin uyumunu doğrula).
+  ⚠️ `POST /api/otomatik-baslatma` bilerek test edilmez (gerçek kayıt defterini değiştirir).
 
 - **Tespit doğruluğu:** tarayıcı eklentisi (Bölüm 2), `pycaw` ile ses oturumundan "video oynuyor
   mu", Store uygulamalarında `ApplicationFrameHost.exe` yerine gerçek süreç, boşta eşiğinin ilk

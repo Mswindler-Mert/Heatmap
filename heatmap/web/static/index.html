@@ -37,6 +37,17 @@
         <div id="algilanan-aciklama" class="soluk"></div>
         <div class="etiket ara">Modül sinyalleri</div>
         <ul id="sinyaller" class="sinyaller"></ul>
+
+        <!-- Yalnızca kamera modülü ayarlardan etkinse görünür -->
+        <div id="kamera-ayar" class="kamera-ayar" hidden>
+          <label class="anahtar" title="Kapatınca kamera işçisi durur ve kamera ışığı söner.">
+            <input id="kamera-acik" type="checkbox"> Kamera açık
+          </label>
+          <span id="kamera-aci" class="soluk"></span>
+          <button id="kamera-kalibre" class="dugme kucuk"
+                  title="6 saniye boyunca ekrana normal bak; bu açı 'ekrana bakıyor' kabul edilir.">Kalibre et</button>
+          <span id="kamera-mesaj" class="soluk"></span>
+        </div>
       </div>
     </section>
 

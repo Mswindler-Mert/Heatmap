@@ -31,9 +31,11 @@ def _ikon_ciz(renk: tuple[int, int, int]) -> Image.Image:
 
 
 class Tepsi:
-    def __init__(self, takipci: Takipci, adres: str):
+    def __init__(self, takipci: Takipci, adres: str, kamera=None):
+        """kamera: KameraDedektoru (modül ayarlardan kapalıysa None; o zaman menüde görünmez)."""
         self.takipci = takipci
         self.adres = adres
+        self.kamera = kamera
         self._ikonlar = {"ders": _ikon_ciz(YESIL), "belirsiz": _ikon_ciz(SARI), "durdu": _ikon_ciz(GRI)}
         self._calisiyor = True
 
@@ -43,6 +45,9 @@ class Tepsi:
             pystray.MenuItem("Takibi duraklat", self._duraklat_degistir,
                              checked=lambda oge: self.takipci.duraklatildi),
             pystray.MenuItem("Ayar dosyasını aç", self._ayarlari_ac),
+            pystray.MenuItem("Kamera açık", self._kamera_degistir,
+                             checked=lambda oge: bool(self.kamera and self.kamera.acik),
+                             visible=self.kamera is not None),
             # İşaret, kayıt defterindeki gerçek duruma göre her menü açılışında yeniden okunur.
             pystray.MenuItem("Windows açılışında başlat", self._otomatik_baslatma_degistir,
                              checked=lambda oge: otomatik_baslatma.acik_mi()),
@@ -60,6 +65,10 @@ class Tepsi:
 
     def _ayarlari_ac(self, ikon=None, oge=None):
         subprocess.Popen(["notepad.exe", str(KISISEL_DOSYA)])
+
+    def _kamera_degistir(self, ikon=None, oge=None):
+        if self.kamera is not None:
+            self.kamera.ayarla_acik(not self.kamera.acik)
 
     def _otomatik_baslatma_degistir(self, ikon=None, oge=None):
         otomatik_baslatma.ayarla(not otomatik_baslatma.acik_mi())
