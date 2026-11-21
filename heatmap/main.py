@@ -26,6 +26,7 @@ from heatmap.depo import Depo
 from heatmap.motor import KararMotoru
 from heatmap.takipci import Takipci
 from heatmap.web.api import uygulama_olustur
+from heatmap.yedek import YedekZamanlayici
 
 
 def _ciktiyi_dosyaya_yonlendir() -> None:
@@ -124,6 +125,14 @@ def main() -> None:
 
     # --- Parçaları kur ---
     depo = Depo(VERI_KLASORU / VERITABANI_ADI)
+
+    # Günlük otomatik yedek (data/yedek/). Açılışta ve sonra saatte bir kontrol edilir.
+    yedek_ayari = ayarlar.get("yedek", {})
+    yedekci = None
+    if yedek_ayari.get("etkin", True):
+        yedekci = YedekZamanlayici(VERI_KLASORU / VERITABANI_ADI, VERI_KLASORU / "yedek",
+                                   saklanacak=yedek_ayari.get("saklanacak_gun", 7))
+        yedekci.baslat()
     motor = KararMotoru(ayarlar["tolerans"]["baslatma_sn"], ayarlar["tolerans"]["durdurma_sn"])
     dedektorler = dedektorleri_kur(ayarlar, depo)
     takipci = Takipci(ayarlar, depo, dedektorler, motor)
@@ -157,6 +166,8 @@ def main() -> None:
     finally:
         # --- Düzgün kapanış: açık oturumu veritabanına yaz ---
         takipci.durdur()
+        if yedekci:
+            yedekci.durdur()
         sunucu.should_exit = True
         sunucu_thread.join(timeout=5)
         print("Heatmap kapandı.", flush=True)

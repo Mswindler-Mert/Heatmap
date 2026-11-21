@@ -140,6 +140,7 @@ sonra uygulamayı yeniden başlatın.
 | `[siteler]` | Site adı → sekme başlığında aranan kelimeler ve alan adları; tanınmayanlar "Diğer web" olur |
 | `[tarayici]` | Tarayıcı eklentisi modülü |
 | `[hedef]` | Günlük hedef (dakika); seri hesabında kullanılır |
+| `[yedek]` | Günlük otomatik yedek ve kaç gün saklanacağı |
 | `[kamera]` | Kamera modülü: eşik süreleri, kalibrasyon, kamerasız deneme senaryosu |
 
 Her modül `etkin = false` ile kapatılabilir.
@@ -185,6 +186,12 @@ Süreler saniye cinsindendir (`ders_sn`).
   uygulamaya yalnızca "yüz var / yok, kafa açısı" gibi sonuçlar gider. Bir test, kamera işçisinin
   kodunda kare kaydetme ya da ağ kodu bulunmadığını her çalıştırmada denetler.
 
+## Yedek
+
+Heatmap her gün veritabanının bir kopyasını `data/yedek/heatmap-YYYY-AA-GG.db` olarak alır ve son
+7 günü saklar (`[yedek]` ayarı). Bir şey ters giderse: Heatmap'i kapat, `data/heatmap.db` dosyasını
+başka bir adla sakla, istediğin yedeği `data/heatmap.db` adıyla kopyala ve Heatmap'i yeniden aç.
+
 ## Proje yapısı
 
 ```
@@ -205,6 +212,7 @@ Heatmap/
 │   ├── depo.py               # SQLite
 │   ├── ozet.py               # okunabilir adlar, site ayırma, seri hesabı
 │   ├── kart.py               # paylaşım kartı (PNG) çizimi
+│   ├── yedek.py              # günlük veritabanı yedeği
 │   ├── tepsi.py              # sistem tepsisi ikonu
 │   └── web/                  # api.py + static/ (HTML, CSS, JS)
 └── tests/                    # motor, sınıflandırıcı ve uçtan uca testler

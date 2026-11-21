@@ -205,6 +205,14 @@ video_isaretleri = ["YouTube", "Udemy", "Coursera"]
 gunluk_dk = 120
 
 # ---------------------------------------------------------------------
+#  Otomatik yedek: her gün data/yedek/heatmap-YYYY-AA-GG.db oluşturulur.
+#  Geri dönmek için: Heatmap'i kapat, istediğin yedeği data/heatmap.db adıyla kopyala.
+# ---------------------------------------------------------------------
+[yedek]
+etkin = true
+saklanacak_gun = 7
+
+# ---------------------------------------------------------------------
 #  Modül 5 - Tarayıcı eklentisi (eklenti/ klasörü; kurulumu eklenti/README.md)
 #  Eklenti kurulu değilse bu modül zararsızdır: "eklentiden haber yok" der.
 # ---------------------------------------------------------------------
