@@ -11,6 +11,8 @@ Sürüm numarası `heatmap/__init__.py` içindeki `__version__` değeridir ve ar
   arayüzden değiştirilebiliyor; `config.toml`'daki yorumlar korunuyor, eski hâli yedekleniyor ve
   değişiklik yeniden başlatmadan uygulanıyor.
 - `baslat.bat`, `requirements.txt` değiştiğinde paketleri kendiliğinden kuruyor.
+- **Günlük zaman çizelgesi:** "Oturumlar" kartının üstünde seçili günün saat saat renkli şeridi
+  (çalışma / belirsiz / çalışma değil / başında değil); üzerine gelince uygulama ve süre görünür.
 
 ## 0.3.0 (2026-11-21)
 

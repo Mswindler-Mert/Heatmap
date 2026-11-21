@@ -26,7 +26,7 @@ from heatmap.disa_aktar import gunluk_csv, oturumlar_csv
 from heatmap.dedektorler.tarayici import TarayiciDedektoru
 from heatmap.depo import Depo, gun_araligi
 from heatmap.kart import kart_ciz, kart_verisi
-from heatmap.ozet import GUN_ADLARI, Adlandirici, isi_haritasi, seri_hesapla
+from heatmap.ozet import GUN_ADLARI, Adlandirici, isi_haritasi, seri_hesapla, zaman_cizelgesi
 from heatmap.takipci import Takipci
 
 STATIK_KLASOR = Path(__file__).parent / "static"
@@ -392,6 +392,11 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         ilk, son = _aktarma_araligi(baslangic, bitis)
         return _csv_yaniti(oturumlar_csv(depo, ortam.adlandirici, ilk, son, basliklar),
                            f"heatmap-oturumlar-{ilk}-{son}.csv")
+
+    @app.get("/api/zaman-cizelgesi")
+    def zaman_cizelgesi_ucu(tarih: date | None = None):
+        """Günün saat saat şeridi: oturum parçaları (dakika cinsinden), hüküm ve okunabilir ad."""
+        return zaman_cizelgesi(depo, ortam.adlandirici, tarih or date.today())
 
     @app.get("/api/oturumlar")
     def oturumlar(tarih: date | None = None):

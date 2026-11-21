@@ -92,6 +92,46 @@ class Adlandirici:
         return self.uygulama_adi(oturum.get("uygulama") or ""), "uygulama"
 
 
+def zaman_cizelgesi(depo, adlandirici: "Adlandirici", gun: date) -> dict:
+    """Bir günün saat saat şeridi için oturum parçaları (gece yarısını geçenler o güne kırpılır).
+
+    Her parça: başlangıç/bitiş (günün başından itibaren dakika), geçerli hüküm, okunabilir ad.
+    GİZLİLİK: pencere/sekme başlığı DÖNMEZ; yalnızca uygulama/site adı.
+    """
+    from heatmap.depo import gun_araligi  # döngüsel içe aktarmayı önlemek için burada
+
+    gun_bas, gun_bit = gun_araligi(gun)
+    parcalar = []
+    toplamlar = {"ders": 0.0, "ders_degil": 0.0, "belirsiz": 0.0}
+    for o in reversed(depo.oturumlari_getir(gun_bas, gun_bit)):  # eskiden yeniye
+        bas, bit = max(o["baslangic"], gun_bas), min(o["bitis"], gun_bit)
+        if bit - bas < 1:
+            continue  # 1 saniyeden kısa parçalar çizilmez
+        hukum = o["duzeltme"] or o["hukum"]
+        if o["kaynak"] == "bosta":
+            ad, tur = "Bilgisayar başında değil", "bosta"
+        elif o["kaynak"] in ("pencere", "baslik"):
+            ad, tur = adlandirici.etiket(o)
+        else:
+            ad, tur = adlandirici.uygulama_adi(o["uygulama"] or ""), "uygulama"
+        parcalar.append({
+            "id": o["id"],
+            "bas_dk": round((bas - gun_bas) / 60, 2),
+            "bit_dk": round((bit - gun_bas) / 60, 2),
+            "sure_sn": round(bit - bas),
+            "hukum": hukum,
+            "ad": ad,
+            "tur": tur,
+            "duzeltildi": bool(o["duzeltme"]),
+        })
+        toplamlar[hukum] = toplamlar.get(hukum, 0.0) + (bit - bas)
+    return {
+        "tarih": gun.isoformat(),
+        "parcalar": parcalar,
+        "toplam_sn": {k: round(v) for k, v in toplamlar.items()},
+    }
+
+
 def seri_hesapla(depo, hedef_sn: int, bugun: date) -> int:
     """Günlük hedefe üst üste kaç gündür ulaşıldığını sayar.
 

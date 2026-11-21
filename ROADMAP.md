@@ -53,7 +53,7 @@ arayüzde "Ayarlar" bölümü. Kullanıcının gerçek `config.toml`'unun kopyas
 değişen satırlar, yorumlar yerinde, önce yedek. `baslat.bat` artık `requirements.txt` değişince paket kurar.
 Kalan (ileride): okunabilir adlar / siteler / kategoriler tablolarını da arayüzden düzenlemek.
 
-## 3. Günlük zaman çizelgesi 🔲
+## 3. Günlük zaman çizelgesi ✅
 
 **Neden:** Döküm "ne kadar" sorusunu cevaplıyor, "ne zaman" sorusunu değil. Günün saat saat
 renkli bir şeridi, odağın nerede bölündüğünü tek bakışta gösterir.
@@ -64,6 +64,10 @@ uygulama ve süre; dokunmatik ve dar ekranda da çalışır.
 
 **Bitti sayılır:** Seçilen günün şeridi doğru, dar ekranda taşma yok, pencere başlığı yalnızca
 gerektiğinde ve yalnızca yerel arayüzde görünüyor.
+
+**Sonuç:** `ozet.zaman_cizelgesi` (günle kırpma, okunabilir adlar, başlık YOK), `/api/zaman-cizelgesi`,
+"Oturumlar" kartının üstünde şerit (görünen aralık kullanılan saatlere göre, en az 6 saat;
+üzerine gelince/dokununca ayrıntı). Pencere başlığı hiç döndürülmediği için gizlilik kuralı daha da sıkı.
 
 ## 4. Düzeltmelerden öğrenen yerel sınıflandırıcı 🔲
 

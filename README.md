@@ -91,7 +91,7 @@ Arayüzde yedi bölüm vardır:
 5. **Paylaşım kartı:** günlük, haftalık, aylık (takvim) ya da yıllık (son 12 ay ısı haritası) özeti
    1080×1920 PNG olarak üretir ve indirir. Tarih seçerek geçmiş bir günün/ayın kartı da alınabilir.
    İçerik, Instagram hikâyesinin üst ve alt düğmelerinin örtmediği orta alana yerleştirilir.
-6. **Oturumlar:** kayıtlı zaman dilimleri. Her birini “Çalışmaydı” / “Çalışma değildi” diye düzeltebilir,
+6. **Oturumlar:** üstte seçili günün saat saat renkli şeridi (zaman çizelgesi), altında kayıtlı zaman dilimleri. Her birini “Çalışmaydı” / “Çalışma değildi” diye düzeltebilir,
    düzeltmeyi **Geri al** ile kaldırabilirsiniz. 1 dakikadan kısa oturumlar varsayılan olarak gizlenir.
    “Bundan sonra da böyle say” seçiliyse aynı uygulama ya da başlık artık otomatik tanınır.
    Tarayıcı oturumlarında isterseniz bir anahtar kelime (örn. kanal adı) de öğretebilirsiniz.
@@ -173,6 +173,7 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `GET /api/isi-haritasi?bitis=2026-11-21&hafta=53` | Isı haritası: her gün için süre ve 0-4 seviye, seri istatistikleri |
 | `GET /api/otomatik-baslatma` · `POST` (`{"acik": true}`) | Windows açılışında başlatma durumu |
 | `GET /api/kart?tur=gunluk&tarih=2026-11-21&liste=kategori` | Paylaşım kartı (PNG); `tur`: `gunluk`, `haftalik`, `aylik`, `yillik`; `liste`: `uygulama`, `kategori`, `yok`; `indir=true` dosya olarak indirir |
+| `GET /api/zaman-cizelgesi?tarih=2026-11-16` | Günün şeridi: parçalar (günün başından dakika), hüküm, okunabilir ad; başlık içermez |
 | `GET /api/oturumlar?tarih=2026-11-16` | Bir günün oturumları |
 | `POST /api/oturumlar/{id}/duzelt` | Oturumu düzelt (`{"hukum": "ders", "ogren": true, "kelime": null}`) |
 | `GET /api/kurallar` · `DELETE /api/kurallar/{id}` | Öğrenilen kurallar |

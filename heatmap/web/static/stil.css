@@ -174,6 +174,23 @@ footer { padding-top: 8px; padding-bottom: 32px; text-align: center; }
 .oturum input[type="text"] { width: 210px; }
 .bos { color: var(--soluk); padding: 12px 0; }
 
+/* ---------- Günlük zaman çizelgesi ---------- */
+.cizelge-kutu { margin: 4px 0 16px; }
+.cizelge { position: relative; height: 34px; background: var(--kart-ic); border-radius: 8px; overflow: hidden; }
+.cizelge .parca { position: absolute; top: 0; bottom: 0; min-width: 2px; cursor: pointer; }
+.cizelge .parca:hover, .cizelge .parca.secili { outline: 2px solid var(--yazi); outline-offset: -2px; z-index: 1; }
+.cz, .cizelge .parca { background: var(--soluk); }
+.cz.ders, .cizelge .parca.ders { background: var(--yesil); }
+.cz.belirsiz, .cizelge .parca.belirsiz { background: var(--sari); }
+.cz.ders_degil, .cizelge .parca.ders_degil { background: rgba(239, 107, 107, .75); }
+.cz.bosta, .cizelge .parca.bosta { background: #3a4152; }
+.cizelge-saatler { position: relative; height: 16px; font-size: 11px; color: var(--soluk); }
+.cizelge-saatler span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.cizelge-alt { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 6px; font-size: 12px; }
+.cizelge-lejant { display: flex; align-items: center; gap: 4px 10px; color: var(--soluk); flex-wrap: wrap; }
+.cizelge-lejant > span { white-space: nowrap; }
+.cz { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; }
+
 /* ---------- Ayarlar ---------- */
 .ayarlar > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
 .ayarlar > summary::before { content: "▸"; color: var(--soluk); transition: transform .15s; }

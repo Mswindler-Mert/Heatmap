@@ -365,9 +365,72 @@ function kullaniciYaziyor() {
   return a && a.tagName === "INPUT" && a.type === "text";
 }
 
+// ---------- Günlük zaman çizelgesi ----------
+
+const HUKUM_YAZI = { ders: "Çalışma", ders_degil: "Çalışma değil", belirsiz: "Belirsiz" };
+
+function dakikaSaat(dk) {
+  const toplam = Math.round(dk);
+  return `${ikiHane(Math.floor(toplam / 60) % 24)}:${ikiHane(toplam % 60)}`;
+}
+
+async function cizelgeyiYenile() {
+  const d = await api(`/api/zaman-cizelgesi?tarih=${$("tarih").value}`);
+  const serit = $("cizelge");
+  const saatler = $("cizelge-saatler");
+  // Görünen aralık: günün kullanılan saatleri (en az 6 saat); boş günde 00:00-24:00.
+  let bas = 0, son = 1440;
+  if (d.parcalar.length) {
+    bas = Math.max(0, Math.floor(d.parcalar[0].bas_dk / 60) * 60);
+    son = Math.min(1440, Math.ceil(Math.max(...d.parcalar.map((p) => p.bit_dk)) / 60) * 60);
+    if (son - bas < 360) {
+      const eksik = 360 - (son - bas);
+      bas = Math.max(0, bas - Math.floor(eksik / 120) * 60);
+      son = Math.min(1440, bas + 360);
+    }
+  }
+  const genislik = son - bas;
+  const konum = (dk) => `${((dk - bas) / genislik) * 100}%`;
+
+  serit.replaceChildren(...d.parcalar.map((p) => {
+    const parca = el("div", `parca ${p.tur === "bosta" ? "bosta" : p.hukum}`);
+    parca.style.left = konum(p.bas_dk);
+    parca.style.width = `${((p.bit_dk - p.bas_dk) / genislik) * 100}%`;
+    const yazi = `${dakikaSaat(p.bas_dk)}–${dakikaSaat(p.bit_dk)} · ${p.ad} · ` +
+      `${p.tur === "bosta" ? "Başında değil" : HUKUM_YAZI[p.hukum] || p.hukum} (${sureBicimi(p.sure_sn)})` +
+      (p.duzeltildi ? " · sen düzelttin" : "");
+    parca.title = yazi;
+    const sec = () => {
+      for (const diger of serit.querySelectorAll(".parca.secili")) diger.classList.remove("secili");
+      parca.classList.add("secili");
+      $("cizelge-secili").textContent = yazi;
+    };
+    parca.addEventListener("mouseenter", sec);
+    parca.addEventListener("click", sec);  // Dokunmatik ekran için
+    return parca;
+  }));
+
+  // Saat etiketleri: aralığa göre 1, 2 ya da 3 saatte bir
+  const adim = genislik <= 480 ? 60 : genislik <= 900 ? 120 : 180;
+  const etiketler = [];
+  for (let dk = bas; dk <= son; dk += adim) {
+    const etiket = el("span", "", dk === 1440 ? "24:00" : dakikaSaat(dk));
+    etiket.style.left = konum(dk);
+    if (dk === bas) etiket.style.transform = "none";
+    if (dk === son) etiket.style.transform = "translateX(-100%)";
+    etiketler.push(etiket);
+  }
+  saatler.replaceChildren(...etiketler);
+  $("cizelge-secili").textContent = d.parcalar.length
+    ? `Çalışma ${sureBicimi(d.toplam_sn.ders || 0)} · belirsiz ${sureBicimi(d.toplam_sn.belirsiz || 0)} · ` +
+      "bir parçanın üzerine gel ya da dokun."
+    : "Bu gün için kayıt yok.";
+}
+
 async function oturumlariYenile(zorla) {
   if (!zorla && kullaniciYaziyor()) return;
   const tarih = $("tarih").value;
+  cizelgeyiYenile().catch(() => {});
   let oturumlar = await api(`/api/oturumlar?tarih=${tarih}`);
   if ($("filtre").value === "belirsiz") {
     oturumlar = oturumlar.filter((o) => o.etkin_hukum === "belirsiz");
