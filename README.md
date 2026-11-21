@@ -7,6 +7,11 @@ bu sürenin hangi uygulama ve sitelerden geldiğini gösteren ve paylaşılabili
 Kronometre değildir: başlat/durdur düğmesine basmazsınız. Uygulama öndeki pencereye, tarayıcı
 sekmesinin başlığına ve klavye/fare hareketine bakar; sayacı kendisi başlatır ve durdurur.
 
+![Günlük, haftalık, aylık ve yıllık paylaşım kartları (örnek veriyle)](docs/ornek-kartlar.png)
+
+<sub>Paylaşım kartları (1080×1920, Instagram hikâyesi boyutu). Görseldeki veriler örnektir;
+`docs/ornek_gorsel_uret.py` ile yeniden üretilebilir.</sub>
+
 - **Tamamen yerel:** hiçbir veri bilgisayarınızdan çıkmaz, hesap ya da internet gerekmez.
 - **Takılıp çıkarılabilir modüller:** her tespit kaynağı ayrı bir dosyadır ve ayardan kapatılabilir.
 - **Öğrenir:** karar veremediği oturumları siz işaretlersiniz, bir dahaki sefere kendisi tanır.
