@@ -11,7 +11,7 @@ parametresiyle verilir. Böylece testlerde "15 saniye geçti" durumunu
 beklemeden deneyebiliyoruz.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from heatmap.sinyal import BELIRSIZ, DERS, DERS_DEGIL, DEVAM, FIKRIM_YOK, Sinyal
 
@@ -27,6 +27,10 @@ class Durum:
     uygulama: str = ""  # Süreç adı, örn. "chrome.exe"
     baslik: str = ""    # Pencere / sekme başlığı
     alan_adi: str = ""  # Tarayıcıdaysa sitenin adı (eklenti kuruluysa), örn. "youtube.com"
+    # Bu durum aslında kaç saniye ÖNCE başladı? Örn. kamera "masada değil" kararını yüz
+    # 30 sn görünmeyince verir; ama kişi 30 sn önce kalkmıştır. Motor geçişi o ana çeker,
+    # böylece o 30 sn çalışma sayılmaz. (Karşılaştırmalarda dikkate alınmaz.)
+    geriye_sn: float = field(default=0.0, compare=False)
 
 
 @dataclass
@@ -64,11 +68,16 @@ def anlik_karar(sinyaller: dict[str, Sinyal]) -> Durum:
     masada = kamera.detay.get("masada") if kamera else None   # True / False / None (bilinmiyor)
 
     # --- Kural 1: Kamera vetosu ---------------------------------------------
-    # Telefon her zaman veto eder. "Yüz yok" ise klavye/fare kullanılıyorsa uygulanmaz:
-    # kamera kapatılmış, ışık kötü ya da yandan oturuyor olabilirsin; girdi yalan söylemez.
-    if kamera and kamera.hukum == DERS_DEGIL and not (kamera_durumu == "yok" and girdi_aktif):
+    # Telefon her zaman veto eder. "Yüz yok" ise, yüz kaybolduktan SONRA klavye/fare
+    # kullanıldıysa uygulanmaz: kişi oradadır, kamera yanılıyordur (ışık kötü, yandan
+    # oturuyor, kamera kapatılmış...). Yüz kaybolduğundan beri hiç girdi yoksa kişi kalkmıştır.
+    yuz_yok_sn = kamera.detay.get("sure_sn", 0) if kamera else 0
+    girdi_yuzden_sonra = bool(bosta) and bosta.detay.get("bosta_sn", 0) < yuz_yok_sn
+    if kamera and kamera.hukum == DERS_DEGIL and not (kamera_durumu == "yok" and girdi_yuzden_sonra):
+        # sure_sn: yüz ne zamandır yok / telefon ne zamandır görülüyor -> geçiş o ana çekilir.
         return Durum(DERS_DEGIL, baglam="kamera", kaynak="kamera",
-                     aciklama=kamera.aciklama, uygulama=surec, baslik=ham_baslik)
+                     aciklama=kamera.aciklama, uygulama=surec, baslik=ham_baslik,
+                     geriye_sn=kamera.detay.get("sure_sn", 0.0))
 
     # --- Kural 2: Bilgisayar başında değilse gerisinin önemi yok ---------
     if not girdi_aktif and masada is not True:
@@ -137,6 +146,7 @@ class KararMotoru:
     def sifirla(self) -> None:
         """Her şeyi unut (program açılışı, duraklatma ya da uykudan dönüş sonrası)."""
         self.mevcut: Durum | None = None   # Sayacın şu anki kalıcı durumu
+        self._mevcut_baslangic = None      # Mevcut durumun başladığı an (geriye çekme bundan öteye gidemez)
         self._ayrilma_ani = None           # Anlık hüküm mevcut hükümden ne zaman ayrıldı
         self._aday_hukum = None            # Şu an gözlenen farklı hüküm
         self._aday_hukum_ani = None        # Bu aday hüküm ne zamandır kesintisiz sürüyor
@@ -152,6 +162,7 @@ class KararMotoru:
 
     def _gecis_yap(self, yeni: Durum, zaman: float) -> Gecis:
         self.mevcut = yeni
+        self._mevcut_baslangic = zaman
         self._adaylari_temizle()
         return Gecis(yeni, zaman)
 
@@ -172,8 +183,11 @@ class KararMotoru:
         if anlik.hukum != self.mevcut.hukum:
             self._aday_baglam = None  # Bağlam takibi sadece hüküm aynıyken anlamlı
 
-            if self._ayrilma_ani is None:
-                self._ayrilma_ani = simdi
+            # Ayrılma anı: normalde şimdi; durum aslında daha önce başladıysa (geriye_sn)
+            # o an. Ama mevcut durumun başlangıcından daha geriye gidemez.
+            ayrilma = max(simdi - anlik.geriye_sn, self._mevcut_baslangic)
+            if self._ayrilma_ani is None or ayrilma < self._ayrilma_ani:
+                self._ayrilma_ani = ayrilma
             if anlik.hukum != self._aday_hukum:
                 self._aday_hukum = anlik.hukum
                 self._aday_hukum_ani = simdi

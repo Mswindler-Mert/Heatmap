@@ -6,19 +6,31 @@
 - Gizlilik: işçinin kaynak kodunda kare kaydetme / ağ kodu olmadığı taranır.
 """
 
+import os
 import re
 import tempfile
 import time
 import unittest
 from pathlib import Path
 
+from heatmap.dedektorler.bosta import BostaDedektoru
 from heatmap.dedektorler.kamera import ISCI_BETIGI, IsciSureci, KameraDedektoru, isci_komutu
-from heatmap.motor import anlik_karar
+from heatmap.dedektorler.pencere import PencereDedektoru
+from heatmap.depo import Depo
+from heatmap.motor import Durum, KararMotoru, anlik_karar
+from heatmap.takipci import Takipci
 from heatmap.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK, Sinyal
 
 # Testler gerçek data/kamera_kalibrasyon.json dosyasını okumasın/yazmasın
 _GECICI = tempfile.TemporaryDirectory()
 KALIBRASYON = Path(_GECICI.name) / "kalibrasyon.json"
+
+AYAR_PENCERE = {
+    "genel": {"tarama_araligi_sn": 1},
+    "pencere": {"ders_surecleri": ["Code.exe"], "ders_degil_surecleri": [], "tarayici_surecleri": [],
+                "bilinmeyen_hukum": "belirsiz"},
+    "bosta": {"esik_sn": 120, "video_esik_sn": 1800},
+}
 
 AYAR = {"kamera": {"yuz_yok_esik_sn": 30, "telefon_esik_sn": 20, "not_alma_esik_sn": 600,
                    "ekran_pitch": -5.0, "asagi_fark_derece": 18}}
@@ -110,8 +122,9 @@ def sinyaller(icerik=DERS, video=False, bosta=False, video_esigi_asildi=False, k
     }
     if kamera:
         hukum, durum, masada, doldu = kamera
+        # sure_sn 31: durum (örn. yüz yok) 31 sn'dir sürüyor
         s["kamera"] = Sinyal("kamera", hukum, durum,
-                             {"kamera_durumu": durum, "masada": masada, "not_alma_doldu": doldu})
+                             {"kamera_durumu": durum, "masada": masada, "not_alma_doldu": doldu, "sure_sn": 31})
     return s
 
 
@@ -161,6 +174,52 @@ class AcKapatKalibrasyonTesti(unittest.TestCase):
         self.assertFalse(self.dosya.exists())
 
 
+class GeriyeDonukTesti(unittest.TestCase):
+    """Masadan kalkınca yüzün görünmediği 30 sn çalışma sayılmamalı."""
+
+    def test_motor_gecisi_geriye_ceker(self):
+        motor = KararMotoru(5, 15)
+        motor.guncelle(Durum(DERS, "Code.exe"), 0)
+        gecis = motor.guncelle(Durum(DERS_DEGIL, "kamera", geriye_sn=30), 130)
+        self.assertIsNotNone(gecis)          # 30 sn >= 15 sn tolerans: hemen karar
+        self.assertEqual(gecis.zaman, 100)   # oturum yüzün kaybolduğu anda biter
+
+    def test_mevcut_durumun_baslangicindan_geriye_gidilmez(self):
+        motor = KararMotoru(5, 15)
+        motor.guncelle(Durum(DERS, "Code.exe"), 120)
+        self.assertIsNone(motor.guncelle(Durum(DERS_DEGIL, "kamera", geriye_sn=30), 130))
+        self.assertEqual(motor.guncelle(Durum(DERS_DEGIL, "kamera", geriye_sn=35), 135).zaman, 120)
+
+    def test_uctan_uca_veritabani(self):
+        with tempfile.TemporaryDirectory() as klasor:
+            depo = Depo(os.path.join(klasor, "t.db"))
+            kaynak = SahteKaynak()
+            saat = {"t": 1_800_000_000.0}
+            kamera = KameraDedektoru(AYAR, kaynak=kaynak, saat=lambda: saat["t"],
+                                     kalibrasyon_dosyasi=KALIBRASYON)
+            bosta = {"sn": 0.0}
+            dedektorler = [
+                PencereDedektoru(AYAR_PENCERE, okuyucu=lambda: ("Code.exe", "main.py")),
+                BostaDedektoru(AYAR_PENCERE, okuyucu=lambda: bosta["sn"]),
+                kamera,
+            ]
+            takipci = Takipci(AYAR_PENCERE, depo, dedektorler, KararMotoru(5, 15))
+            bas = saat["t"]
+
+            def ilerle(saniye, yuz):
+                for _ in range(saniye):
+                    saat["t"] += 1
+                    if not yuz:
+                        bosta["sn"] += 1  # masadan kalkınca klavye/fare de durur
+                    kaynak.gozlem = {"zaman": saat["t"], "yuz_var": yuz, "pitch": -5.0, "hata": None}
+                    takipci.tik(saat["t"])
+
+            ilerle(60, yuz=True)    # 60 sn çalışma
+            ilerle(60, yuz=False)   # kalktı
+            sure = depo.ders_suresi(bas, saat["t"] + 1)
+            self.assertAlmostEqual(sure, 60, delta=2)   # eskiden ~90 sn sayılırdı
+
+
 class KararTablosuTesti(unittest.TestCase):
     def hukum(self, **kw):
         return anlik_karar(sinyaller(**kw)).hukum
@@ -179,7 +238,13 @@ class KararTablosuTesti(unittest.TestCase):
 
     def test_yuz_yok_bostaysa_veto_girdi_varsa_degil(self):
         self.assertEqual(self.hukum(video=True, bosta=True, kamera=YOK), DERS_DEGIL)   # video eşiği beklenmez
-        self.assertEqual(self.hukum(bosta=False, kamera=YOK), DERS)                    # klavye kullanılıyor
+        self.assertEqual(self.hukum(bosta=False, kamera=YOK), DERS)   # yüz kaybolduktan sonra klavye kullanıldı
+
+    def test_yuz_kaybolduktan_sonra_girdi_yoksa_esik_beklenmeden_veto(self):
+        # Boşta eşiği (120 sn) dolmamış ama yüz kaybolduğundan beri (31 sn) hiç girdi yok: kalkmış
+        s = sinyaller(bosta=False, kamera=YOK)
+        s["bosta"].detay["bosta_sn"] = 40
+        self.assertEqual(anlik_karar(s).hukum, DERS_DEGIL)
 
     def test_pdf_okurken_masada(self):
         # Video değil (PDF/IDE), klavye boşta, masada ekrana bakıyor: okuyor

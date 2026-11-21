@@ -107,8 +107,12 @@ tepsi.py (pystray, ana thread)
 `KameraDedektoru.kalibre_et`: 6 sn ölçüm, ortanca, `data/kamera_kalibrasyon.json`) ve arayüz/tepside
 geçici aç/kapat (`ayarla_acik`: işçi durur, kapatınca yeni `IsciSureci` hazırlanır) yapıldı; sahte
 işçiyle uçtan uca denendi (kapalıyken işçi süreci kalmıyor). ⚠️ Testler kalibrasyon dosyası için
-HER ZAMAN geçici yol vermeli (`kalibrasyon_dosyasi=`), yoksa kullanıcının gerçek kalibrasyonunu okur. ⚠️ 1.7'deki "ikili gecikme"
-tuzağı hâlâ geçerli: yüz yok eşiği (30 sn) + motor toleransı (15 sn) üst üste biniyor.
+HER ZAMAN geçici yol vermeli (`kalibrasyon_dosyasi=`), yoksa kullanıcının gerçek kalibrasyonunu okur. ✅ 1.7'deki "ikili gecikme" tuzağı
+çözüldü: `Durum.geriye_sn` (karşılaştırmaya girmez) kameranın `sure_sn` bilgisini taşır,
+`KararMotoru` ayrılma anını o kadar geriye çeker (mevcut durumun başlangıcından öteye değil).
+Ayrıca "yüz yok" vetosu artık "yüz kaybolduktan SONRA girdi var mı" (`bosta_sn < sure_sn`) ölçütüne
+bakıyor; eskiden 120 sn'lik boşta eşiğine baktığı için pratikte hiç devreye girmiyordu.
+Boşta kalma kuralına geriye çekme bilerek UYGULANMADI (girdisiz geçen süre okumak da olabilir).
 
 Aşağıdaki tasarım metni bu kalanlar için hâlâ geçerli.
 

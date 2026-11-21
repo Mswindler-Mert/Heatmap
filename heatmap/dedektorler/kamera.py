@@ -239,8 +239,9 @@ class KameraDedektoru(Dedektor):
                 self._yok_baslangic = simdi
             sure = simdi - self._yok_baslangic
             if sure >= self.yuz_yok_esik_sn:
+                # sure_sn: motor geçişi yüzün kaybolduğu ana çeker (bkz. motor.Durum.geriye_sn)
                 return Sinyal(self.ad, DERS_DEGIL, "Kamerada yüz görünmüyor",
-                              {"kamera_durumu": "yok", "masada": False})
+                              {"kamera_durumu": "yok", "masada": False, "sure_sn": sure})
             return Sinyal(self.ad, FIKRIM_YOK, f"Yüz {round(sure)} sn'dir görünmüyor",
                           {"kamera_durumu": "kayboldu", "masada": False})
         self._yok_baslangic = None
@@ -251,7 +252,8 @@ class KameraDedektoru(Dedektor):
                 self._telefon_baslangic = simdi
             if simdi - self._telefon_baslangic >= self.telefon_esik_sn:
                 return Sinyal(self.ad, DERS_DEGIL, "Telefona bakıyor gibi",
-                              {"kamera_durumu": "telefon", "masada": True})
+                              {"kamera_durumu": "telefon", "masada": True,
+                               "sure_sn": simdi - self._telefon_baslangic})
         else:
             self._telefon_baslangic = None
 
