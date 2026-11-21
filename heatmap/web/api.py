@@ -17,6 +17,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from heatmap import otomatik_baslatma
 from heatmap.dedektorler.kamera import KameraDedektoru
+from heatmap.disa_aktar import gunluk_csv, oturumlar_csv
 from heatmap.dedektorler.tarayici import TarayiciDedektoru
 from heatmap.depo import Depo, gun_araligi
 from heatmap.kart import kart_ciz, kart_verisi
@@ -271,6 +272,32 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         if indir:
             basliklar["Content-Disposition"] = f'attachment; filename="heatmap-{tur}-{tarih.isoformat()}.png"'
         return Response(png, media_type="image/png", headers=basliklar)
+
+    def _csv_yaniti(metin: str, dosya_adi: str) -> Response:
+        return Response(metin.encode("utf-8"), media_type="text/csv; charset=utf-8",
+                        headers={"Content-Disposition": f'attachment; filename="{dosya_adi}"'})
+
+    def _aktarma_araligi(baslangic: date | None, bitis: date | None) -> tuple[date, date]:
+        son = bitis or date.today()
+        ilk = baslangic or son - timedelta(days=364)  # Varsayılan: son 365 gün
+        if son < ilk:
+            raise HTTPException(400, "bitis, baslangic tarihinden önce olamaz")
+        if (son - ilk).days > 3660:
+            raise HTTPException(400, "En fazla 10 yıllık aralık dışa aktarılabilir")
+        return ilk, son
+
+    @app.get("/api/disa-aktar/gunluk.csv")
+    def gunluk_disa_aktar(baslangic: date | None = None, bitis: date | None = None):
+        """Gün gün çalışma süresi + sağlık verisi (CSV, Excel'de açılır). Varsayılan: son 365 gün."""
+        ilk, son = _aktarma_araligi(baslangic, bitis)
+        return _csv_yaniti(gunluk_csv(depo, ilk, son), f"heatmap-gunluk-{ilk}-{son}.csv")
+
+    @app.get("/api/disa-aktar/oturumlar.csv")
+    def oturumlar_disa_aktar(baslangic: date | None = None, bitis: date | None = None, basliklar: bool = False):
+        """Bütün oturumlar (CSV). Pencere başlıkları yalnızca `basliklar=true` ile eklenir."""
+        ilk, son = _aktarma_araligi(baslangic, bitis)
+        return _csv_yaniti(oturumlar_csv(depo, adlandirici, ilk, son, basliklar),
+                           f"heatmap-oturumlar-{ilk}-{son}.csv")
 
     @app.get("/api/oturumlar")
     def oturumlar(tarih: date | None = None):

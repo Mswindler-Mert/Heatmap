@@ -167,6 +167,7 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `POST /api/oturumlar/{id}/duzelt` | Oturumu düzelt (`{"hukum": "ders", "ogren": true, "kelime": null}`) |
 | `GET /api/kurallar` · `DELETE /api/kurallar/{id}` | Öğrenilen kurallar |
 | `POST /api/duraklat` | Takibi duraklat / sürdür (`{"duraklat": true}`) |
+| `GET /api/disa-aktar/gunluk.csv` · `GET /api/disa-aktar/oturumlar.csv` | Excel için CSV (varsayılan son 365 gün; `baslangic`, `bitis`; oturumlarda başlıklar yalnızca `basliklar=true` ile) |
 | `GET /api/dashboard` | Masaüstü dashboard'unun tek seferlik özeti (pencere başlığı içermez) |
 | `POST /api/tarayici` | Tarayıcı eklentisinin raporu (`{"alan_adi": "youtube.com", "sesli": true, "odakta": true}`) |
 
@@ -185,6 +186,12 @@ Süreler saniye cinsindendir (`ders_sn`).
 - Kamera modülü görüntüyü kaydetmez ve göndermez; kare analizden hemen sonra silinir ve ana
   uygulamaya yalnızca "yüz var / yok, kafa açısı" gibi sonuçlar gider. Bir test, kamera işçisinin
   kodunda kare kaydetme ya da ağ kodu bulunmadığını her çalıştırmada denetler.
+
+## Dışa aktarma
+
+Arayüzün en altındaki bağlantılarla son 365 günün verisini Excel'de açılan CSV dosyası olarak
+indirebilirsin: **günlük özet** (gün gün çalışma dakikası, adım, egzersiz, uyku) ve **oturumlar**
+(her oturum bir satır). Oturum dosyasında pencere başlıkları varsayılan olarak yer almaz.
 
 ## Yedek
 

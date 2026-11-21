@@ -121,6 +121,19 @@ class ApiTesti(unittest.TestCase):
         self.assertEqual(self.istemci.get(f"/api/kart?tarih={yarin}").status_code, 400)
         self.assertEqual(self.istemci.get("/api/kart?tur=bilinmeyen").status_code, 422)
 
+    # --- CSV dışa aktarma --------------------------------------------------
+    def test_csv_indirme(self):
+        self.oturum_ekle("Code.exe", "pencere", f"{GIZLI}.py", 20)
+        y = self.istemci.get("/api/disa-aktar/oturumlar.csv")
+        self.assertEqual(y.status_code, 200)
+        self.assertTrue(y.headers["content-type"].startswith("text/csv"))
+        self.assertIn("attachment", y.headers["content-disposition"])
+        self.assertNotIn(GIZLI, y.text)
+        self.assertIn(GIZLI, self.istemci.get("/api/disa-aktar/oturumlar.csv?basliklar=true").text)
+        self.assertEqual(self.istemci.get("/api/disa-aktar/gunluk.csv").status_code, 200)
+        self.assertEqual(self.istemci.get(
+            "/api/disa-aktar/gunluk.csv?baslangic=2026-11-20&bitis=2026-11-01").status_code, 400)
+
     # --- Düzeltme ve öğrenme ----------------------------------------------
     def test_duzeltme_geri_alinir_kural_kalir(self):
         oid = self.oturum_ekle("Bilinmeyen.exe", "pencere", "x", 10)
