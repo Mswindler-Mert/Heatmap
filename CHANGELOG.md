@@ -4,6 +4,11 @@ Sürüm numarası `heatmap/__init__.py` içindeki `__version__` değeridir ve ar
 
 ## Yayımlanmamış
 
+- **Kayan mini masaüstü sayacı:** İstediğin zaman sistem tepsisinden veya arayüzün sol
+  menüsünden açıp kapatabileceğin, her zaman üstte duran, sürüklenebilir, yarı saydam küçük
+  sayaç penceresi (günlük hedef çubuğu ve dahili odak kronometresiyle; pencere başlığı içermez).
+- **Masaüstü bildirimleri:** Günlük hedefine ulaştığında ve zincirin sürüyorsa akşam (varsayılan
+  22:00) hedefe kalan süreyi hatırlatan sessiz Windows bildirimleri (`[bildirim]`).
 - **Zinciri Kırma:** Günlük hedefine ulaştığında sürükle-bırak (veya tıkla-tak) ile zincire yeni
   halka takma, isteğe bağlı "Otomatik tak", yoğun günler için bronz kurtarma halkası, 7 ardışık
   tam halkada kazanılan gümüş kalkan halkası ve kilometre taşı renkleri (şema sürümü 5).

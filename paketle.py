@@ -51,8 +51,7 @@ def pyinstaller_secenekleri(ikon: Path) -> list[str]:
         # PyInstaller'ın kendi bulamadığı, çalışırken adıyla yüklenen modüller
         "--collect-submodules", "uvicorn",
         "--hidden-import", "pystray._win32",
-        # Gerekmeyen büyük paketler (varsa) pakete girmesin
-        "--exclude-module", "tkinter",
+        # Gerekmeyen büyük paketler (varsa) pakete girmesin (tkinter mini sayaç için gerekli)
         "--exclude-module", "PyInstaller",
     ]
 

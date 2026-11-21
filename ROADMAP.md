@@ -118,9 +118,9 @@ dashboard, kart, ayarlar, takip döngüsü çalıştı. ❓ Sürüm iş akışı
    - Barış Özcan'ın *Zinciri Kırma* yaklaşımıyla görsel zincir: hedefe ulaşınca sürükle-tak veya otomatik takılan halkalar, hak edilen kalkan halkası (7 ardışık halkada 1), bronz kurtarma halkası, kilometre taşı renkleri (`heatmap/zincir.py`, şema v5).
    - Tıklanabilir ısı haritası, haftalık çubuklar ve zincir halkaları (tıklanan günün Oturumlar ekranını açar).
    - 24 saatlik "En verimli saatlerin" grafiği (`/api/verimli-saatler`).
-3. 🔲 **İsteğe Bağlı Kayan Mini Masaüstü Sayacı + Hedef Bildirimleri:**
-   - Her zaman üstte duran, sürüklenebilir, yarı saydam mini sayaç penceresi (tepsi ve arayüzden istenilen zaman aç/kapat; isteğe bağlı odak zamanlayıcısı).
-   - Günlük hedefe ulaşınca ve akşam zinciri kurtarmaya az kalınca sessiz Windows bildirimi.
+3. ✅ **İsteğe Bağlı Kayan Mini Masaüstü Sayacı + Hedef Bildirimleri:**
+   - Her zaman üstte duran, sürüklenebilir, yarı saydam mini sayaç penceresi (`heatmap/mini_sayac.py`, tepsi menüsü ve arayüz sol menüsünden istenilen zaman aç/kapat; dahili odak kronometresi; tıklamak sayacı kesmez).
+   - Günlük hedefe ulaşınca ve akşam zinciri kurtarmaya az kalınca sessiz Windows bildirimi (`heatmap/bildirim.py`).
 4. 🔲 **Karar Bekleyenler Hızlı Temizlik & Ayarlar Tablo Düzenleyici:**
    - Tahminleri tek seferlik toplu uygulama düğmesi ve klavye kısayolları (`C`/`D`).
    - `[adlar]`, `[siteler]`, `[kategoriler]` tablolarını da Ayarlar sayfasından düzenlemek.

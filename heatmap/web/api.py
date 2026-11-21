@@ -88,6 +88,10 @@ class TarayiciRaporu(BaseModel):
     odakta: bool = True
 
 
+class MiniSayacIstegi(BaseModel):
+    acik: bool
+
+
 def _saat(epoch: float) -> str:
     """Epoch saniyesini okunur ISO metnine çevirir: 2026-11-16T14:05:00"""
     return datetime.fromtimestamp(epoch).isoformat(timespec="seconds")
@@ -135,7 +139,8 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
                      ayar_dosyasi: Path | None = None,
                      yedek_klasoru: Path | None = None,
                      yeniden_yukleyici: Callable | None = None,
-                     tahminci=None) -> FastAPI:
+                     tahminci=None,
+                     mini_sayac=None) -> FastAPI:
     """Web uygulamasını kurar.
 
     ayar_dosyasi     : arayüzden kaydedilen ayarların yazılacağı config.toml. None ise (testler)
@@ -605,6 +610,19 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         """Takibi elle duraklat / devam ettir."""
         takipci.duraklat(istek.duraklat)
         return {"duraklatildi": takipci.duraklatildi}
+
+    @app.get("/api/mini-sayac")
+    def mini_sayac_durumu():
+        """Masaüstündeki kayan mini sayaç penceresi kullanılabilir ve açık mı?"""
+        return {"etkin": mini_sayac is not None, "acik": bool(mini_sayac and mini_sayac.acik)}
+
+    @app.post("/api/mini-sayac")
+    def mini_sayac_ayarla(istek: MiniSayacIstegi):
+        """Masaüstündeki kayan mini sayaç penceresini açar ya da kapatır."""
+        if mini_sayac is None:
+            raise HTTPException(503, "Bu çalıştırmada mini sayaç kullanılamıyor")
+        durum_acik = mini_sayac.ac() if istek.acik else mini_sayac.kapat()
+        return {"etkin": True, "acik": durum_acik}
 
     @app.get("/api/otomatik-baslatma")
     def otomatik_baslatma_durumu():

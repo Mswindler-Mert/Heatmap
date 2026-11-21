@@ -14,6 +14,7 @@
 port = 8765                  # Arayüz adresi: http://127.0.0.1:8765
 tarama_araligi_sn = 1        # Kaç saniyede bir "şu an ne yapıyor?" diye bakılsın
 acilista_arayuzu_ac = true   # Uygulama açılınca tarayıcıda arayüz açılsın mı
+acilista_mini_sayac = false  # Uygulama açılınca köşedeki kayan mini sayaç da açılsın mı
 
 # ---------------------------------------------------------------------
 #  Tolerans: ani değişiklikler sayacı hemen etkilemesin
@@ -228,6 +229,14 @@ gunluk_dk = 120
 [zincir]
 otomatik_tak = false      # false: hedefe ulaşınca halkayı sen sürükleyip/tıklayıp takarsın; true: otomatik takar
 kurtarma_dk = 30          # Yoğun/hasta günlerde zinciri bronz halkayla kurtarmak için en az dakika (0 = kapalı)
+
+# ---------------------------------------------------------------------
+#  Masaüstü bildirimleri (Windows tepsi bildirimi)
+# ---------------------------------------------------------------------
+[bildirim]
+hedef_tamam = true        # Günlük hedefe ulaştığında bildir
+aksam_hatirlatma = true   # Zincir devam ediyorsa akşam hedefe kalan süreyi hatırlat
+hatirlatma_saati = 22     # Akşam hatırlatma saati (0-23)
 
 # ---------------------------------------------------------------------
 #  Öğrenen tahmin: düzelttiğin (ve kuralların karar verdiği) tarayıcı başlıklarındaki

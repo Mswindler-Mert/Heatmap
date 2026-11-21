@@ -5,7 +5,10 @@ hüküm verir. Tarayıcılarda hüküm vermez; orada kararı başlık dedektör�
 (baslik.py) verir.
 """
 
-from heatmap.sinyal import BELIRSIZ, DERS, DERS_DEGIL, FIKRIM_YOK, Dedektor, Sinyal
+from heatmap.sinyal import BELIRSIZ, DERS, DERS_DEGIL, DEVAM, FIKRIM_YOK, Dedektor, Sinyal
+
+# Heatmap'in kendi masaüstü pencereleri (örn. kayan mini sayaç) sayacı kesmesin.
+KENDI_PENCERE_ONEKI = "takip paneli"
 
 
 class PencereDedektoru(Dedektor):
@@ -42,6 +45,9 @@ class PencereDedektoru(Dedektor):
 
         if not surec:
             return Sinyal(self.ad, FIKRIM_YOK, "Öndeki pencere okunamadı", detay)
+
+        if baslik and baslik.lower().startswith(KENDI_PENCERE_ONEKI):
+            return Sinyal(self.ad, DEVAM, "Heatmap penceresi yok sayılıyor", detay)
 
         # Tarayıcıysa karar bizde değil.
         if kucuk in self.tarayicilar:

@@ -988,6 +988,37 @@ $("duraklat-dugme").addEventListener("click", async () => {
   await durumuYenile();
 });
 
+// Kayan masaüstü mini sayacı (her zaman üstte duran küçük pencere)
+let miniSayacAcik = false;
+
+async function miniSayaciYenile() {
+  try {
+    const m = await api("/api/mini-sayac");
+    const dugme = $("mini-sayac-dugme");
+    dugme.hidden = !m.etkin;
+    miniSayacAcik = Boolean(m.acik);
+    dugme.textContent = miniSayacAcik ? "Mini sayacı kapat" : "Mini sayacı aç";
+    dugme.classList.toggle("ders", miniSayacAcik);
+  } catch {
+    $("mini-sayac-dugme").hidden = true;
+  }
+}
+
+$("mini-sayac-dugme").addEventListener("click", async () => {
+  const dugme = $("mini-sayac-dugme");
+  dugme.disabled = true;
+  try {
+    const m = await apiGonder("/api/mini-sayac", "POST", { acik: !miniSayacAcik });
+    miniSayacAcik = Boolean(m.acik);
+    dugme.textContent = miniSayacAcik ? "Mini sayacı kapat" : "Mini sayacı aç";
+    dugme.classList.toggle("ders", miniSayacAcik);
+  } finally {
+    dugme.disabled = false;
+  }
+});
+miniSayaciYenile();
+setInterval(miniSayaciYenile, 5000);
+
 hepsiniYenile(true);
 api("/api/surum").then((s) => { $("surum").textContent = `v${s.surum}`; }).catch(() => {});
 

@@ -48,17 +48,22 @@ def ikon_durumu(durum: dict) -> tuple[str, str]:
 
 
 class Tepsi:
-    def __init__(self, takipci: Takipci, adres: str, kamera=None):
-        """kamera: KameraDedektoru (modül ayarlardan kapalıysa None; o zaman menüde görünmez)."""
+    def __init__(self, takipci: Takipci, adres: str, kamera=None, mini_sayac=None, bildirim_kontrol=None):
+        """kamera: KameraDedektoru (kapalıysa None). mini_sayac: kayan masaüstü sayacı."""
         self.takipci = takipci
         self.adres = adres
         self.kamera = kamera
+        self.mini_sayac = mini_sayac
+        self.bildirim_kontrol = bildirim_kontrol
         self._ikonlar = {"ders": _ikon_ciz(YESIL), "belirsiz": _ikon_ciz(SARI), "durdu": _ikon_ciz(GRI)}
         self._calisiyor = True
 
         menu = pystray.Menu(
             # default=True: ikona çift/sol tıklayınca bu çalışır.
             pystray.MenuItem("Arayüzü aç", self._arayuzu_ac, default=True),
+            pystray.MenuItem("Mini sayacı göster", self._mini_sayac_degistir,
+                             checked=lambda oge: bool(self.mini_sayac and self.mini_sayac.acik),
+                             visible=lambda oge: self.mini_sayac is not None),
             pystray.MenuItem("Takibi duraklat", self._duraklat_degistir,
                              checked=lambda oge: self.takipci.duraklatildi),
             pystray.MenuItem("Ayar dosyasını aç", self._ayarlari_ac),
@@ -76,6 +81,10 @@ class Tepsi:
     # --- Menü işlemleri --------------------------------------------------
     def _arayuzu_ac(self, ikon=None, oge=None):
         webbrowser.open(self.adres)
+
+    def _mini_sayac_degistir(self, ikon=None, oge=None):
+        if self.mini_sayac is not None:
+            self.mini_sayac.degistir()
 
     def _duraklat_degistir(self, ikon=None, oge=None):
         self.takipci.duraklat(not self.takipci.duraklatildi)
@@ -99,12 +108,20 @@ class Tepsi:
         """pystray bunu ayrı bir thread'de çalıştırır: her saniye ikon rengini ve ipucunu yeniler."""
         ikon.visible = True
         onceki = None
+        sayac = 0
         while self._calisiyor:
             anahtar, ipucu = ikon_durumu(self.takipci.durum())
             if anahtar != onceki:  # Resmi sadece değişince yenile
                 ikon.icon = self._ikonlar[anahtar]
                 onceki = anahtar
             ikon.title = ipucu
+            if self.bildirim_kontrol is not None and sayac % 15 == 0:
+                try:
+                    for baslik, mesaj in self.bildirim_kontrol():
+                        ikon.notify(mesaj, baslik)
+                except Exception:
+                    pass
+            sayac += 1
             time.sleep(1)
 
     def calistir(self):

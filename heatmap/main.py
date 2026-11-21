@@ -19,17 +19,20 @@ import uvicorn
 
 from heatmap import otomatik_baslatma
 from heatmap.ayarlar import KISISEL_DOSYA, UYARILAR, VERI_KLASORU, ayarlari_yukle
+from heatmap.bildirim import BildirimYoneticisi
 from heatmap.dedektorler.baslik import BaslikDedektoru
 from heatmap.dedektorler.bosta import BostaDedektoru
 from heatmap.dedektorler.kamera import KameraDedektoru
 from heatmap.dedektorler.pencere import PencereDedektoru
 from heatmap.dedektorler.tarayici import TarayiciDedektoru
 from heatmap.depo import Depo
+from heatmap.mini_sayac import MiniSayac
 from heatmap.motor import KararMotoru
 from heatmap.tahmin import Tahminci
 from heatmap.takipci import Takipci
 from heatmap.web.api import uygulama_olustur
 from heatmap.yedek import YedekZamanlayici
+from heatmap.zincir import zincir_durumu
 
 
 GUNLUK_DOSYASI = VERI_KLASORU / "heatmap.log"
@@ -205,6 +208,23 @@ def main() -> None:
     # --- Ayarlar arayüzden değişince: yeniden başlatmadan uygula ---
     calisan = {"ayarlar": ayarlar, "tepsi": None}  # Değişebilen parçalar (tepsi aşağıda kurulur)
 
+    def gunluk_hedef_sn() -> int:
+        return int(calisan["ayarlar"].get("hedef", {}).get("gunluk_dk", 0) * 60)
+
+    # Kayan mini masaüstü sayacı (kullanıcı istediği zaman tepsiden/arayüzden açar)
+    mini_sayac = MiniSayac(takipci, gunluk_hedef_sn, adres)
+    bildirimci = BildirimYoneticisi()
+
+    def bildirimleri_kontrol_et() -> list[tuple[str, str]]:
+        simdi_dt = datetime.now()
+        hedef = gunluk_hedef_sn()
+        z_ayar = calisan["ayarlar"].get("zincir", {})
+        kurtarma = int(z_ayar.get("kurtarma_dk", 30) * 60)
+        otomatik = bool(z_ayar.get("otomatik_tak", False))
+        z = zincir_durumu(depo, hedef, kurtarma, otomatik, simdi_dt.date(), gorunen_gun=1)
+        return bildirimci.kontrol_et(simdi_dt, takipci.durum()["bugun_ders_sn"], hedef,
+                                     z["zincir_uzunlugu"], calisan["ayarlar"])
+
     def ayarlari_yeniden_yukle():
         """config.toml'u yeniden okur ve takipçiye, tepsiye, yedekçiye uygular.
         Web arayüzü (api.py) "Kaydet"ten sonra bunu çağırır."""
@@ -232,7 +252,7 @@ def main() -> None:
     sunucu = uvicorn.Server(uvicorn.Config(
         uygulama_olustur(takipci, depo, ayarlar, tarayici, kamera,
                          ayar_dosyasi=KISISEL_DOSYA, yedek_klasoru=VERI_KLASORU / "yedek", tahminci=tahminci,
-                         yeniden_yukleyici=ayarlari_yeniden_yukle),
+                         yeniden_yukleyici=ayarlari_yeniden_yukle, mini_sayac=mini_sayac),
         host="127.0.0.1", port=port, log_level="warning",
     ))
     sunucu_thread = threading.Thread(target=sunucu.run, name="web", daemon=True)
@@ -241,6 +261,8 @@ def main() -> None:
     print(f"Heatmap çalışıyor: {adres}", flush=True)
     if ayarlar["genel"]["acilista_arayuzu_ac"] and "--sessiz" not in sys.argv:
         webbrowser.open(adres)
+    if ayarlar["genel"].get("acilista_mini_sayac", False):
+        mini_sayac.ac()
 
     # --- Ana thread: tepsi ikonu (ya da Ctrl+C bekle) ---
     try:
@@ -249,12 +271,14 @@ def main() -> None:
                 time.sleep(1)
         else:
             from heatmap.tepsi import Tepsi  # pystray'i sadece gerekince yükle
-            calisan["tepsi"] = Tepsi(takipci, adres, kamera)
+            calisan["tepsi"] = Tepsi(takipci, adres, kamera, mini_sayac=mini_sayac,
+                                     bildirim_kontrol=bildirimleri_kontrol_et)
             calisan["tepsi"].calistir()
     except KeyboardInterrupt:
         pass
     finally:
         # --- Düzgün kapanış: açık oturumu veritabanına yaz ---
+        mini_sayac.kapat()
         takipci.durdur()
         if yedekci:
             yedekci.durdur()

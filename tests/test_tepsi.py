@@ -24,9 +24,18 @@ class SahteKamera:
         self.acik = acik
 
 
-def tepsi_kur(kamera=None):
+class SahteMiniSayac:
+    def __init__(self):
+        self.acik = False
+
+    def degistir(self):
+        self.acik = not self.acik
+        return self.acik
+
+
+def tepsi_kur(kamera=None, mini_sayac=None):
     with mock.patch.object(tepsi_modulu.pystray, "Icon") as sahte_ikon:
-        t = Tepsi(SahteTakipci(), "http://127.0.0.1:8765", kamera)
+        t = Tepsi(SahteTakipci(), "http://127.0.0.1:8765", kamera, mini_sayac=mini_sayac)
     menu = sahte_ikon.call_args.args[3]  # pystray.Icon(ad, resim, başlık, menü)
     ayirici = tepsi_modulu.pystray.Menu.SEPARATOR  # menüdeki çizgi; seçenek değil
     return t, {oge.text: oge for oge in menu.items if oge is not ayirici}
@@ -63,10 +72,20 @@ class TepsiMenuTesti(unittest.TestCase):
             ogeler["Windows açılışında başlat"](None)
         ayarla.assert_called_once_with(True)
 
+    def test_mini_sayac_ac_kapat(self):
+        mini = SahteMiniSayac()
+        _, ogeler = tepsi_kur(mini_sayac=mini)
+        oge = ogeler["Mini sayacı göster"]
+        self.assertTrue(oge.visible)
+        self.assertFalse(oge.checked)
+        oge(None)
+        self.assertTrue(mini.acik)
+        self.assertTrue(oge.checked)
+
     def test_beklenen_secenekler(self):
         _, ogeler = tepsi_kur()
-        self.assertEqual(list(ogeler), ["Arayüzü aç", "Takibi duraklat", "Ayar dosyasını aç",
-                                        "Kamera açık", "Windows açılışında başlat", "Çıkış"])
+        self.assertEqual(list(ogeler), ["Arayüzü aç", "Mini sayacı göster", "Takibi duraklat",
+                                        "Ayar dosyasını aç", "Kamera açık", "Windows açılışında başlat", "Çıkış"])
 
 
 class IkonDurumuTesti(unittest.TestCase):
