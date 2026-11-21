@@ -2,6 +2,12 @@
 
 Sürüm numarası `heatmap/__init__.py` içindeki `__version__` değeridir ve arayüzün en altında görünür.
 
+## Yayımlanmamış
+
+- Veritabanı şeması artık numaralı sürümlerle güncelleniyor; eski bir veritabanı açılınca eksik
+  adımlar sırayla ve önce yedek alınarak uygulanıyor (`data/yedek/heatmap-gocmeden-once-*.db`).
+- Tarih aralığı sorguları için yeni dizin.
+
 ## 0.3.0 (2026-11-21)
 
 **Yeni**

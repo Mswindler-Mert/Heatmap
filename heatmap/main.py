@@ -167,7 +167,10 @@ def main() -> None:
         print(f"UYARI: otomatik başlatma kontrol edilemedi ({hata}).", flush=True)
 
     # --- Parçaları kur ---
-    depo = Depo(VERI_KLASORU / VERITABANI_ADI)
+    depo = Depo(VERI_KLASORU / VERITABANI_ADI, yedek_klasoru=VERI_KLASORU / "yedek")
+    if depo.uygulanan_gocler:
+        print(f"Veritabanı şeması güncellendi (taşımalar: {depo.uygulanan_gocler}); "
+              f"öncesinin yedeği data/yedek/ içinde.", flush=True)
 
     # Günlük otomatik yedek (data/yedek/). Açılışta ve sonra saatte bir kontrol edilir.
     yedek_ayari = ayarlar.get("yedek", {})

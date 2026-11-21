@@ -532,8 +532,8 @@ Dokunulacak dosyalar:
 
 Tuzaklar:
 
-- ⚠️ **Şema değişikliği:** şu an `CREATE TABLE IF NOT EXISTS` var, taşıma düzeni yok. Kullanıcının
-  gerçek veritabanı var; sütun eklemeden önce sürümleme kur ve taşıma öncesi dosyayı yedekle.
+- ✅ **Şema değişikliği:** sürümleme kuruldu (`heatmap/sema.py`). Yeni sütun/tablo için `GOCLER`
+  listesinin SONUNA yeni bir taşıma ekle; var olanı asla değiştirme. Taşıma öncesi yedek otomatik.
 - ⚠️ **Gün sınırı ve saat dilimi:** Health Connect kayıtları UTC anlık zaman + bölge farkı taşır;
   çalışma süreleri yerel güne göre toplanıyor (`depo.gun_araligi`). Adımları da **yerel güne** göre
   topla, yoksa gece yarısı civarı kayıtlar yanlış güne düşer.

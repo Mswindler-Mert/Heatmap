@@ -1,8 +1,9 @@
 """Veritabanı katmanı (SQLite). SQL cümlelerinin tamamı bu dosyadadır.
 
-İki tablo var:
+Tablolar (tanımları ve sürümleri: heatmap/sema.py):
   oturumlar          : Aynı durumun kesintisiz sürdüğü zaman dilimleri.
   ogrenilen_kurallar : Senin düzeltmelerinden öğrenilen kurallar.
+  saglik_gunluk      : Günlük adım / egzersiz / uyku.
 
 Zamanlar "epoch saniyesi" (1970'ten beri geçen saniye, time.time() çıktısı)
 olarak saklanır; iki zamanı çıkarmak süreyi verdiği için hesap kolaydır.
@@ -20,43 +21,11 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from heatmap.motor import Durum
+from heatmap.sema import semayi_guncelle
 from heatmap.sinyal import BELIRSIZ, DERS
 
-_SEMA = """
-CREATE TABLE IF NOT EXISTS oturumlar (
-    id        INTEGER PRIMARY KEY AUTOINCREMENT,
-    baslangic REAL NOT NULL,      -- epoch saniyesi
-    bitis     REAL NOT NULL,
-    hukum     TEXT NOT NULL,      -- programın kararı: ders / ders_degil / belirsiz
-    duzeltme  TEXT,               -- senin düzeltmen (yoksa NULL)
-    kaynak    TEXT,               -- kararı veren modül: pencere / baslik / bosta / kamera
-    aciklama  TEXT,
-    uygulama  TEXT,               -- süreç adı
-    baslik    TEXT,               -- pencere / sekme başlığı
-    alan_adi  TEXT                -- tarayıcı oturumunda site adı (eklenti varsa)
-);
-CREATE INDEX IF NOT EXISTS oturumlar_baslangic ON oturumlar (baslangic);
+# Tablo tanımları ve sürümlü taşımalar: heatmap/sema.py
 
-CREATE TABLE IF NOT EXISTS ogrenilen_kurallar (
-    id        INTEGER PRIMARY KEY AUTOINCREMENT,
-    tur       TEXT NOT NULL,      -- 'surec' | 'baslik' | 'kelime'
-    desen     TEXT NOT NULL,      -- süreç adı, tam başlık ya da anahtar kelime
-    hukum     TEXT NOT NULL,      -- 'ders' | 'ders_degil'
-    olusturma REAL NOT NULL,
-    UNIQUE (tur, desen)
-);
-
--- Telefondan (Health Connect) ya da elle girilen günlük sağlık verisi.
--- Her gün tek satır; NULL = o gün için bilgi yok.
-CREATE TABLE IF NOT EXISTS saglik_gunluk (
-    tarih       TEXT PRIMARY KEY,   -- 'YYYY-AA-GG' (yerel gün)
-    adim        INTEGER,
-    egzersiz_dk INTEGER,
-    uyku_dk     INTEGER,
-    kaynak      TEXT NOT NULL,      -- 'elle' | 'health_connect'
-    guncelleme  REAL NOT NULL
-);
-"""
 
 # Geçerli hüküm: düzeltme varsa o, yoksa programın kararı.
 _ETKIN_HUKUM = "COALESCE(duzeltme, hukum)"
@@ -70,25 +39,14 @@ def gun_araligi(gun: date) -> tuple[float, float]:
 
 
 class Depo:
-    def __init__(self, yol: Path | str):
+    def __init__(self, yol: Path | str, yedek_klasoru: Path | None = None):
+        """yol: veritabanı dosyası. yedek_klasoru: şema taşıması gerekirse önce yedeğin
+        alınacağı klasör (program data/yedek verir; testler genelde vermez)."""
         self.yol = str(yol)
         self._kural_kilidi = threading.Lock()
         self._kural_onbellegi: list[dict] | None = None
-        with self._baglan() as vt:
-            vt.executescript(_SEMA)
-            self._semayi_guncelle(vt)
-
-    @staticmethod
-    def _semayi_guncelle(vt) -> None:
-        """Eski sürümle oluşturulmuş veritabanına sonradan eklenen sütunları ekler.
-
-        CREATE TABLE IF NOT EXISTS, tablo zaten varsa yeni sütun EKLEMEZ; o yüzden
-        eksik sütunları tek tek kontrol edip ALTER TABLE ile ekliyoruz. Eski
-        satırlarda yeni sütun boş (NULL) kalır; veri kaybı olmaz.
-        """
-        sutunlar = {satir["name"] for satir in vt.execute("PRAGMA table_info(oturumlar)")}
-        if "alan_adi" not in sutunlar:
-            vt.execute("ALTER TABLE oturumlar ADD COLUMN alan_adi TEXT")
+        # Dosya yoksa oluşturur, eskiyse sürüm sürüm günceller (bkz. heatmap/sema.py).
+        self.uygulanan_gocler = semayi_guncelle(self.yol, yedek_klasoru)
 
     @contextmanager
     def _baglan(self):

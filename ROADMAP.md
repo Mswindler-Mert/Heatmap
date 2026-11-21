@@ -15,7 +15,7 @@ Kurallar (her adım için):
 
 ---
 
-## 1. Veritabanı şema sürümleme 🔲
+## 1. Veritabanı şema sürümleme ✅
 
 **Neden:** Şu an yeni sütunlar `ALTER TABLE` ile tek tek, elle ekleniyor. İleride her değişiklik
 kullanıcının gerçek verisini riske atar. Numaralı taşıma (migration) düzeni olursa her değişiklik
@@ -28,6 +28,10 @@ yedek (`data/yedek/heatmap-gocmeden-once-vN.db`); bugüne kadarki her şema duru
 
 **Bitti sayılır:** Eski şemalı veritabanları veri kaybı olmadan güncelleniyor, aynı veritabanı
 ikinci kez açıldığında hiçbir taşıma çalışmıyor, testler geçiyor.
+
+**Sonuç:** `heatmap/sema.py` (taşımalar 1–4; 4 = yeni `oturumlar(bitis)` dizini), `Depo(yol,
+yedek_klasoru=)`, `tests/test_sema.py`. Kullanıcının gerçek veritabanının salt okunur kopyasında
+denendi: aşama 1 olarak tanındı, 2-3-4 uygulandı, 350 oturum ve 2 kural korundu, önce yedek alındı.
 
 ## 2. Ayarlar sayfası 🔲
 
