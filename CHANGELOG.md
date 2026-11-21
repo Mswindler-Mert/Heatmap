@@ -16,6 +16,9 @@ Sürüm numarası `heatmap/__init__.py` içindeki `__version__` değeridir ve ar
   olduğu başlıklarda kendisi karar vermesi de açılabilir (varsayılan kapalı).
 - **Karar bekleyenler:** bütün günlerde hâlâ belirsiz olan başlıklar ve uygulamalar tek listede, en
   çok zaman alandan başlayarak; bir tıkla o başlığın bütün oturumlarına karar verilir.
+- **Python kurmadan kullanım:** `paketle.py` ile tek dosya `Heatmap.exe`; ayar ve veriler `.exe`'nin
+  yanındaki `config/` ve `data/` klasörlerinde tutulur. `v*` etiketiyle GitHub'da otomatik derlenip
+  Sürüm'e eklenir.
 - **Günlük zaman çizelgesi:** "Oturumlar" kartının üstünde seçili günün saat saat renkli şeridi
   (çalışma / belirsiz / çalışma değil / başında değil); üzerine gelince uygulama ve süre görünür.
 

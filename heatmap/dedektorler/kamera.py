@@ -38,7 +38,7 @@ import threading
 import time
 from pathlib import Path
 
-from heatmap.ayarlar import KOK, VERI_KLASORU
+from heatmap.ayarlar import KOK, PAKETLI, VERI_KLASORU
 from heatmap.sinyal import DERS_DEGIL, FIKRIM_YOK, Dedektor, Sinyal
 
 ISCI_BETIGI = KOK / "kamera_isci" / "isci.py"
@@ -49,9 +49,21 @@ BAYAT_SN = 10  # Bundan eski gözleme güvenme (işçi takıldı ya da kapandı)
 KALIBRASYON_DOSYASI = VERI_KLASORU / "kamera_kalibrasyon.json"
 
 
-def isci_komutu(bolum: dict) -> list[str]:
-    """Ayarlara göre işçiyi başlatacak komutu kurar."""
-    python = bolum.get("python") or (str(KAMERA_VENV_PYTHON) if KAMERA_VENV_PYTHON.exists() else sys.executable)
+def isci_komutu(bolum: dict, paketli: bool = PAKETLI) -> list[str] | None:
+    """Ayarlara göre işçiyi başlatacak komutu kurar.
+
+    Tek dosya .exe olarak çalışırken sys.executable Heatmap.exe'nin kendisidir; işçiyi onunla
+    başlatmak programı ikinci kez açardı. Bu durumda kamera için ayrı bir Python ortamı
+    (.venv-kamera ya da [kamera] python) şarttır; yoksa None döner ve kamera "bilinmiyor" kalır.
+    """
+    if bolum.get("python"):
+        python = bolum["python"]
+    elif KAMERA_VENV_PYTHON.exists():
+        python = str(KAMERA_VENV_PYTHON)
+    elif paketli:
+        return None
+    else:
+        python = sys.executable
     komut = [python, str(ISCI_BETIGI), "--aralik", str(bolum.get("kare_araligi_sn", 2)),
              "--kamera", str(bolum.get("kamera_no", 0)),
              "--model", str(KOK / bolum.get("model", "modeller/face_landmarker.task"))]
@@ -63,7 +75,8 @@ def isci_komutu(bolum: dict) -> list[str]:
 class IsciSureci:
     """Kamera işçisini alt süreç olarak çalıştırır ve son gözlemini tutar."""
 
-    def __init__(self, komut: list[str]):
+    def __init__(self, komut: list[str] | None):
+        """komut None ise işçi başlatılamaz (örn. .exe sürümünde kamera ortamı yok); hata bildirilir."""
         self.komut = komut
         self._kilit = threading.Lock()
         self._son: dict | None = None
@@ -82,6 +95,13 @@ class IsciSureci:
 
     def _yonet(self) -> None:
         """İşçiyi çalıştırır; kapanırsa 5, 10, 20... en fazla 300 sn bekleyip yeniden başlatır."""
+        if self.komut is None:
+            while not self._dur.is_set():  # Sürekli yenile ki "bayat veri" sayılmasın
+                with self._kilit:
+                    self._son = {"zaman": time.time(), "hata": "Kamera için ayrı Python ortamı gerekli "
+                                 "(kamera_kur.bat ya da [kamera] python ayarı)"}
+                self._dur.wait(5)
+            return
         bekleme = 5
         while not self._dur.is_set():
             baslangic = time.time()

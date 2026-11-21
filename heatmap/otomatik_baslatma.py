@@ -17,7 +17,7 @@ import sys
 import winreg  # Python'un standart kütüphanesi; kayıt defterine erişim
 from pathlib import Path
 
-from heatmap.ayarlar import KOK
+from heatmap.ayarlar import KOK, PAKETLI
 
 CALISTIR_ANAHTARI = r"Software\Microsoft\Windows\CurrentVersion\Run"
 DEGER_ADI = "Heatmap"
@@ -27,7 +27,10 @@ BASLATICI = KOK / "baslat.pyw"
 def baslatma_komutu() -> str:
     """Kayıt defterine yazılacak komut. Örn:
     "C:\\...\\.venv\\Scripts\\pythonw.exe" "C:\\...\\baslat.pyw" --sessiz
+    Tek dosya .exe olarak çalışırken: "C:\\...\\Heatmap.exe" --sessiz
     """
+    if PAKETLI:
+        return f'"{sys.executable}" --sessiz'
     # Program python.exe ile (terminalden) çalışıyor olsa bile açılışta
     # konsol penceresi çıkmasın diye yanındaki pythonw.exe'yi tercih ediyoruz.
     pythonw = Path(sys.executable).with_name("pythonw.exe")

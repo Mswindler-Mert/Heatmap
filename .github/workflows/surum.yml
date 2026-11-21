@@ -1,0 +1,41 @@
+# Heatmap.exe derler. İki şekilde çalışır:
+#   1) "v" ile başlayan bir etiket gönderilince (örn. git tag v0.4.0 && git push origin v0.4.0):
+#      testleri çalıştırır, .exe'yi derler ve GitHub'da o etiket için bir Sürüm (Release)
+#      oluşturup Heatmap.exe'yi ekler.
+#   2) Elle (Actions sekmesi > "Sürüm (exe)" > Run workflow): yalnızca derler; .exe çalışmanın
+#      "Artifacts" bölümünden indirilir, Sürüm oluşturulmaz.
+name: Sürüm (exe)
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # Sürüm oluşturup dosya ekleyebilmek için
+
+jobs:
+  derle:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Paketleri kur
+        run: python -m pip install -r requirements-dev.txt -r requirements-build.txt
+      - name: Testler
+        run: python -m unittest
+      - name: Heatmap.exe derle
+        run: python paketle.py
+      - name: Çalışma çıktısı olarak sakla
+        uses: actions/upload-artifact@v4
+        with:
+          name: Heatmap-exe
+          path: dist/Heatmap.exe
+      - name: Sürüme ekle (yalnızca etiketle)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Heatmap.exe
+          generate_release_notes: true

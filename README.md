@@ -67,6 +67,24 @@ baslat.bat
 `baslat.bat` dosyasına çift tıklamak da yeterlidir. İlk çalıştırmada sanal ortamı (`.venv`) kurar
 ve paketleri yükler; sonraki açılışlarda doğrudan başlatır.
 
+### Python kurmadan (.exe)
+
+GitHub'daki **Releases** bölümünde `Heatmap.exe` varsa onu indirip boş bir klasöre koy ve çift tıkla;
+Python kurmak gerekmez. Ayar ve veriler `.exe`'nin yanındaki `config/` ve `data/` klasörlerinde
+oluşur. `.exe` imzasız olduğu için Windows ilk açılışta "Windows kişisel bilgisayarınızı korudu"
+uyarısı gösterebilir: **Ek bilgi** > **Yine de çalıştır**. Kamera modülü `.exe` sürümünde ayrı bir
+Python ortamı ister ([kamera_isci/README.md](kamera_isci/README.md)).
+
+`.exe`'yi kendin derlemek için:
+
+```bat
+.venv\Scripts\python -m pip install -r requirements-build.txt
+.venv\Scripts\python paketle.py
+```
+
+Sonuç `dist\Heatmap.exe` olur. GitHub'da `v` ile başlayan bir etiket gönderince
+(`git tag v0.4.0`, `git push origin v0.4.0`) aynı derleme otomatik yapılır ve `.exe` o sürüme eklenir.
+
 ## Kullanım
 
 - Uygulama açılınca saatin yanında (sistem tepsisinde) bir ikon belirir ve tarayıcıda arayüz açılır:
@@ -220,6 +238,7 @@ başka bir adla sakla, istediğin yedeği `data/heatmap.db` adıyla kopyala ve H
 ```
 Heatmap/
 ├── baslat.bat                # çift tıkla başlat
+├── paketle.py                # tek dosya Heatmap.exe derler (PyInstaller)
 ├── config/config.ornek.toml  # varsayılan ayarlar (kişisel kopya: config.toml)
 ├── data/                     # veritabanı ve günlük dosyası (git dışı)
 ├── eklenti/                  # Brave/Chrome eklentisi (site adı + ses durumu)

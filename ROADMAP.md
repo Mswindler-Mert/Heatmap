@@ -89,7 +89,7 @@ toplam süreye göre, tek tıkla toplu karar: `GET/POST /api/karar-bekleyenler`)
 verisinin kopyasında: 9 etiketli başlıkla model hazır, çapraz doğrulama %78, bekleyen 61 başlığın 8'ine
 öneri. Kurallar her zaman tahminden önce gelir.
 
-## 5. Tek dosya .exe ve GitHub Releases 🔲
+## 5. Tek dosya .exe ve GitHub Releases ✅
 
 **Neden:** Şu an kullanmak için Python kurmak, sanal ortam oluşturmak gerekiyor. GitHub'dan bir
 `.exe` indirip çift tıklamak, projeyi başkaları için gerçekten kullanılabilir kılar.
@@ -100,3 +100,21 @@ verisinin kopyasında: 9 etiketli başlıkla model hazır, çapraz doğrulama %7
 
 **Bitti sayılır:** Yerelde derlenen `.exe` temiz bir klasörde açılıyor, arayüz çalışıyor,
 iş akışı dosyası hazır ve belgelenmiş.
+
+**Sonuç:** `paketle.py` (PyInstaller 6.22, tek dosya, konsolsuz, ikon), `requirements-build.txt`,
+`ayarlar.kok_klasorleri` (paketliyken kaynaklar `sys._MEIPASS`, ayar/veri `.exe`'nin yanında),
+otomatik başlatma `.exe`'yi gösterir, kamera işçisi `.exe`'yi yeniden çalıştırmaz.
+`.github/workflows/surum.yml`: `v*` etiketiyle test + derleme + GitHub Sürümü; elle tetiklenirse
+yalnızca derleme. Yerelde derlenen 23,5 MB'lık `.exe` boş bir klasörde 3 sn'de açıldı; arayüz,
+dashboard, kart, ayarlar, takip döngüsü çalıştı. ❓ Sürüm iş akışı GitHub'da henüz hiç çalışmadı
+(ilk etiketle çalışacak). `.exe` imzasız: Windows SmartScreen ilk açılışta uyarı gösterebilir.
+
+---
+
+## Sonraki ağır işler (sırada)
+
+1. 🔲 `[adlar]`, `[siteler]`, `[kategoriler]` tablolarını da Ayarlar sayfasından düzenlemek.
+2. 🔲 Health Connect dışa aktarım içe aktarıcısı (kullanıcıdan gerçek bir dışa aktarım dosyası gelince).
+3. 🔲 Kamera: gerçek kamerayla ilk çalıştırma ve açı doğrulaması (kullanıcının katılımıyla).
+4. 🔲 Tahmin modeline video sesinin / eklenti alan adının ağırlığını ölçmek; yeterli veri birikince
+   otomatik kararın varsayılanını yeniden değerlendirmek.

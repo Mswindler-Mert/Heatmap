@@ -14,15 +14,36 @@ Arayüz bu uyarıları sayfanın üstünde gösterir.
 """
 
 import shutil
+import sys
 import tomllib  # TOML okuyucu, Python 3.11'den beri standart kütüphanede
 from pathlib import Path
 
-# Proje kök klasörü: bu dosyanın (heatmap/ayarlar.py) iki üstü.
-KOK = Path(__file__).resolve().parent.parent
+
+def kok_klasorleri(donmus: bool | None = None, exe: str | None = None, paket_ici: str | None = None):
+    """(KAYNAK_KOK, KOK) döndürür.
+
+    KAYNAK_KOK: programla gelen, SALT OKUNUR dosyalar (örnek ayar dosyası, arayüz dosyaları).
+    KOK       : kullanıcıya ait, YAZILABİLİR klasör (config/config.toml, data/).
+
+    Normal çalışmada ikisi de proje klasörüdür. Tek dosya .exe olarak (PyInstaller) çalışırken
+    program her açılışta geçici bir klasöre açılır: kaynaklar oradadır (sys._MEIPASS), ama ayar ve
+    veriler orada kaybolurdu; bu yüzden onlar .exe'nin yanındaki klasöre yazılır.
+    (Parametreler testler içindir.)
+    """
+    donmus = getattr(sys, "frozen", False) if donmus is None else donmus
+    if donmus:
+        exe_klasoru = Path(exe or sys.executable).resolve().parent
+        return Path(paket_ici or getattr(sys, "_MEIPASS", exe_klasoru)), exe_klasoru
+    proje = Path(__file__).resolve().parent.parent  # bu dosyanın (heatmap/ayarlar.py) iki üstü
+    return proje, proje
+
+
+PAKETLI = bool(getattr(sys, "frozen", False))  # Tek dosya .exe olarak mı çalışıyoruz?
+KAYNAK_KOK, KOK = kok_klasorleri()
 CONFIG_KLASORU = KOK / "config"
 VERI_KLASORU = KOK / "data"
 
-ORNEK_DOSYA = CONFIG_KLASORU / "config.ornek.toml"
+ORNEK_DOSYA = KAYNAK_KOK / "config" / "config.ornek.toml"
 KISISEL_DOSYA = CONFIG_KLASORU / "config.toml"
 
 UYARILAR = "_uyarilar"  # Ayar sözlüğünde uyarı listesinin anahtarı
@@ -97,6 +118,7 @@ def ayarlari_yukle(ornek: Path = ORNEK_DOSYA, kisisel_dosya: Path = KISISEL_DOSY
     """
     # İlk çalıştırmada kişisel ayar dosyası yoksa örnekten kopyala.
     if not kisisel_dosya.exists():
+        kisisel_dosya.parent.mkdir(parents=True, exist_ok=True)  # .exe'nin yanında config/ henüz yoksa
         shutil.copyfile(ornek, kisisel_dosya)
 
     varsayilan = _toml_oku(ornek)

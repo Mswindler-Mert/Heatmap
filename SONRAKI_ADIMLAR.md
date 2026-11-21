@@ -27,7 +27,7 @@ diyor ama anlamı "çalışma / aktif süre".
 - Ortam: Windows 11, **Python 3.14.3**, komut **`py`** (`python` komutu yok), Git kurulu.
 - Çalıştırma: `baslat.bat` (tepsi ikonuyla) ya da `.venv\Scripts\python -m heatmap --tepsisiz --sessiz`.
 - Testler: önce `.venv\Scripts\python -m pip install -r requirements-dev.txt`, sonra
-  `.venv\Scripts\python -m unittest` (şu an 194 test, hepsi geçiyor). pytest yok, ekleme.
+  `.venv\Scripts\python -m unittest` (şu an 199 test, hepsi geçiyor). pytest yok, ekleme.
   GitHub Actions her push'ta Windows'ta aynı testleri çalıştırır.
 
 ### Mimari (tek süreç, üç thread)
@@ -61,6 +61,14 @@ tepsi.py (pystray, ana thread)
 `heatmap/__init__.py` içindeki `__version__` (şu an 0.3.0) ve `CHANGELOG.md`. Kullanıcıya görünen bir
 değişiklik yapınca CHANGELOG'a yaz; sürümü yükseltince CHANGELOG'a aynı numaralı başlığı ekle
 (`tests/test_api.py::test_surum` bunu denetler). Git etiketi (tag) henüz yok.
+
+### Paketlenmiş (.exe) çalışma
+
+`paketle.py` ile tek dosya `.exe`. ⚠️ Yeni bir yol eklerken `heatmap/ayarlar.py`'deki iki kökü ayır:
+programla gelen SALT OKUNUR dosyalar `KAYNAK_KOK` (paketliyken `sys._MEIPASS`, her açılışta silinen
+geçici klasör), kullanıcıya ait YAZILABİLİR dosyalar `KOK` (paketliyken `.exe`'nin yanı). Yeni bir
+statik dosya klasörü eklersen `paketle.py`'deki `--add-data` listesine de ekle. ⚠️ Paketliyken
+`sys.executable` Heatmap.exe'dir; onunla Python betiği çalıştırılamaz (bkz. `kamera.isci_komutu`).
 
 ### Genel tuzaklar (hepsi yaşandı ya da bilinçli karar)
 

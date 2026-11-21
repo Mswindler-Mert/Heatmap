@@ -1,0 +1,3 @@
+# Yalnızca .exe paketlemek için (paketle.py). Uygulamayı kullanmak için gerekmez.
+-r requirements.txt
+pyinstaller>=6.16
