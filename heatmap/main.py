@@ -16,7 +16,7 @@ from pathlib import Path
 import uvicorn
 
 from heatmap import otomatik_baslatma
-from heatmap.ayarlar import VERI_KLASORU, ayarlari_yukle
+from heatmap.ayarlar import UYARILAR, VERI_KLASORU, ayarlari_yukle
 from heatmap.dedektorler.baslik import BaslikDedektoru
 from heatmap.dedektorler.bosta import BostaDedektoru
 from heatmap.dedektorler.kamera import KameraDedektoru
@@ -97,6 +97,8 @@ def main() -> None:
     _ciktiyi_dosyaya_yonlendir()
 
     ayarlar = ayarlari_yukle()
+    for uyari in ayarlar.get(UYARILAR, []):  # Arayüz de bunları sayfanın üstünde gösterir
+        print(f"AYAR UYARISI: {uyari}", flush=True)
     port = ayarlar["genel"]["port"]
     adres = f"http://127.0.0.1:{port}"
 

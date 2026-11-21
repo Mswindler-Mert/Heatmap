@@ -34,6 +34,9 @@ h2 { font-size: 16px; margin: 0; }
 .anahtar input { accent-color: var(--yesil); width: 16px; height: 16px; }
 footer { padding-top: 8px; padding-bottom: 32px; text-align: center; }
 
+.kart.uyari { border-color: var(--sari); background: rgba(245, 183, 79, .08); }
+.kart.uyari[hidden] { display: none; }
+.kart.uyari ul { margin: 6px 0 8px; padding-left: 20px; }
 .kart {
   background: var(--kart);
   border: 1px solid var(--cizgi);

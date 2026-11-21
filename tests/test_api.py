@@ -61,6 +61,15 @@ class ApiTesti(unittest.TestCase):
         self.assertEqual(self.istemci.post("/api/duraklat", json={"duraklat": True}, headers=BASLIK).status_code, 200)
         self.assertEqual(self.istemci.delete("/api/kurallar/1").status_code, 403)
 
+    def test_ayar_uyarilari(self):
+        self.assertEqual(self.istemci.get("/api/ayar-uyarilari").json(), [])
+        depo = Depo(os.path.join(self.klasor.name, "u.db"))
+        ayar = {**AYARLAR, "_uyarilar": ["'genel.port' sayı olmalı"]}
+        istemci = TestClient(uygulama_olustur(Takipci(ayar, depo, [], KararMotoru(5, 15)), depo, ayar),
+                             base_url="http://127.0.0.1")
+        self.assertEqual(istemci.get("/api/ayar-uyarilari").json(), ["'genel.port' sayı olmalı"])
+        istemci.close()
+
     def test_okuma_istekleri_baslik_istemez(self):
         self.assertEqual(self.istemci.get("/api/durum").status_code, 200)
 

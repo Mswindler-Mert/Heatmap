@@ -6,6 +6,11 @@
 
 Önce örnek dosya okunur, sonra kişisel dosyadaki değerler onun üzerine
 yazılır. Böylece kişisel dosyanda bir ayar eksik olsa bile program çökmez.
+
+Kişisel dosyada yazım hatası (örn. unutulmuş tırnak) ya da yanlış türde bir
+değer (örn. sayı yerine metin) varsa program yine AÇILIR: hatalı kısım yerine
+varsayılan kullanılır ve sorun ayarlar["_uyarilar"] listesine yazılır.
+Arayüz bu uyarıları sayfanın üstünde gösterir.
 """
 
 import shutil
@@ -19,6 +24,8 @@ VERI_KLASORU = KOK / "data"
 
 ORNEK_DOSYA = CONFIG_KLASORU / "config.ornek.toml"
 KISISEL_DOSYA = CONFIG_KLASORU / "config.toml"
+
+UYARILAR = "_uyarilar"  # Ayar sözlüğünde uyarı listesinin anahtarı
 
 
 def _toml_oku(yol: Path) -> dict:
@@ -37,12 +44,74 @@ def _ustune_yaz(temel: dict, ek: dict) -> dict:
     return sonuc
 
 
-def ayarlari_yukle() -> dict:
-    """Ayarları iç içe sözlük olarak döndürür. Örn: ayarlar["tolerans"]["durdurma_sn"]"""
-    # İlk çalıştırmada kişisel ayar dosyası yoksa örnekten kopyala.
-    if not KISISEL_DOSYA.exists():
-        shutil.copyfile(ORNEK_DOSYA, KISISEL_DOSYA)
+def _tur_adi(deger) -> str:
+    if isinstance(deger, bool):
+        return "true/false"
+    if isinstance(deger, (int, float)):
+        return "sayı"
+    if isinstance(deger, str):
+        return "tırnak içinde metin"
+    if isinstance(deger, list):
+        return "liste [...]"
+    if isinstance(deger, dict):
+        return "bölüm"
+    return type(deger).__name__
 
-    varsayilan = _toml_oku(ORNEK_DOSYA)
-    kisisel = _toml_oku(KISISEL_DOSYA)
-    return _ustune_yaz(varsayilan, kisisel)
+
+def _ayni_tur_mu(varsayilan, deger) -> bool:
+    """Kişisel değer, varsayılanla aynı türden mi? (int ve float ikisi de "sayı" sayılır.)"""
+    if isinstance(varsayilan, bool) or isinstance(deger, bool):
+        return isinstance(varsayilan, bool) and isinstance(deger, bool)
+    if isinstance(varsayilan, (int, float)):
+        return isinstance(deger, (int, float))
+    return isinstance(deger, type(varsayilan))
+
+
+def _turleri_dogrula(varsayilan: dict, kisisel: dict, uyarilar: list[str], yol: str = "") -> dict:
+    """Kişisel ayarlarda türü yanlış olan değerleri atar (yerine varsayılan kalır) ve uyarı ekler.
+
+    Yalnızca örnek dosyada da bulunan ayarlar denetlenir; [adlar] gibi bölümlere senin
+    eklediğin yeni anahtarlar olduğu gibi kalır.
+    """
+    temiz = {}
+    for anahtar, deger in kisisel.items():
+        if anahtar not in varsayilan:
+            temiz[anahtar] = deger
+            continue
+        beklenen = varsayilan[anahtar]
+        konum = f"{yol}.{anahtar}" if yol else anahtar
+        if isinstance(beklenen, dict) and isinstance(deger, dict):
+            temiz[anahtar] = _turleri_dogrula(beklenen, deger, uyarilar, konum)
+        elif _ayni_tur_mu(beklenen, deger):
+            temiz[anahtar] = deger
+        else:
+            uyarilar.append(f"'{konum}' {_tur_adi(beklenen)} olmalı ama {_tur_adi(deger)} yazılmış; "
+                            f"varsayılan ({beklenen!r}) kullanılıyor.")
+    return temiz
+
+
+def ayarlari_yukle(ornek: Path = ORNEK_DOSYA, kisisel_dosya: Path = KISISEL_DOSYA) -> dict:
+    """Ayarları iç içe sözlük olarak döndürür. Örn: ayarlar["tolerans"]["durdurma_sn"]
+
+    Sorun varsa ayarlar["_uyarilar"] boş olmayan bir listedir.
+    """
+    # İlk çalıştırmada kişisel ayar dosyası yoksa örnekten kopyala.
+    if not kisisel_dosya.exists():
+        shutil.copyfile(ornek, kisisel_dosya)
+
+    varsayilan = _toml_oku(ornek)
+    uyarilar: list[str] = []
+    try:
+        kisisel = _toml_oku(kisisel_dosya)
+    except tomllib.TOMLDecodeError as hata:
+        # Hata mesajı satır ve sütunu içerir: "... (at line 12, column 5)"
+        uyarilar.append(f"{kisisel_dosya.name} okunamadı, bu yüzden TÜM ayarlar varsayılan: {hata}. "
+                        f"Dosyayı düzeltip Heatmap'i yeniden başlat.")
+        kisisel = {}
+    except (OSError, UnicodeDecodeError) as hata:
+        uyarilar.append(f"{kisisel_dosya.name} açılamadı ({hata}); varsayılan ayarlar kullanılıyor.")
+        kisisel = {}
+
+    ayarlar = _ustune_yaz(varsayilan, _turleri_dogrula(varsayilan, kisisel, uyarilar))
+    ayarlar[UYARILAR] = uyarilar
+    return ayarlar

@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from heatmap import otomatik_baslatma
+from heatmap.ayarlar import UYARILAR
 from heatmap.dedektorler.kamera import KameraDedektoru
 from heatmap.disa_aktar import gunluk_csv, oturumlar_csv
 from heatmap.dedektorler.tarayici import TarayiciDedektoru
@@ -119,6 +120,11 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
     def durum():
         """Şu an ne algılanıyor, sayaç çalışıyor mu, bugünkü toplam."""
         return takipci.durum()
+
+    @app.get("/api/ayar-uyarilari")
+    def ayar_uyarilari():
+        """Ayar dosyasında yazım hatası ya da yanlış türde değer varsa açıklamaları (yoksa boş liste)."""
+        return ayarlar.get(UYARILAR, [])
 
     @app.get("/api/ozet/bugun")
     def ozet_bugun():

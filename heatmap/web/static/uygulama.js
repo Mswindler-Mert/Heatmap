@@ -546,5 +546,12 @@ $("duraklat-dugme").addEventListener("click", async () => {
 });
 
 hepsiniYenile(true);
+
+// Ayar dosyası uyarıları (program açılırken bir kez hesaplanır)
+api("/api/ayar-uyarilari").then((uyarilar) => {
+  $("ayar-uyarisi").hidden = !uyarilar.length;
+  $("ayar-uyari-listesi").replaceChildren(...uyarilar.map((u) => el("li", "", u)));
+}).catch(() => {});
+
 setInterval(durumuYenile, 1000);                 // Sayaç her saniye
 setInterval(() => hepsiniYenile(false), 15000);  // Listeler 15 saniyede bir
