@@ -16,9 +16,10 @@ Sürüm numarası `heatmap/__init__.py` içindeki `__version__` değeridir ve ar
   odak dilimi.
 - **Tıklanabilir grafikler:** Isı haritası, haftalık grafik veya zincirde bir güne tıklayınca
   doğrudan Oturumlar sekmesi o günle açılır.
-- **Yenilenen sol menülü arayüz:** 5 net sekme (Özet, Oturumlar, Karar Bekleyenler, Paylaşım Kartı,
-  Ayarlar), günlük hedef için dairesel ilerleme halkası, 4'lü KPI özet kartları, haftalık grafikte
-  hedef çizgisi, renk kodlu uygulama dökümü ve canlı mini durum kutusu.
+- **Kâğıt & Mürekkep arayüz tasarımı (+ Gece modu):** Sıcak noktalı defter zemini, keskin
+  mürekkep çerçeveler, dolgun renkli günlük hedef/zincir bloğu, gerçek iç içe geçen SVG zincir
+  halkaları ve tek tıkla Gece Mürekkebi teması; 5 net sekme (Özet, Oturumlar, Karar Bekleyenler,
+  Paylaşım Kartı, Ayarlar).
 - Veritabanı şeması artık numaralı sürümlerle güncelleniyor; eski bir veritabanı açılınca eksik
   adımlar sırayla ve önce yedek alınarak uygulanıyor (`data/yedek/heatmap-gocmeden-once-*.db`).
 - Tarih aralığı sorguları için yeni dizin.

@@ -12,59 +12,64 @@
   <div class="kabuk">
     <!-- Sol menü (Sidebar) -->
     <aside class="kenar" aria-label="Ana menü">
-      <div class="marka">
-        <span class="marka-ikon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-            <rect x="2" y="2" width="5.5" height="5.5" rx="1.5" fill="#1f6f54"/>
-            <rect x="9.25" y="2" width="5.5" height="5.5" rx="1.5" fill="#2ea877"/>
-            <rect x="16.5" y="2" width="5.5" height="5.5" rx="1.5" fill="#3ecf8e"/>
-            <rect x="2" y="9.25" width="5.5" height="5.5" rx="1.5" fill="#2ea877"/>
-            <rect x="9.25" y="9.25" width="5.5" height="5.5" rx="1.5" fill="#3ecf8e"/>
-            <rect x="16.5" y="9.25" width="5.5" height="5.5" rx="1.5" fill="#6ee7b7"/>
-            <rect x="2" y="16.5" width="5.5" height="5.5" rx="1.5" fill="#183d32"/>
-            <rect x="9.25" y="16.5" width="5.5" height="5.5" rx="1.5" fill="#2ea877"/>
-            <rect x="16.5" y="16.5" width="5.5" height="5.5" rx="1.5" fill="#3ecf8e"/>
-          </svg>
-        </span>
-        <div>
-          <h1>Heatmap</h1>
-          <span id="surum" class="surum-etiket">v—</span>
+      <div class="marka-satir">
+        <div class="marka">
+          <span class="marka-ikon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+              <rect x="2" y="2" width="5.5" height="5.5" rx="1" fill="#18181b"/>
+              <rect x="9.25" y="2" width="5.5" height="5.5" rx="1" fill="#10b981"/>
+              <rect x="16.5" y="2" width="5.5" height="5.5" rx="1" fill="#f97316"/>
+              <rect x="2" y="9.25" width="5.5" height="5.5" rx="1" fill="#10b981"/>
+              <rect x="9.25" y="9.25" width="5.5" height="5.5" rx="1" fill="#f97316"/>
+              <rect x="16.5" y="9.25" width="5.5" height="5.5" rx="1" fill="#18181b"/>
+              <rect x="2" y="16.5" width="5.5" height="5.5" rx="1" fill="#d6cfc2"/>
+              <rect x="9.25" y="16.5" width="5.5" height="5.5" rx="1" fill="#10b981"/>
+              <rect x="16.5" y="16.5" width="5.5" height="5.5" rx="1" fill="#10b981"/>
+            </svg>
+          </span>
+          <div>
+            <h1>HEATMAP</h1>
+            <span id="surum" class="surum-etiket">v—</span>
+          </div>
         </div>
+        <button id="tema-dugme" class="tema-dugme" type="button" title="Kâğıt / Gece teması arasında geçiş yap" aria-label="Tema değiştir">☾</button>
       </div>
 
-      <!-- Her sekmede görünen canlı mini durum kutusu -->
+      <!-- Her sekmede görünen canlı mini kontrol kutusu -->
       <div class="mini-durum" id="mini-durum">
         <div class="mini-ust">
           <span class="canli-nokta" id="mini-nokta"></span>
           <span id="mini-sayac" class="mini-sayac">00:00:00</span>
         </div>
         <div id="mini-etiket" class="mini-etiket">bağlanıyor…</div>
-        <button id="duraklat-dugme" class="dugme tam" type="button">Takibi duraklat</button>
-        <button id="mini-sayac-dugme" class="dugme tam kucuk" type="button" hidden
-                title="Her zaman üstte duran, sürüklenebilir küçük masaüstü sayacını açar/kapatır.">Mini sayacı aç</button>
+        <div class="mini-dugmeler">
+          <button id="duraklat-dugme" class="dugme tam" type="button">Takibi duraklat</button>
+          <button id="mini-sayac-dugme" class="dugme tam kucuk" type="button" hidden
+                  title="Her zaman üstte duran, sürüklenebilir küçük masaüstü sayacını açar/kapatır.">Mini sayacı aç</button>
+        </div>
       </div>
 
       <!-- Sekme gezinme menüsü -->
       <nav class="menu">
         <button class="menu-oge aktif" data-sayfa="ozet" type="button">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
           <span>Özet</span>
         </button>
         <button class="menu-oge" data-sayfa="oturumlar" type="button">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
           <span>Oturumlar</span>
         </button>
         <button class="menu-oge" data-sayfa="bekleyenler" type="button">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           <span>Karar Bekleyenler</span>
           <span id="menu-bekleyen-rozet" class="menu-rozet" hidden>0</span>
         </button>
         <button class="menu-oge" data-sayfa="kart" type="button">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
           <span>Paylaşım Kartı</span>
         </button>
         <button class="menu-oge" data-sayfa="ayarlar" type="button">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span>Ayarlar</span>
         </button>
       </nav>
@@ -100,17 +105,17 @@
       <div id="sayfa-ozet" class="sayfa aktif">
         <div class="sayfa-ust">
           <div>
-            <h2>Özet</h2>
-            <p class="soluk" id="ozet-alt-baslik">Bugünkü odak ve hedef durumun</p>
+            <div class="ust-etiket">ÇALIŞMA DEFTERİ</div>
+            <h2>Bugünkü Odak</h2>
           </div>
           <div id="motivasyon-hap" class="motivasyon-hap" hidden></div>
         </div>
 
-        <!-- Hero kart: Canlı sayaç + Günlük hedef halkası -->
-        <section class="kart hero" id="hero-kart">
-          <div class="hero-sol">
+        <!-- Asimetrik Bento Hero: Sol = Odak Kronometresi (Kâğıt) · Sağ = Dolgun Renkli Hedef & Seri Bloğu -->
+        <section class="bento-hero">
+          <div class="kart odak-sahne" id="hero-kart">
             <div class="hero-ust-satir">
-              <span class="etiket">Bugünkü aktif süre</span>
+              <span class="etiket">BUGÜNKÜ AKTİF SÜRE</span>
               <span id="durum-rozet" class="rozet">—</span>
             </div>
             <div id="sayac" class="sayac">00:00:00</div>
@@ -120,7 +125,7 @@
             <!-- Şu an algılanan pencere/uygulama -->
             <div class="algilanan-kutu">
               <div class="algilanan-satir">
-                <span class="etiket">Şu an</span>
+                <span class="etiket">ŞU AN</span>
                 <span id="algilanan-uygulama" class="uygulama">—</span>
               </div>
               <div id="algilanan-baslik" class="baslik-metin soluk"></div>
@@ -146,57 +151,53 @@
             </details>
           </div>
 
-          <!-- Sağ taraf: Günlük hedef dairesel ilerleme halkası -->
-          <div class="hero-sag">
-            <div class="halka-kutu" id="hedef-halka-kutu">
-              <svg class="halka" viewBox="0 0 160 160" width="164" height="164" aria-hidden="true">
-                <defs>
-                  <linearGradient id="halka-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#3ecf8e"/>
-                    <stop offset="100%" stop-color="#38bdf8"/>
-                  </linearGradient>
-                  <linearGradient id="halka-tamam" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#3ecf8e"/>
-                    <stop offset="100%" stop-color="#fbbf24"/>
-                  </linearGradient>
-                </defs>
-                <circle class="halka-ray" cx="80" cy="80" r="66"/>
-                <circle class="halka-dolgu" id="halka-dolgu" cx="80" cy="80" r="66"
-                        stroke-dasharray="414.69" stroke-dashoffset="414.69"/>
+          <!-- Sağ Blok: Gerçek dolgun renkli Hedef & Zincir kartı -->
+          <div class="kart renkli-hedef" id="hedef-halka-kutu">
+            <div class="renkli-ust">
+              <span class="renkli-etiket">GÜNLÜK HEDEF</span>
+              <span id="halka-hedef" class="renkli-alt-etiket">hedef —</span>
+            </div>
+            <div class="halka-kutu">
+              <svg class="halka" viewBox="0 0 160 160" width="156" height="156" aria-hidden="true">
+                <circle class="halka-ray" cx="80" cy="80" r="64"/>
+                <circle class="halka-dolgu" id="halka-dolgu" cx="80" cy="80" r="64"
+                        stroke-dasharray="402.12" stroke-dashoffset="402.12"/>
               </svg>
               <div class="halka-orta">
                 <div id="halka-yuzde" class="halka-yuzde">%0</div>
-                <div id="halka-hedef" class="halka-hedef">hedef —</div>
+                <div class="halka-alt-yazi">tamamlandı</div>
               </div>
+            </div>
+            <div class="renkli-alt">
+              <div>
+                <div class="renkli-etiket">GÜNCEL ZİNCİR</div>
+                <div id="kpi-seri" class="renkli-deger">0 gün</div>
+              </div>
+              <div id="kpi-en-uzun-seri" class="renkli-alt-etiket">En uzun: —</div>
             </div>
           </div>
         </section>
 
-        <!-- 4'lü KPI Özet Şeridi -->
+        <!-- 3'lü Karakterli Özet Şeridi -->
         <section class="kpi-izgara">
-          <div class="kpi-kart">
-            <div class="kpi-etiket">Güncel Zincir</div>
-            <div class="kpi-deger yesil" id="kpi-seri">0 gün</div>
-            <div class="kpi-alt" id="kpi-en-uzun-seri">En uzun: —</div>
-          </div>
-          <div class="kpi-kart">
-            <div class="kpi-etiket">Bu Hafta</div>
-            <div class="kpi-deger mavi" id="kpi-hafta">0 dk</div>
+          <div class="kpi-kart vurgu-mavi">
+            <div class="kpi-etiket">BU HAFTA</div>
+            <div class="kpi-deger" id="kpi-hafta">0 dk</div>
             <div class="kpi-alt" id="kpi-hafta-ort">Günlük ort: —</div>
           </div>
-          <div class="kpi-kart">
-            <div class="kpi-etiket">Hedef Tutan Gün</div>
-            <div class="kpi-deger mor" id="kpi-hedef-gunu">0</div>
+          <div class="kpi-kart vurgu-yesil">
+            <div class="kpi-etiket">HEDEF TUTAN GÜN</div>
+            <div class="kpi-deger" id="kpi-hedef-gunu">0</div>
             <div class="kpi-alt" id="kpi-aktif-gun">Son 12 ay</div>
           </div>
-          <button class="kpi-kart tiklanabilir" id="kpi-bekleyen-kart" type="button">
-            <div class="kpi-etiket">Karar Bekleyen</div>
-            <div class="kpi-deger sari" id="kpi-bekleyen">0</div>
+          <button class="kpi-kart vurgu-turuncu tiklanabilir" id="kpi-bekleyen-kart" type="button">
+            <div class="kpi-etiket">KARAR BEKLEYEN</div>
+            <div class="kpi-deger" id="kpi-bekleyen">0</div>
             <div class="kpi-alt">İncelemek için tıkla →</div>
           </button>
         </section>
 
-        <!-- Zinciri Kırma kartı (sürükle-tak / otomatik tak, bronz kurtarma, gümüş kalkan) -->
+        <!-- Zinciri Kırma kartı: gerçek iç içe geçmiş SVG zincir halkaları -->
         <section class="kart zincir-kart" id="zincir-kart">
           <div class="kart-baslik">
             <div class="zincir-baslik-sol">
@@ -269,8 +270,8 @@
           <div id="verimli-saatler" class="verimli-saatler"></div>
         </section>
 
-        <!-- Son 12 ay ısı haritası -->
-        <section class="kart">
+        <!-- Son 12 ay ısı haritası (kutusuz editoryal çizelge hissi) -->
+        <section class="kart isi-kart">
           <div class="kart-baslik">
             <div>
               <h3>Son 12 ay</h3>
@@ -297,18 +298,17 @@
       <div id="sayfa-oturumlar" class="sayfa">
         <div class="sayfa-ust">
           <div>
+            <div class="ust-etiket">GÜN KAYDI</div>
             <h2>Oturumlar & Zaman Çizelgesi</h2>
-            <p class="soluk">Günün saat saat akışını incele, yanlış ya da belirsiz oturumları tek tıkla düzelt.</p>
           </div>
           <div class="araclar">
             <button id="onceki-gun" class="dugme kucuk" type="button" aria-label="Önceki gün">◀</button>
             <input id="tarih" type="date">
             <button id="sonraki-gun" class="dugme kucuk" type="button" aria-label="Sonraki gün">▶</button>
-            <button id="bugun-dugme" class="dugme kucuk" type="button">Bugün</button>
+            <button id="bugun-dugme" class="dugme kucuk vurgu" type="button">Bugün</button>
           </div>
         </div>
 
-        <!-- Günlük zaman çizelgesi -->
         <section class="kart">
           <div class="kart-baslik">
             <h3>Günlük akış</h3>
@@ -328,7 +328,6 @@
           </div>
         </section>
 
-        <!-- Seçili günün oturum listesi -->
         <section class="kart">
           <div class="kart-baslik">
             <h3>Kayıtlı oturumlar</h3>
@@ -356,8 +355,8 @@
       <div id="sayfa-bekleyenler" class="sayfa">
         <div class="sayfa-ust">
           <div>
+            <div class="ust-etiket">ÖĞRENEN SİSTEM</div>
             <h2>Karar Bekleyenler <span id="bekleyen-sayisi" class="soluk"></span></h2>
-            <p class="soluk">Tüm günlerde hâlâ belirsiz duran başlık ve uygulamalar, en çok süre alandan başlayarak.</p>
           </div>
         </div>
 
@@ -381,8 +380,8 @@
       <div id="sayfa-kart" class="sayfa">
         <div class="sayfa-ust">
           <div>
+            <div class="ust-etiket">HİKÂYE ATÖLYESİ</div>
             <h2>Paylaşım Kartı</h2>
-            <p class="soluk">Instagram hikâyesi boyutunda (1080×1920), pencere başlıklarını gizleyen özet görseli.</p>
           </div>
         </div>
 
@@ -434,8 +433,8 @@
       <div id="sayfa-ayarlar" class="sayfa">
         <div class="sayfa-ust">
           <div>
+            <div class="ust-etiket">TERCİHLER</div>
             <h2>Ayarlar & Sağlık Verisi</h2>
-            <p class="soluk">Değişiklikler <code>config/config.toml</code> dosyasına yorumları bozmadan kaydedilir ve anında uygulanır.</p>
           </div>
           <div class="araclar">
             <span id="ayar-mesaj" class="soluk" role="status"></span>
@@ -444,7 +443,6 @@
           </div>
         </div>
 
-        <!-- Sağlık verisi elle giriş kartı -->
         <section class="kart">
           <div class="kart-baslik">
             <div>
@@ -465,7 +463,6 @@
           </form>
         </section>
 
-        <!-- Ana ayarlar formu (/api/ayarlar'dan dinamik dolar) -->
         <section class="kart">
           <form id="ayar-formu" class="ayar-formu" novalidate></form>
           <p class="soluk kucuk-yazi" style="margin-top: 14px;">

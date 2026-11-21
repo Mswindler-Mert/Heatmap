@@ -13,9 +13,25 @@ const HUKUM_ADI = {
 };
 const KAYNAK_ADI = { pencere: "Pencere", tarayici: "Tarayıcı", baslik: "Başlık", bosta: "Boşta", kamera: "Kamera", motor: "Motor" };
 const KURAL_TURU = { surec: "Uygulama", baslik: "Tam başlık", kelime: "Kelime", alan: "Site" };
-const HALKA_CEVRE = 2 * Math.PI * 66;  // SVG r=66 çember çevresi (~414.69)
+const HALKA_CEVRE = 2 * Math.PI * 64;  // SVG r=64 çember çevresi (~402.12)
+const SVG_NS = "http://www.w3.org/2000/svg";
 
 const $ = (id) => document.getElementById(id);
+
+// ---------- Tema (Kâğıt & Mürekkep <-> Gece Mürekkebi) ----------
+function temaUygula(geceMi) {
+  document.body.classList.toggle("gece", geceMi);
+  $("tema-dugme").textContent = geceMi ? "☀" : "☾";
+  try {
+    localStorage.setItem("heatmap_tema", geceMi ? "gece" : "kagit");
+  } catch { /* özel pencerede localStorage kapalı olabilir */ }
+}
+try {
+  temaUygula(localStorage.getItem("heatmap_tema") === "gece");
+} catch {
+  temaUygula(false);
+}
+$("tema-dugme").addEventListener("click", () => temaUygula(!document.body.classList.contains("gece")));
 
 // ---------- Küçük yardımcılar ----------
 
@@ -760,6 +776,49 @@ function zincirTepsiJetoni(tarih, tur, yazi, sinif) {
   return jeton;
 }
 
+// Yatay, fiziksel olarak iç içe geçen metalik zincir halkası SVG'si (innerHTML kullanmadan).
+function zincirHalkaSvg(doluMu) {
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("viewBox", "0 0 68 40");
+  svg.setAttribute("class", "zincir-svg");
+  svg.setAttribute("aria-hidden", "true");
+
+  // Dış kalın mürekkep gölgesi (dolu halkaya fiziksel derinlik verir)
+  if (doluMu) {
+    const dis = document.createElementNS(SVG_NS, "rect");
+    dis.setAttribute("x", "6");
+    dis.setAttribute("y", "7");
+    dis.setAttribute("width", "56");
+    dis.setAttribute("height", "26");
+    dis.setAttribute("rx", "13");
+    dis.setAttribute("fill", "none");
+    dis.setAttribute("stroke", "#18181b");
+    dis.setAttribute("stroke-width", "10.5");
+    svg.append(dis);
+  }
+
+  const yol = document.createElementNS(SVG_NS, "rect");
+  yol.setAttribute("x", "6");
+  yol.setAttribute("y", "7");
+  yol.setAttribute("width", "56");
+  yol.setAttribute("height", "26");
+  yol.setAttribute("rx", "13");
+  yol.setAttribute("class", "zincir-halka-yol");
+  svg.append(yol);
+
+  if (doluMu) {
+    const ic = document.createElementNS(SVG_NS, "rect");
+    ic.setAttribute("x", "8");
+    ic.setAttribute("y", "9");
+    ic.setAttribute("width", "52");
+    ic.setAttribute("height", "22");
+    ic.setAttribute("rx", "11");
+    ic.setAttribute("class", "zincir-halka-ic");
+    svg.append(ic);
+  }
+  return svg;
+}
+
 async function zinciriYenile() {
   const z = await api("/api/zincir");
   const kart = $("zincir-kart");
@@ -775,43 +834,31 @@ async function zinciriYenile() {
 
   // KPI kartı güncel zinciri (kurtarma/kalkan dahil) göstersin
   $("kpi-seri").textContent = `${z.zincir_uzunlugu} gün`;
-  $("kpi-en-uzun-seri").textContent = `En uzun: ${z.en_uzun_zincir} gün · sonraki hedef ${z.kilometre_tasi.sonraki}`;
+  $("kpi-en-uzun-seri").textContent = `En uzun: ${z.en_uzun_zincir} gün · hedef ${z.kilometre_tasi.sonraki}`;
 
   const serit = $("zincir-serit");
   serit.replaceChildren();
   const bugunTarih = z.halkalar.length ? z.halkalar[z.halkalar.length - 1].tarih : "";
 
-  z.halkalar.forEach((h, i) => {
-    if (i > 0) {
-      const onceki = z.halkalar[i - 1];
-      const bag = el("div", "zincir-bag");
-      if (onceki.tur && h.tur) {
-        bag.classList.add("aktif");
-        if (z.kilometre_tasi.kod === "altin") bag.classList.add("altin");
-        if (h.tur === "kurtarma" || onceki.tur === "kurtarma") bag.classList.add("kurtarma");
-        if (h.tur === "kalkan" || onceki.tur === "kalkan") bag.classList.add("kalkan");
-      }
-      serit.append(bag);
-    }
-
+  z.halkalar.forEach((h) => {
     const sutun = el("div", h.bugun ? "zincir-gun bugun" : "zincir-gun");
-    const halka = el("div", "zincir-halka");
-    if (h.tur) halka.classList.add(h.tur);
-    if (h.tarih === sonTakilanTarih) halka.classList.add("yeni-takildi");
+    const kutu = el("div", "zincir-svg-kutu");
+    if (h.tur) kutu.classList.add(h.tur);
+    if (h.tarih === sonTakilanTarih) kutu.classList.add("yeni-takildi");
 
     const dropHedefi = h.bekliyor || (h.kalkan_adayi ? "kalkan" : null);
     if (dropHedefi) {
-      halka.classList.add("hedef-yuva");
-      if (dropHedefi === "kurtarma") halka.classList.add("kurtarma-yuva");
-      if (dropHedefi === "kalkan") halka.classList.add("kalkan-yuva");
-      halka.addEventListener("dragover", (olay) => {
+      kutu.classList.add("hedef-yuva");
+      if (dropHedefi === "kurtarma") kutu.classList.add("kurtarma-yuva");
+      if (dropHedefi === "kalkan") kutu.classList.add("kalkan-yuva");
+      kutu.addEventListener("dragover", (olay) => {
         olay.preventDefault();
-        halka.classList.add("surukleme-ustu");
+        kutu.classList.add("surukleme-ustu");
       });
-      halka.addEventListener("dragleave", () => halka.classList.remove("surukleme-ustu"));
-      halka.addEventListener("drop", (olay) => {
+      kutu.addEventListener("dragleave", () => kutu.classList.remove("surukleme-ustu"));
+      kutu.addEventListener("drop", (olay) => {
         olay.preventDefault();
-        halka.classList.remove("surukleme-ustu");
+        kutu.classList.remove("surukleme-ustu");
         try {
           const veri = JSON.parse(olay.dataTransfer.getData("text/plain"));
           if (veri.tarih === h.tarih) halkaTak(veri.tarih, veri.tur);
@@ -826,7 +873,7 @@ async function zinciriYenile() {
       : h.tur === "kalkan" ? "K"
       : dropHedefi ? "+"
       : String(h.gun_no);
-    halka.textContent = simge;
+    kutu.append(zincirHalkaSvg(Boolean(h.tur)), el("span", "zincir-gun-simge", simge));
 
     const turAciklama = h.tur === "tam" ? "Tam halka (hedef tuttu)"
       : h.tur === "kurtarma" ? "Bronz kurtarma halkası"
@@ -841,7 +888,7 @@ async function zinciriYenile() {
       else gunuIncele(h.tarih);
     });
 
-    sutun.append(halka, el("span", "zincir-etiket", h.bugun ? "Bugün" : `${h.gun_no} ${h.gun_adi}`));
+    sutun.append(kutu, el("span", "zincir-etiket", h.bugun ? "Bugün" : `${h.gun_no} ${h.gun_adi}`));
     serit.append(sutun);
   });
 
