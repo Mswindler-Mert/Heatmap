@@ -295,13 +295,30 @@ async function isiHaritasiniYenile() {
 
 // ---------- Paylaşım kartı ----------
 
-function kartiOlustur() {
+function kartAdresi() {
   const tur = $("kart-tur").value;
   const tarih = $("kart-tarih").value || tarihMetni(new Date());
+  return `/api/kart?tur=${tur}&tarih=${tarih}&uygulamalar=${$("kart-uygulamalar").checked}`;
+}
+
+function kartiOlustur() {
   // Sondaki zaman damgası, tarayıcının eski resmi önbellekten göstermesini engeller.
-  $("kart-resim").src = `/api/kart?tur=${tur}&tarih=${tarih}&t=${Date.now()}`;
-  $("kart-indir").href = `/api/kart?tur=${tur}&tarih=${tarih}&indir=true`;
+  $("kart-resim").src = `${kartAdresi()}&t=${Date.now()}`;
+  $("kart-indir").href = `${kartAdresi()}&indir=true`;
+  $("kart-mesaj").textContent = "";
   $("kart-onizleme").hidden = false;
+}
+
+// Kartı resim olarak panoya kopyalar: Instagram/WhatsApp masaüstünde Ctrl+V ile yapıştırılabilir.
+async function kartiKopyala() {
+  try {
+    const yanit = await fetch(kartAdresi());
+    const resim = await yanit.blob();
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": resim })]);
+    $("kart-mesaj").textContent = "Panoya kopyalandı.";
+  } catch {
+    $("kart-mesaj").textContent = "Kopyalanamadı; tarayıcın izin vermiyor olabilir. PNG olarak indir'i kullan.";
+  }
 }
 
 // ---------- Süre nereden geldi? (uygulama dökümü) ----------
@@ -482,6 +499,7 @@ $("tarih").addEventListener("change", () => oturumlariYenile(true));
 $("filtre").addEventListener("change", () => oturumlariYenile(true));
 $("dokum-aralik").addEventListener("change", dokumuYenile);
 $("kart-olustur").addEventListener("click", kartiOlustur);
+$("kart-kopyala").addEventListener("click", kartiKopyala);
 $("kart-tarih").value = $("kart-tarih").max = tarihMetni(new Date());  // Gelecek seçilemesin
 
 $("kamera-acik").addEventListener("change", kameraAcKapat);

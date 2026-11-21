@@ -112,12 +112,14 @@ def _tarih_metni(tur: str, ilk: date, son: date, tarih: date) -> str:
 
 
 def kart_verisi(depo: Depo, adlandirici: Adlandirici, hedef_sn: int, tur: str,
-                tarih: date, bugun: date | None = None) -> dict:
+                tarih: date, bugun: date | None = None, uygulamalari_goster: bool = True) -> dict:
     """Kartta görünecek bütün bilgiyi toplar.
 
     tur   : "gunluk", "haftalik", "aylik" ya da "yillik"
     tarih : kartın ait olduğu gün (geçmiş bir gün de olabilir)
     bugun : gerçek bugün; bundan sonraki günler "henüz gelmedi" diye boş çizilir
+    uygulamalari_goster: False ise kartta "en çok zaman geçenler" listesi hiç yer almaz
+                         (yalnızca süreyi paylaşmak isteyenler için; veride de bulunmaz)
     """
     if tur not in KART_TURLERI:
         raise ValueError(f"Bilinmeyen kart türü: {tur}")
@@ -139,7 +141,8 @@ def kart_verisi(depo: Depo, adlandirici: Adlandirici, hedef_sn: int, tur: str,
         "tur": tur,
         "tarih_metni": _tarih_metni(tur, ilk, son, tarih),
         "toplam_sn": toplam,
-        "uygulamalar": en_cok,
+        "uygulamalar": en_cok if uygulamalari_goster else [],
+        "uygulamalar_gizli": not uygulamalari_goster,
         "seri_gun": seri_hesapla(depo, hedef_sn, min(tarih, bugun)),
         "hedef_sn": hedef_sn,
     }
@@ -477,7 +480,8 @@ def kart_ciz(veri: dict) -> bytes:
         _yil_haritasi(c, veri)
     else:
         _gun_grafigi(c, veri)
-    _uygulama_listesi(c, veri)
+    if not veri.get("uygulamalar_gizli"):
+        _uygulama_listesi(c, veri)
     # İmza güvenli alanın dışında: Instagram örterse sorun değil.
     c.text((GENISLIK / 2, YUKSEKLIK - 60), "heatmap  ·  otomatik çalışma takibi",
            font=_yazi(24), fill=(139, 147, 167, 150), anchor="ms")

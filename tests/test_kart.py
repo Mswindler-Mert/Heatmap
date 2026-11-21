@@ -79,6 +79,14 @@ class KartTesti(unittest.TestCase):
             png = kart_ciz(kart_verisi(bos_depo, self.adlandirici, 0, tur, BUGUN, bugun=BUGUN))
             self.assertEqual(Image.open(io.BytesIO(png)).size, (1080, 1920))
 
+    def test_uygulama_listesi_gizlenebilir(self):
+        v = kart_verisi(self.depo, self.adlandirici, 120 * 60, "gunluk", BUGUN, bugun=BUGUN,
+                        uygulamalari_goster=False)
+        self.assertEqual(v["uygulamalar"], [])
+        self.assertNotIn("VS Code", json.dumps(v, ensure_ascii=False))
+        self.assertEqual(v["toplam_sn"], 155 * 60)  # süre yine de doğru
+        self.assertEqual(Image.open(io.BytesIO(kart_ciz(v))).size, (1080, 1920))
+
     def test_aylik_veri(self):
         v = self.veri("aylik")
         self.assertEqual(v["tarih_metni"], "Kasım 2026")

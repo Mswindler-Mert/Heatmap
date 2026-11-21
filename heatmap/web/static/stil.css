@@ -156,6 +156,7 @@ footer { padding-top: 8px; padding-bottom: 32px; text-align: center; }
 .dugme.vurgu:hover { filter: brightness(1.08); }
 .kart-onizleme { display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; }
 .kart-onizleme[hidden] { display: none; }
+.kart-dugmeler { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .kart-onizleme img { width: 270px; max-width: 100%; border-radius: 14px; border: 1px solid var(--cizgi); display: block; }
 
 /* ---------- Oturum listesi ---------- */
