@@ -157,13 +157,16 @@ video_isaretleri = ["YouTube", "Udemy", "Coursera"]
 "MSACCESS.EXE" = "Access"
 "OUTLOOK.EXE" = "Outlook"
 "olk.exe" = "Outlook"
-"ms-teams.exe" = "Teams"
 "claude.exe" = "Claude"
 "AcroRd32.exe" = "Adobe Reader"
 "Acrobat.exe" = "Adobe Acrobat"
 "SumatraPDF.exe" = "SumatraPDF"
 "FoxitPDFReader.exe" = "Foxit Reader"
 "explorer.exe" = "Dosya Gezgini"
+"SystemSettings.exe" = "Ayarlar"
+"CalculatorApp.exe" = "Hesap Makinesi"
+"WhatsApp.Root.exe" = "WhatsApp"
+"ms-teams.exe" = "Teams"
 "notepad.exe" = "Not Defteri"
 
 # ---------------------------------------------------------------------

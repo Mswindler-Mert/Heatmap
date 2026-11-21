@@ -229,6 +229,7 @@ Yeni bir tespit modülü eklemek için `heatmap/sinyal.py` içindeki `Dedektor` 
   izleniyor sayılır. Eklentiyle ikisi de çözülür.
 - Eklenti yalnızca kurulduğu tarayıcıyı görür; video kendi düğmesiyle sessize alınırsa "oynamıyor" sayılır.
 - YouTube başlığında kanal adı yer almaz; kanala göre kural yazılamaz.
-- Bazı Microsoft Store uygulamaları süreç adı olarak `ApplicationFrameHost.exe` gösterir.
+- Microsoft Store uygulamaları (Ayarlar, Hesap Makinesi...) önde olduklarında gerçek adlarıyla
+  tanınır; nadiren (uygulama yeni açılırken) `ApplicationFrameHost.exe` olarak görünebilirler.
 
 Planlanan işler için [SONRAKI_ADIMLAR.md](SONRAKI_ADIMLAR.md) dosyasına bakın.

@@ -549,7 +549,9 @@ Tuzaklar:
   ⚠️ `POST /api/otomatik-baslatma` bilerek test edilmez (gerçek kayıt defterini değiştirir).
 
 - **Tespit doğruluğu:** tarayıcı eklentisi (Bölüm 2), `pycaw` ile ses oturumundan "video oynuyor
-  mu", Store uygulamalarında `ApplicationFrameHost.exe` yerine gerçek süreç, boşta eşiğinin ilk
+  mu", ✅ Store uygulamalarında `ApplicationFrameHost.exe` yerine gerçek süreç
+  (`windows_api.pencerenin_sureci`: çerçevenin başka sürece ait ilk alt penceresi; küçültülmüş
+  uygulamada bulunamazsa çerçeve adı kalır), boşta eşiğinin ilk
   120 saniyesini geriye dönük düşme.
 - **Arayüz:** ayarları arayüzden düzenleme, düzeltmeyi geri alma, çok kısa oturumları gizleme,
   aylık görünüm, başlıktan anahtar kelime önerisi, README için ekran görüntüsü.
