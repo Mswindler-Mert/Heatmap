@@ -271,4 +271,4 @@ Yeni bir tespit modülü eklemek için `heatmap/sinyal.py` içindeki `Dedektor` 
 - Microsoft Store uygulamaları (Ayarlar, Hesap Makinesi...) önde olduklarında gerçek adlarıyla
   tanınır; nadiren (uygulama yeni açılırken) `ApplicationFrameHost.exe` olarak görünebilirler.
 
-Sürümlerde neyin değiştiği: [CHANGELOG.md](CHANGELOG.md). Planlanan işler için [SONRAKI_ADIMLAR.md](SONRAKI_ADIMLAR.md) dosyasına bakın.
+Sürümlerde neyin değiştiği: [CHANGELOG.md](CHANGELOG.md). Sıradaki büyük işler: [ROADMAP.md](ROADMAP.md). Planlanan işler için [SONRAKI_ADIMLAR.md](SONRAKI_ADIMLAR.md) dosyasına bakın.
