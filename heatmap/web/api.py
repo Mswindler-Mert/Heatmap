@@ -260,7 +260,8 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
 
     @app.get("/api/kart")
     def kart(tur: Literal["gunluk", "haftalik", "aylik", "yillik"] = "gunluk",
-             tarih: date | None = None, indir: bool = False, uygulamalar: bool = True):
+             tarih: date | None = None, indir: bool = False, uygulamalar: bool = True,
+             liste: Literal["uygulama", "kategori", "yok"] = "uygulama"):
         """Paylaşım kartı: 1080x1920 PNG. `indir=true` verilirse tarayıcı dosya olarak kaydeder.
 
         `tarih`: kartın ait olduğu gün (varsayılan bugün; geçmiş bir gün de olabilir).
@@ -271,7 +272,11 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         tarih = tarih or bugun
         if tarih > bugun:
             raise HTTPException(400, "Gelecekteki bir gün için kart oluşturulamaz")
-        png = kart_ciz(kart_verisi(depo, adlandirici, hedef_sn, tur, tarih, bugun, uygulamalar))
+        # liste: kartın altındaki liste uygulamalardan mı, kategorilerden mi oluşsun, yoksa hiç olmasın mı.
+        # (uygulamalar=false eski adres biçimi; liste=yok ile aynı anlama gelir.)
+        goster = uygulamalar and liste != "yok"
+        png = kart_ciz(kart_verisi(depo, adlandirici, hedef_sn, tur, tarih, bugun, goster,
+                                   kategoriye_gore=liste == "kategori"))
         basliklar = {"Cache-Control": "no-store"}  # Her istekte güncel kart üretilsin
         if indir:
             basliklar["Content-Disposition"] = f'attachment; filename="heatmap-{tur}-{tarih.isoformat()}.png"'

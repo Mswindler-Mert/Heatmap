@@ -87,6 +87,14 @@ class KartTesti(unittest.TestCase):
         self.assertEqual(v["toplam_sn"], 155 * 60)  # süre yine de doğru
         self.assertEqual(Image.open(io.BytesIO(kart_ciz(v))).size, (1080, 1920))
 
+    def test_kategoriye_gore_liste(self):
+        adl = Adlandirici({**AYARLAR, "kategoriler": {"Kod": ["VS Code"], "Video": ["YouTube"]}})
+        v = kart_verisi(self.depo, adl, 120 * 60, "gunluk", BUGUN, bugun=BUGUN, kategoriye_gore=True)
+        self.assertEqual([u["ad"] for u in v["uygulamalar"]], ["Kod", "Video", "Diğer"])
+        self.assertEqual(v["liste_basligi"], "KATEGORİLER")
+        self.assertNotIn(GIZLI, json.dumps(v, ensure_ascii=False))
+        self.assertEqual(Image.open(io.BytesIO(kart_ciz(v))).size, (1080, 1920))
+
     def test_aylik_veri(self):
         v = self.veri("aylik")
         self.assertEqual(v["tarih_metni"], "Kasım 2026")

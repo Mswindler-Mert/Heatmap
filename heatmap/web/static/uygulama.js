@@ -298,7 +298,7 @@ async function isiHaritasiniYenile() {
 function kartAdresi() {
   const tur = $("kart-tur").value;
   const tarih = $("kart-tarih").value || tarihMetni(new Date());
-  return `/api/kart?tur=${tur}&tarih=${tarih}&uygulamalar=${$("kart-uygulamalar").checked}`;
+  return `/api/kart?tur=${tur}&tarih=${tarih}&liste=${$("kart-liste").value}`;
 }
 
 function kartiOlustur() {

@@ -131,9 +131,12 @@
             <option value="yillik">Yıllık (son 12 ay)</option>
           </select>
           <input id="kart-tarih" type="date" aria-label="Kartın tarihi" title="Geçmiş bir günün, haftanın ya da ayın kartı için tarih seç">
-          <label class="anahtar" title="Kartta yalnızca süre ve grafik görünür; uygulama/site adları yer almaz.">
-            <input id="kart-uygulamalar" type="checkbox" checked> Uygulamaları göster
-          </label>
+          <select id="kart-liste" aria-label="Kartın altındaki liste"
+                  title="Kartın altındaki liste: uygulama/site adları, kategoriler ya da hiçbiri">
+            <option value="uygulama">Liste: uygulamalar</option>
+            <option value="kategori">Liste: kategoriler</option>
+            <option value="yok">Liste yok (yalnızca süre)</option>
+          </select>
           <button id="kart-olustur" class="dugme vurgu">Paylaşım kartı oluştur</button>
         </div>
       </div>

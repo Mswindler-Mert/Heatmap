@@ -120,6 +120,9 @@ class ApiTesti(unittest.TestCase):
         yarin = (self.bugun + timedelta(days=1)).isoformat()
         self.assertEqual(self.istemci.get(f"/api/kart?tarih={yarin}").status_code, 400)
         self.assertEqual(self.istemci.get("/api/kart?tur=bilinmeyen").status_code, 422)
+        for liste in ("uygulama", "kategori", "yok"):
+            self.assertEqual(self.istemci.get(f"/api/kart?liste={liste}").status_code, 200)
+        self.assertEqual(self.istemci.get("/api/kart?liste=yanlis").status_code, 422)
 
     def test_dokum_kategoriye_gore(self):
         app = uygulama_olustur(Takipci(AYARLAR, self.depo, [], KararMotoru(5, 15)), self.depo,

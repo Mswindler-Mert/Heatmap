@@ -346,7 +346,7 @@ Dosyalar: `ozet.py`, `depo.py` (`uygulama_dokumu`), `dedektorler/baslik.py` (`so
   (öğrenilen kurallar gibi), ayar dosyasına dokunma.
 - ✅ **Kategori:** `[kategoriler]` (görünen ad → kategori), `Adlandirici.kategori` ve
   `kategorilere_grupla`, `/api/dokum?gruplama=kategori`, arayüzde "Kategori" seçeneği.
-  Kalan: 🔲 paylaşım kartında kategori görünümü.
+  Paylaşım kartında da var: `/api/kart?liste=kategori` (`kart_verisi(kategoriye_gore=True)`).
 - `explorer.exe` gibi belirsiz bırakılanlar dökümde yalnızca kullanıcı "çalışmaydı" derse görünür; bu bilinçli.
 
 ### Tuzaklar

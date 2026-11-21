@@ -165,7 +165,7 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `GET /api/seri` | Günlük hedef ve üst üste hedefe ulaşılan gün sayısı |
 | `GET /api/isi-haritasi?bitis=2026-11-21&hafta=53` | Isı haritası: her gün için süre ve 0-4 seviye, seri istatistikleri |
 | `GET /api/otomatik-baslatma` · `POST` (`{"acik": true}`) | Windows açılışında başlatma durumu |
-| `GET /api/kart?tur=gunluk&tarih=2026-11-21` | Paylaşım kartı (PNG); `tur`: `gunluk`, `haftalik`, `aylik`, `yillik`; `indir=true` dosya olarak indirir |
+| `GET /api/kart?tur=gunluk&tarih=2026-11-21&liste=kategori` | Paylaşım kartı (PNG); `tur`: `gunluk`, `haftalik`, `aylik`, `yillik`; `liste`: `uygulama`, `kategori`, `yok`; `indir=true` dosya olarak indirir |
 | `GET /api/oturumlar?tarih=2026-11-16` | Bir günün oturumları |
 | `POST /api/oturumlar/{id}/duzelt` | Oturumu düzelt (`{"hukum": "ders", "ogren": true, "kelime": null}`) |
 | `GET /api/kurallar` · `DELETE /api/kurallar/{id}` | Öğrenilen kurallar |

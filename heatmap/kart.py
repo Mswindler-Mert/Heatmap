@@ -112,13 +112,15 @@ def _tarih_metni(tur: str, ilk: date, son: date, tarih: date) -> str:
 
 
 def kart_verisi(depo: Depo, adlandirici: Adlandirici, hedef_sn: int, tur: str,
-                tarih: date, bugun: date | None = None, uygulamalari_goster: bool = True) -> dict:
+                tarih: date, bugun: date | None = None, uygulamalari_goster: bool = True,
+                kategoriye_gore: bool = False) -> dict:
     """Kartta görünecek bütün bilgiyi toplar.
 
     tur   : "gunluk", "haftalik", "aylik" ya da "yillik"
     tarih : kartın ait olduğu gün (geçmiş bir gün de olabilir)
     bugun : gerçek bugün; bundan sonraki günler "henüz gelmedi" diye boş çizilir
     uygulamalari_goster: False ise kartta "en çok zaman geçenler" listesi hiç yer almaz
+    kategoriye_gore    : True ise liste uygulamalar yerine kategorilerden oluşur ("Kod", "Yapay zekâ"...)
                          (yalnızca süreyi paylaşmak isteyenler için; veride de bulunmaz)
     """
     if tur not in KART_TURLERI:
@@ -131,6 +133,8 @@ def kart_verisi(depo: Depo, adlandirici: Adlandirici, hedef_sn: int, tur: str,
     bas, _ = gun_araligi(ilk)
     _, bit = gun_araligi(max(ilk, gecmis_son))
     dokum = depo.uygulama_dokumu(bas, bit, adlandirici.etiket) if ilk <= bugun else []
+    if kategoriye_gore:
+        dokum = adlandirici.kategorilere_grupla(dokum)
     toplam = sum(d["sure_sn"] for d in dokum)
     en_cok = [
         {"ad": d["ad"], "sure_sn": d["sure_sn"], "oran": d["sure_sn"] / toplam if toplam else 0}
@@ -143,6 +147,7 @@ def kart_verisi(depo: Depo, adlandirici: Adlandirici, hedef_sn: int, tur: str,
         "toplam_sn": toplam,
         "uygulamalar": en_cok if uygulamalari_goster else [],
         "uygulamalar_gizli": not uygulamalari_goster,
+        "liste_basligi": "KATEGORİLER" if kategoriye_gore else "EN ÇOK ZAMAN GEÇENLER",
         "seri_gun": seri_hesapla(depo, hedef_sn, min(tarih, bugun)),
         "hedef_sn": hedef_sn,
     }
@@ -441,7 +446,8 @@ def _yil_haritasi(c, veri: dict) -> None:
 
 def _uygulama_listesi(c, veri: dict) -> None:
     """En çok zaman geçen uygulamalar/siteler: ad, süre, yüzde ve ince bir çubuk."""
-    _aralikli_yazi(c, KENAR, Y_LISTE_BASLIK, "EN ÇOK ZAMAN GEÇENLER", _yazi(27, "yari"), SOLUK, aralik=6)
+    baslik = veri.get("liste_basligi", "EN ÇOK ZAMAN GEÇENLER")
+    _aralikli_yazi(c, KENAR, Y_LISTE_BASLIK, baslik, _yazi(27, "yari"), SOLUK, aralik=6)
 
     if not veri["uygulamalar"]:
         c.text((KENAR, Y_LISTE + 10), "Bu aralıkta kayıt yok.", font=_yazi(34), fill=SOLUK)
