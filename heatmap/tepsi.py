@@ -30,6 +30,23 @@ def _ikon_ciz(renk: tuple[int, int, int]) -> Image.Image:
     return resim
 
 
+def ikon_durumu(durum: dict) -> tuple[str, str]:
+    """Takipçi durumundan (ikon rengi anahtarı, fare üstüne gelince görünen ipucu) üretir.
+
+    Anahtar: "ders" (yeşil), "belirsiz" (sarı) ya da "durdu" (gri).
+    """
+    if durum["duraklatildi"]:
+        anahtar, yazi = "durdu", "duraklatıldı"
+    elif durum["calisiyor"]:
+        anahtar, yazi = "ders", "sayaç çalışıyor"
+    elif durum.get("hukum") == "belirsiz":
+        anahtar, yazi = "belirsiz", "belirsiz"
+    else:
+        anahtar, yazi = "durdu", "sayaç durdu"
+    sn = durum["bugun_ders_sn"]
+    return anahtar, f"Heatmap · bugün {sn // 3600} sa {sn % 3600 // 60} dk · {yazi}"
+
+
 class Tepsi:
     def __init__(self, takipci: Takipci, adres: str, kamera=None):
         """kamera: KameraDedektoru (modül ayarlardan kapalıysa None; o zaman menüde görünmez)."""
@@ -83,21 +100,11 @@ class Tepsi:
         ikon.visible = True
         onceki = None
         while self._calisiyor:
-            durum = self.takipci.durum()
-            if durum["duraklatildi"]:
-                anahtar, yazi = "durdu", "duraklatıldı"
-            elif durum["calisiyor"]:
-                anahtar, yazi = "ders", "sayaç çalışıyor"
-            elif durum.get("hukum") == "belirsiz":
-                anahtar, yazi = "belirsiz", "belirsiz"
-            else:
-                anahtar, yazi = "durdu", "sayaç durdu"
-
+            anahtar, ipucu = ikon_durumu(self.takipci.durum())
             if anahtar != onceki:  # Resmi sadece değişince yenile
                 ikon.icon = self._ikonlar[anahtar]
                 onceki = anahtar
-            sn = durum["bugun_ders_sn"]
-            ikon.title = f"Heatmap · bugün {sn // 3600} sa {sn % 3600 // 60} dk · {yazi}"
+            ikon.title = ipucu
             time.sleep(1)
 
     def calistir(self):

@@ -27,7 +27,7 @@ diyor ama anlamı "çalışma / aktif süre".
 - Ortam: Windows 11, **Python 3.14.3**, komut **`py`** (`python` komutu yok), Git kurulu.
 - Çalıştırma: `baslat.bat` (tepsi ikonuyla) ya da `.venv\Scripts\python -m heatmap --tepsisiz --sessiz`.
 - Testler: önce `.venv\Scripts\python -m pip install -r requirements-dev.txt`, sonra
-  `.venv\Scripts\python -m unittest` (şu an 135 test, hepsi geçiyor). pytest yok, ekleme.
+  `.venv\Scripts\python -m unittest` (şu an 155 test, hepsi geçiyor). pytest yok, ekleme.
   GitHub Actions her push'ta Windows'ta aynı testleri çalıştırır.
 
 ### Mimari (tek süreç, üç thread)
@@ -592,7 +592,7 @@ Tuzaklar:
   oturum olarak görünür.
 - Brave/Edge sekme başlığı temizleme düzenli ifadeleri (`baslik._TARAYICI_SONEKI`) yalnızca örnek
   başlıklarla test edildi; Brave'de profil adı ya da "ve N sekme daha" eki varsa `basligi_temizle`'ye ekle.
-- Tepsi ikonu ve menüsü (yeni "Windows açılışında başlat" seçeneği dahil) gözle denenmedi.
+- Tepsi ikonu ve menüsü gözle denenmedi; menünün mantığı (seçenekler, görünürlük, tıklama) `tests/test_tepsi.py` ile test ediliyor.
 - Paylaşım kartı, döküm ve ısı haritası arayüzü yalnızca örnek veriyle denendi; kullanıcının gerçek
   verisiyle bakılmadı. Eski veritabanının `heatmap.db`ye taşınması gerçek veride çalıştı.
 - MediaPipe API adları, Health Connect dışa aktarım biçimi ve Instagram güvenli alan ölçüsü (yukarıda ❓).
