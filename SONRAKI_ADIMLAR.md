@@ -334,7 +334,7 @@ Dosyalar: `ozet.py`, `depo.py` (`uygulama_dokumu`), `dedektorler/baslik.py` (`so
   (ses çalıyor mu) ve pencere odağını olaylarda + 30 sn'de bir `POST /api/tarayici`'ye yollar.
   `dedektorler/tarayici.py` son raporu tutar (75 sn tazelik); `baslik.py` alan adını
   `ders_alanlari`/`ders_degil_alanlari` ile sınıflandırır ve `video` bilgisini sesten alır;
-  `oturumlar.alan_adi` sütununa kaydedilir (eski DB'lere `Depo._semayi_guncelle` ekler);
+  `oturumlar.alan_adi` sütununa kaydedilir (eski DB'lere `heatmap/sema.py` taşıması 2 ekler);
   `Adlandirici` alan adını `[siteler]`'deki noktalı öğelerle eşler, eşleşmezse alan adını gösterir.
   Eklenti `host_permissions` ile istek attığı için CORS gerekmez.
   Öğrenilen kural türü "alan" ✅: düzeltme ekranında "<site> sitesini hep böyle say" kutusu
@@ -486,7 +486,7 @@ Tuzaklar:
 > Kalan: 🔲 yol A (dışa aktarım dosyası içe aktarıcı, `saglik.py`): kullanıcıdan gerçek bir dışa
 > aktarım dosyası gelmeden yazma; biçim bilinmiyor. İçe aktarıcı `depo.saglik_kaydet(..., kaynak="health_connect")`
 > çağırmalı. Şema sürümleme hâlâ yok; yeni tablo eklemek için gerekmedi, ama mevcut tabloya sütun
-> eklenecekse `Depo._semayi_guncelle` kalıbını kullan.
+> eklenecekse `heatmap/sema.py` içindeki `GOCLER` listesinin sonuna yeni bir taşıma ekle.
 
 Hedef: telefondaki adım ve spor verisini günlük çalışma süresiyle aynı tabloda/kartta göstermek.
 
