@@ -121,6 +121,17 @@ class ApiTesti(unittest.TestCase):
         self.assertEqual(self.istemci.get(f"/api/kart?tarih={yarin}").status_code, 400)
         self.assertEqual(self.istemci.get("/api/kart?tur=bilinmeyen").status_code, 422)
 
+    def test_dokum_kategoriye_gore(self):
+        app = uygulama_olustur(Takipci(AYARLAR, self.depo, [], KararMotoru(5, 15)), self.depo,
+                               {**AYARLAR, "kategoriler": {"Kod": ["VS Code"]}})
+        istemci = TestClient(app, base_url="http://127.0.0.1")
+        self.oturum_ekle("Code.exe", "pencere", "x", 30)
+        self.oturum_ekle("brave.exe", "baslik", "x - YouTube", 10, alan_adi="youtube.com")
+        d = istemci.get("/api/dokum?gruplama=kategori").json()
+        self.assertEqual([(u["ad"], u["sure_sn"]) for u in d["uygulamalar"]], [("Kod", 1800), ("Diğer", 600)])
+        self.assertEqual(istemci.get("/api/dokum?gruplama=yanlis").status_code, 422)
+        istemci.close()
+
     # --- CSV dışa aktarma --------------------------------------------------
     def test_csv_indirme(self):
         self.oturum_ekle("Code.exe", "pencere", f"{GIZLI}.py", 20)

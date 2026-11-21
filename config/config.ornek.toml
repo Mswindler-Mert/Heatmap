@@ -198,6 +198,24 @@ video_isaretleri = ["YouTube", "Udemy", "Coursera"]
 "Teams" = ["Microsoft Teams", "teams.microsoft.com", "teams.live.com"]
 "Outlook" = ["Outlook", "outlook.office.com", "outlook.live.com"]
 "Google Arama" = ["Google Search", "Google'da Ara", "google.com"]
+
+# ---------------------------------------------------------------------
+#  Kategoriler: "Süre nereden geldi?" bölümünde süreyi gruplamak için.
+#  Sol taraf kategori adı, sağ taraf dökümde görünen adlar ([adlar] ve [siteler]
+#  sonucu; büyük/küçük harf önemsiz). Hiçbir kategoride olmayanlar "Diğer" olur.
+#  config.toml'a yazdığın kategori, buradaki aynı adlı kategorinin YERİNE geçer.
+# ---------------------------------------------------------------------
+[kategoriler]
+"Kod" = ["VS Code", "Visual Studio", "IntelliJ IDEA", "PyCharm", "CLion", "NetBeans", "Antigravity",
+         "Unity", "Unity Hub", "GitHub Desktop", "Terminal", "PowerShell", "Git Bash",
+         "GitHub", "Stack Overflow", "GeeksforGeeks"]
+"Yapay zekâ" = ["Claude", "claude.ai", "ChatGPT", "Gemini", "Copilot"]
+"Belge ve not" = ["Word", "PowerPoint", "Excel", "OneNote", "Access", "Adobe Reader", "Adobe Acrobat",
+                  "SumatraPDF", "Foxit Reader", "Goodnotes", "iLovePDF", "Not Defteri",
+                  "Google Docs", "Google Drive", "Wikipedia", "DeepL"]
+"Video ve kurs" = ["YouTube", "Coursera", "Udemy", "Khan Academy"]
+"İletişim" = ["Teams", "Outlook"]
+
 # ---------------------------------------------------------------------
 #  Günlük hedef: seri (üst üste kaç gün hedefe ulaşıldı) hesabında kullanılır.
 # ---------------------------------------------------------------------

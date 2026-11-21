@@ -176,10 +176,12 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         return {"tamam": True}
 
     @app.get("/api/dokum")
-    def dokum(baslangic: date | None = None, bitis: date | None = None):
-        """Ders süresinin uygulamalara dağılımı. Tarih verilmezse bugün; iki tarih de dahildir.
+    def dokum(baslangic: date | None = None, bitis: date | None = None,
+              gruplama: Literal["uygulama", "kategori"] = "uygulama"):
+        """Çalışma süresinin uygulamalara/sitelere (ya da kategorilere) dağılımı.
 
-        Örn: /api/dokum?baslangic=2026-11-16&bitis=2026-11-22
+        Tarih verilmezse bugün; iki tarih de dahildir.
+        Örn: /api/dokum?baslangic=2026-11-16&bitis=2026-11-22&gruplama=kategori
         """
         ilk = baslangic or date.today()
         son = bitis or ilk
@@ -188,6 +190,8 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         bas, _ = gun_araligi(ilk)
         _, bit = gun_araligi(son)
         uygulamalar = depo.uygulama_dokumu(bas, bit, adlandirici.etiket)
+        if gruplama == "kategori":
+            uygulamalar = adlandirici.kategorilere_grupla(uygulamalar)
         toplam = sum(u["sure_sn"] for u in uygulamalar)
         for u in uygulamalar:
             u["oran"] = round(u["sure_sn"] / toplam, 3) if toplam else 0  # 0-1 arası pay

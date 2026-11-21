@@ -46,6 +46,27 @@ class AdTestleri(unittest.TestCase):
         self.assertEqual(self.a.etiket(uygulama), ("VS Code", "uygulama"))
 
 
+class KategoriTestleri(unittest.TestCase):
+    def test_kategorilere_grupla(self):
+        a = Adlandirici({"kategoriler": {"Kod": ["VS Code", "GitHub"], "Video": ["youtube"]}})
+        dokum = [{"ad": "VS Code", "sure_sn": 300}, {"ad": "YouTube", "sure_sn": 200},
+                 {"ad": "GitHub", "sure_sn": 150}, {"ad": "Discord", "sure_sn": 50}]
+        sonuc = a.kategorilere_grupla(dokum)
+        self.assertEqual([(g["ad"], g["sure_sn"], g["icerik"]) for g in sonuc], [
+            ("Kod", 450, ["VS Code", "GitHub"]),
+            ("Video", 200, ["YouTube"]),        # büyük/küçük harf önemsiz
+            ("Diğer", 50, ["Discord"]),
+        ])
+
+    def test_ornek_ayardaki_kategoriler_gecerli(self):
+        from heatmap.ayarlar import ORNEK_DOSYA, _toml_oku
+        a = Adlandirici(_toml_oku(ORNEK_DOSYA))
+        self.assertEqual(a.kategori("VS Code"), "Kod")
+        self.assertEqual(a.kategori("claude.ai"), "Yapay zekâ")
+        self.assertEqual(a.kategori("Bilinmeyen Uygulama"), "Diğer")
+        self.assertEqual(a.kategori(a.uygulama_adi("POWERPNT.EXE")), "Belge ve not")
+
+
 class SeriTestleri(unittest.TestCase):
     def setUp(self):
         self.klasor = tempfile.TemporaryDirectory()

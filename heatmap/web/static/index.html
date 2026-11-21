@@ -105,10 +105,16 @@
     <section class="kart">
       <div class="kart-baslik">
         <h2>Süre nereden geldi?</h2>
-        <select id="dokum-aralik" aria-label="Döküm aralığı">
-          <option value="bugun">Bugün</option>
-          <option value="hafta">Bu hafta</option>
-        </select>
+        <div class="araclar">
+          <select id="dokum-gruplama" aria-label="Gruplama">
+            <option value="uygulama">Uygulama / site</option>
+            <option value="kategori">Kategori</option>
+          </select>
+          <select id="dokum-aralik" aria-label="Döküm aralığı">
+            <option value="bugun">Bugün</option>
+            <option value="hafta">Bu hafta</option>
+          </select>
+        </div>
       </div>
       <div id="dokum" class="dokum"></div>
     </section>

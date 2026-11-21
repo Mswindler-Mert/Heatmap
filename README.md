@@ -86,11 +86,13 @@ Arayüzde yedi bölüm vardır:
    aktarma için plan: SONRAKI_ADIMLAR.md 4.2. Bu veri paylaşım kartına ve dashboard'a girmez.)
 3. **Son 12 ay (ısı haritası):** GitHub katkı grafiği gibi her gün bir kare; ne kadar uzun
    çalıştıysan o kadar koyu yeşil, günlük hedefi tutan günler en koyu. Altında seri ve en uzun seri.
-4. **Süre nereden geldi?:** bugünkü ya da bu haftaki sürenin uygulamalara ve sitelere dağılımı.
+4. **Süre nereden geldi?:** bugünkü ya da bu haftaki sürenin uygulamalara ve sitelere ya da
+   kategorilere (Kod, Yapay zekâ, Belge ve not, Video ve kurs, İletişim) dağılımı.
 5. **Paylaşım kartı:** günlük, haftalık, aylık (takvim) ya da yıllık (son 12 ay ısı haritası) özeti
    1080×1920 PNG olarak üretir ve indirir. Tarih seçerek geçmiş bir günün/ayın kartı da alınabilir.
    İçerik, Instagram hikâyesinin üst ve alt düğmelerinin örtmediği orta alana yerleştirilir.
-6. **Oturumlar:** kayıtlı zaman dilimleri. Her birini “Çalışmaydı” / “Çalışma değildi” diye düzeltebilirsiniz.
+6. **Oturumlar:** kayıtlı zaman dilimleri. Her birini “Çalışmaydı” / “Çalışma değildi” diye düzeltebilir,
+   düzeltmeyi **Geri al** ile kaldırabilirsiniz. 1 dakikadan kısa oturumlar varsayılan olarak gizlenir.
    “Bundan sonra da böyle say” seçiliyse aynı uygulama ya da başlık artık otomatik tanınır.
    Tarayıcı oturumlarında isterseniz bir anahtar kelime (örn. kanal adı) de öğretebilirsiniz.
 7. **Öğrenilen kurallar:** düzeltmelerden oluşan kurallar; buradan silinebilir.
@@ -139,6 +141,7 @@ sonra uygulamayı yeniden başlatın.
 | `[adlar]` | Süreç adı → dökümde görünen ad (`"Code.exe" = "VS Code"`) |
 | `[siteler]` | Site adı → sekme başlığında aranan kelimeler ve alan adları; tanınmayanlar "Diğer web" olur |
 | `[tarayici]` | Tarayıcı eklentisi modülü |
+| `[kategoriler]` | Kategori adı → içindeki uygulama/site adları (dökümde gruplama için) |
 | `[hedef]` | Günlük hedef (dakika); seri hesabında kullanılır |
 | `[yedek]` | Günlük otomatik yedek ve kaç gün saklanacağı |
 | `[kamera]` | Kamera modülü: eşik süreleri, kalibrasyon, kamerasız deneme senaryosu |
@@ -158,7 +161,7 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | `GET /api/gunluk?baslangic=2026-11-01&bitis=2026-11-30` | Tarih aralığı için gün gün çalışma süresi + sağlık verisi (adım, egzersiz, uyku; yoksa `null`) |
 | `GET /api/saglik` · `POST /api/saglik` · `DELETE /api/saglik/{tarih}` | Günlük sağlık verisi (`{"tarih": "2026-11-21", "adim": 8200, "egzersiz_dk": 30, "uyku_dk": 450}`; boş alan değişmez) |
 | `GET /api/kamera` · `POST /api/kamera` (`{"acik": false}`) · `POST /api/kamera/kalibre` | Kamera durumu, geçici aç/kapat, kalibrasyon |
-| `GET /api/dokum?baslangic=2026-11-16&bitis=2026-11-22` | Sürenin uygulamalara ve sitelere dağılımı (tarih verilmezse bugün) |
+| `GET /api/dokum?baslangic=2026-11-16&bitis=2026-11-22&gruplama=kategori` | Sürenin uygulamalara/sitelere ya da kategorilere dağılımı (tarih verilmezse bugün) |
 | `GET /api/seri` | Günlük hedef ve üst üste hedefe ulaşılan gün sayısı |
 | `GET /api/isi-haritasi?bitis=2026-11-21&hafta=53` | Isı haritası: her gün için süre ve 0-4 seviye, seri istatistikleri |
 | `GET /api/otomatik-baslatma` · `POST` (`{"acik": true}`) | Windows açılışında başlatma durumu |

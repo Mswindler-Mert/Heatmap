@@ -13,6 +13,7 @@ from heatmap.dedektorler.baslik import alan_eslesir_mi, son_gecis_yeri
 
 GUN_ADLARI = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"]
 DIGER_WEB = "Diğer web"
+DIGER_KATEGORI = "Diğer"
 BILGISAYAR_DISI = "Bilgisayar dışı"
 
 
@@ -24,6 +25,27 @@ class Adlandirici:
         self._adlar = {surec.lower(): ad for surec, ad in ayarlar.get("adlar", {}).items()}
         # {"YouTube": ["YouTube"], "claude.ai": ["Claude"], ...}
         self._siteler = ayarlar.get("siteler", {})
+        # Görünen ad -> kategori, örn. {"vs code": "Kod", "youtube": "Video ve kurs"}
+        self._kategori = {ad.lower(): kategori
+                          for kategori, adlar in ayarlar.get("kategoriler", {}).items() for ad in adlar}
+
+    def kategori(self, gorunen_ad: str) -> str:
+        """'VS Code' -> 'Kod'. Hiçbir kategoride yoksa 'Diğer'."""
+        return self._kategori.get(gorunen_ad.lower(), DIGER_KATEGORI)
+
+    def kategorilere_grupla(self, dokum: list[dict]) -> list[dict]:
+        """Uygulama/site dökümünü kategorilere toplar, çoktan aza.
+
+        Girdi : [{"ad": "VS Code", "sure_sn": 5400, ...}, ...]
+        Çıktı : [{"ad": "Kod", "tur": "kategori", "sure_sn": 5400, "icerik": ["VS Code", ...]}, ...]
+        """
+        gruplar: dict[str, dict] = {}
+        for u in dokum:  # dokum zaten çoktan aza sıralı; içerik de öyle kalır
+            kat = self.kategori(u["ad"])
+            grup = gruplar.setdefault(kat, {"ad": kat, "tur": "kategori", "sure_sn": 0, "icerik": []})
+            grup["sure_sn"] += u["sure_sn"]
+            grup["icerik"].append(u["ad"])
+        return sorted(gruplar.values(), key=lambda g: g["sure_sn"], reverse=True)
 
     def uygulama_adi(self, surec: str) -> str:
         """'Code.exe' -> 'VS Code'. Eşleme yoksa sadece '.exe' uzantısı atılır."""

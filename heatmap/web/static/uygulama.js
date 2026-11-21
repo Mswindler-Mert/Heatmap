@@ -331,7 +331,8 @@ async function dokumuYenile() {
     ilk = new Date(bugun);
     ilk.setDate(bugun.getDate() - ((bugun.getDay() + 6) % 7));
   }
-  const d = await api(`/api/dokum?baslangic=${tarihMetni(ilk)}&bitis=${tarihMetni(bugun)}`);
+  const gruplama = $("dokum-gruplama").value;
+  const d = await api(`/api/dokum?baslangic=${tarihMetni(ilk)}&bitis=${tarihMetni(bugun)}&gruplama=${gruplama}`);
 
   const kutu = $("dokum");
   kutu.replaceChildren();
@@ -345,7 +346,8 @@ async function dokumuYenile() {
     const satir = el("div", "dokum-satir");
     // u.ad: okunabilir ad (ayar dosyasındaki [adlar] ve [siteler] bölümlerinden gelir)
     const ad = el("span", "ad", u.ad);
-    ad.title = u.tur === "site" ? `${u.ad} (web sitesi)` : u.ad;
+    ad.title = u.tur === "kategori" ? `${u.ad}: ${u.icerik.join(", ")}`
+      : u.tur === "site" ? `${u.ad} (web sitesi)` : u.ad;
     const ray = el("div", "ray");
     const dolgu = el("div", "dolgu");
     dolgu.style.width = `${(u.sure_sn / enUzun) * 100}%`;
@@ -514,6 +516,7 @@ $("tarih").addEventListener("change", () => oturumlariYenile(true));
 $("filtre").addEventListener("change", () => oturumlariYenile(true));
 $("kisalari-gizle").addEventListener("change", () => oturumlariYenile(true));
 $("dokum-aralik").addEventListener("change", dokumuYenile);
+$("dokum-gruplama").addEventListener("change", dokumuYenile);
 $("kart-olustur").addEventListener("click", kartiOlustur);
 $("kart-kopyala").addEventListener("click", kartiKopyala);
 $("kart-tarih").value = $("kart-tarih").max = tarihMetni(new Date());  // Gelecek seçilemesin

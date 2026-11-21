@@ -27,7 +27,7 @@ diyor ama anlamı "çalışma / aktif süre".
 - Ortam: Windows 11, **Python 3.14.3**, komut **`py`** (`python` komutu yok), Git kurulu.
 - Çalıştırma: `baslat.bat` (tepsi ikonuyla) ya da `.venv\Scripts\python -m heatmap --tepsisiz --sessiz`.
 - Testler: önce `.venv\Scripts\python -m pip install -r requirements-dev.txt`, sonra
-  `.venv\Scripts\python -m unittest` (şu an 122 test, hepsi geçiyor). pytest yok, ekleme.
+  `.venv\Scripts\python -m unittest` (şu an 135 test, hepsi geçiyor). pytest yok, ekleme.
   GitHub Actions her push'ta Windows'ta aynı testleri çalıştırır.
 
 ### Mimari (tek süreç, üç thread)
@@ -344,8 +344,9 @@ Dosyalar: `ozet.py`, `depo.py` (`uygulama_dokumu`), `dedektorler/baslik.py` (`so
   eşlemesi eklemek. ⚠️ Program `config.toml`'u yeniden yazarsa kullanıcının yorumları silinir
   (`tomllib` yalnızca okur). Programın yazdığı eşlemeleri veritabanında ayrı bir tabloda tut
   (öğrenilen kurallar gibi), ayar dosyasına dokunma.
-- **Kategori:** uygulamaları gruplara ayırma (kod, not, toplantı, video, yapay zekâ). `[kategoriler]`
-  tablosu + dökümde gruplama seçeneği.
+- ✅ **Kategori:** `[kategoriler]` (görünen ad → kategori), `Adlandirici.kategori` ve
+  `kategorilere_grupla`, `/api/dokum?gruplama=kategori`, arayüzde "Kategori" seçeneği.
+  Kalan: 🔲 paylaşım kartında kategori görünümü.
 - `explorer.exe` gibi belirsiz bırakılanlar dökümde yalnızca kullanıcı "çalışmaydı" derse görünür; bu bilinçli.
 
 ### Tuzaklar
@@ -542,6 +543,12 @@ Tuzaklar:
 ---
 
 ## 5. Diğer işler (kısa)
+
+- ✅ **Bu turda eklenenler (kullanıcısız):** `ruff` taraması (`ruff.toml`, yalnızca hata kuralları; CI'da),
+  günlük veritabanı yedeği (`heatmap/yedek.py`, `data/yedek/`, son 7 gün, saatte bir kontrol),
+  düzeltmeyi geri alma (`DELETE /api/oturumlar/{id}/duzelt`; öğrenilen kurallar kalır), kısa
+  oturumları gizleme (arayüz, < 60 sn), CSV dışa aktarma (`heatmap/disa_aktar.py`; `;` ayraç +
+  UTF-8 BOM, başlıklar varsayılan yok), kategoriler.
 
 - **API testleri:** `tests/test_api.py` FastAPI `TestClient` kullanır; `httpx` gerekir
   (`requirements-dev.txt`, CI bunu kurar). ⚠️ `TestClient(app, base_url="http://127.0.0.1")` şart:
