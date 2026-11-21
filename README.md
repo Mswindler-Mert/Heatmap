@@ -129,8 +129,12 @@ zaman kaydedilmez ya da gönderilmez.** Kamera analizi ayrı bir süreçte, kend
 ## Ayarlar
 
 İlk açılışta `config/config.ornek.toml` dosyası `config/config.toml` adıyla kopyalanır.
-Kendi listelerinizi **`config/config.toml`** içinde düzenleyin (tepsi menüsünden de açılır),
-sonra uygulamayı yeniden başlatın.
+
+En kolayı arayüzün en altındaki **Ayarlar** bölümü: günlük hedef, süreler, uygulama ve site
+listeleri, kart yazısı gibi ayarları oradan değiştirip **Ayarları kaydet**'e bas. Değişiklik
+yeniden başlatmadan uygulanır; `config.toml`'daki yorumların korunur ve eski hâlinin kopyası
+`data/yedek/` içine konur. Port, okunabilir adlar, siteler ve kategoriler gibi diğer ayarlar için
+dosyayı elle düzenle (tepsi menüsünde "Ayar dosyasını aç") ve Heatmap'i yeniden başlat.
 
 | Bölüm | Ne ayarlanır |
 |---|---|
@@ -157,6 +161,7 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 | Uç | Açıklama |
 |---|---|
 | `GET /api/surum` | Çalışan sürüm |
+| `GET /api/ayarlar` · `POST /api/ayarlar` (`{"degisiklikler": {"hedef.gunluk_dk": 90}}`) | Düzenlenebilir ayarlar; kaydet ve yeniden başlatmadan uygula |
 | `GET /api/durum` | Şu an algılanan durum, sayaç, bugünkü toplam |
 | `GET /api/ozet/bugun` | Bugünkü ders süresi |
 | `GET /api/ozet/hafta` | Bu haftanın gün gün süreleri |
@@ -254,7 +259,7 @@ Yeni bir tespit modülü eklemek için `heatmap/sinyal.py` içindeki `Dedektor` 
 | `baslat.bat`'a tıkladım, hiçbir şey olmadı | Tepsi ikonuna bak (saatin yanındaki ok ▲ altında gizlenmiş olabilir). Yoksa `data/heatmap.log` dosyasının sonuna bak; çökme varsa "ÇÖKME" başlığıyla yazılır. |
 | "Heatmap başlatılamadı" penceresi çıktı | Pencerede hatanın adı yazar; ayrıntısı `data/heatmap.log` içinde. "İçe aktarma hatası" ise `.venv` klasörünü silip `baslat.bat`'ı yeniden çalıştır. |
 | Arayüzün üstünde sarı "Ayar dosyasında sorun var" kutusu | Kutuda hangi ayarın ve hangi satırın sorunlu olduğu yazar. Tepsiden "Ayar dosyasını aç" ile düzelt, Heatmap'i yeniden başlat. |
-| Ayarı değiştirdim ama bir şey değişmedi | Ayarlar yalnızca açılışta okunur: tepsiden **Çıkış**, sonra `baslat.bat`. |
+| Ayarı değiştirdim ama bir şey değişmedi | Arayüzdeki Ayarlar bölümünden kaydedilenler hemen uygulanır; dosyayı elle düzenlediysen tepsiden **Çıkış**, sonra `baslat.bat`. |
 | Bir uygulama hep "belirsiz" çıkıyor | Düzeltme ekranında "Çalışmaydı / Çalışma değildi" de ve "bundan sonra da böyle say"ı işaretle; ya da süreç adını `config.toml`'daki listeye ekle. |
 | "Modül sinyalleri"nde Tarayıcı satırı "Eklentiden haber yok" diyor | Eklenti kurulu mu (`brave://extensions`)? Heatmap'in portu 8765 değilse eklentideki adresi de değiştir ([eklenti/README.md](eklenti/README.md)). |
 | Paylaşım kartı "Panoya kopyala" çalışmıyor | Tarayıcı izin vermiyor olabilir; "PNG olarak indir"i kullan. |

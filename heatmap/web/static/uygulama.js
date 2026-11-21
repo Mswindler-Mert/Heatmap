@@ -549,6 +549,137 @@ hepsiniYenile(true);
 
 api("/api/surum").then((s) => { $("surum").textContent = `v${s.surum}`; }).catch(() => {});
 
+// ---------- Ayarlar (form, /api/ayarlar'daki alan tanımlarından oluşturulur) ----------
+
+let ayarOkuyucular = {};  // anahtar -> o alanın şu anki değerini veren fonksiyon
+
+function ayarAlani(alan) {
+  const kutu = el("div", "ayar-alan");
+  kutu.dataset.anahtar = alan.anahtar;
+  const kimlik = `ayar-${alan.anahtar.replace(".", "-")}`;
+  const etiket = el("label", "", alan.etiket);
+  etiket.htmlFor = kimlik;
+  const giris = el("div", "giris");
+  let girdi;
+
+  if (alan.tur === "liste") {
+    girdi = el("textarea");
+    girdi.value = (alan.deger || []).join("\n");
+    girdi.rows = Math.min(10, Math.max(3, (alan.deger || []).length + 1));
+    ayarOkuyucular[alan.anahtar] = () => girdi.value.split("\n");
+  } else if (alan.tur === "secim") {
+    girdi = el("select");
+    for (const s of alan.secenekler) {
+      const secenek = el("option", "", s.ad);
+      secenek.value = s.deger;
+      girdi.append(secenek);
+    }
+    girdi.value = alan.deger;
+    ayarOkuyucular[alan.anahtar] = () => girdi.value;
+  } else if (alan.tur === "evet_hayir") {
+    girdi = el("input");
+    girdi.type = "checkbox";
+    girdi.checked = Boolean(alan.deger);
+    ayarOkuyucular[alan.anahtar] = () => girdi.checked;
+  } else if (alan.tur === "tamsayi") {
+    girdi = el("input");
+    girdi.type = "number";
+    girdi.min = alan.en_az;
+    girdi.max = alan.en_cok;
+    girdi.step = 1;
+    girdi.value = alan.deger;
+    // Boş bırakılırsa null gönderilir; sunucu "Tam sayı olmalı" der.
+    ayarOkuyucular[alan.anahtar] = () => (girdi.value.trim() === "" ? null : Number(girdi.value));
+  } else {
+    girdi = el("input");
+    girdi.type = "text";
+    if (alan.en_uzun) girdi.maxLength = alan.en_uzun;
+    girdi.value = alan.deger ?? "";
+    ayarOkuyucular[alan.anahtar] = () => girdi.value;
+  }
+  girdi.id = kimlik;
+
+  const satir = el("div", "satir");
+  satir.append(girdi);
+  if (alan.birim) satir.append(el("span", "soluk", alan.birim));
+  giris.append(satir, el("span", "aciklama", alan.aciklama || ""), el("span", "hata"));
+  kutu.append(etiket, giris);
+  return kutu;
+}
+
+async function ayarlariYukle() {
+  const d = await api("/api/ayarlar");
+  ayarOkuyucular = {};
+  const form = $("ayar-formu");
+  form.replaceChildren(...d.gruplar.map((grup) => {
+    const kume = el("fieldset", "ayar-grup");
+    kume.append(el("legend", "", grup.ad), ...grup.alanlar.map(ayarAlani));
+    return kume;
+  }));
+  $("ayar-kaydet").disabled = !d.kaydedilebilir;
+  if (!d.kaydedilebilir) $("ayar-mesaj").textContent = "Bu çalıştırmada ayarlar arayüzden kaydedilemez.";
+}
+
+function ayarHatalariniGoster(hatalar) {
+  for (const kutu of document.querySelectorAll(".ayar-alan")) {
+    const mesaj = hatalar[kutu.dataset.anahtar] || "";
+    kutu.classList.toggle("hatali", Boolean(mesaj));
+    kutu.querySelector(".hata").textContent = mesaj;
+  }
+}
+
+async function ayarlariKaydet(olay) {
+  olay.preventDefault();
+  const degisiklikler = {};
+  for (const [anahtar, oku] of Object.entries(ayarOkuyucular)) degisiklikler[anahtar] = oku();
+  $("ayar-kaydet").disabled = true;
+  $("ayar-mesaj").textContent = "Kaydediliyor…";
+  try {
+    const yanit = await fetch("/api/ayarlar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Heatmap": "1" },
+      body: JSON.stringify({ degisiklikler }),
+    });
+    const veri = await yanit.json();
+    if (yanit.status === 400 && veri.detail && veri.detail.hatalar) {
+      ayarHatalariniGoster(veri.detail.hatalar);
+      $("ayar-mesaj").textContent = "Kaydedilmedi: işaretli alanları düzelt.";
+      return;
+    }
+    if (!yanit.ok) {
+      $("ayar-mesaj").textContent = `Kaydedilmedi: ${typeof veri.detail === "string" ? veri.detail : yanit.status}`;
+      return;
+    }
+    ayarHatalariniGoster({});
+    $("ayar-mesaj").textContent = veri.degisen.length
+      ? `Kaydedildi ve uygulandı (${veri.degisen.length} ayar değişti).`
+      : "Değişiklik yok.";
+    await ayarlariYukle();
+    await hepsiniYenile(true);  // Hedef, adlar vb. değişmiş olabilir
+    ayarUyarilariniYenile(veri.uyarilar || []);
+  } catch {
+    $("ayar-mesaj").textContent = "Kaydedilemedi: Heatmap'e ulaşılamıyor.";
+  } finally {
+    $("ayar-kaydet").disabled = false;
+  }
+}
+
+function ayarUyarilariniYenile(uyarilar) {
+  $("ayar-uyarisi").hidden = !uyarilar.length;
+  $("ayar-uyari-listesi").replaceChildren(...uyarilar.map((u) => el("li", "", u)));
+}
+
+// Bölüm ilk açıldığında yükle (sayfa açılışını yavaşlatmasın)
+$("ayarlar-bolumu").addEventListener("toggle", () => {
+  if ($("ayarlar-bolumu").open && !Object.keys(ayarOkuyucular).length) ayarlariYukle().catch(() => {});
+});
+$("ayar-formu").addEventListener("submit", ayarlariKaydet);
+$("ayar-geri").addEventListener("click", () => {
+  ayarHatalariniGoster({});
+  $("ayar-mesaj").textContent = "";
+  ayarlariYukle().catch(() => {});
+});
+
 // Ayar dosyası uyarıları (program açılırken bir kez hesaplanır)
 api("/api/ayar-uyarilari").then((uyarilar) => {
   $("ayar-uyarisi").hidden = !uyarilar.length;

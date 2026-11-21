@@ -33,7 +33,7 @@ ikinci kez açıldığında hiçbir taşıma çalışmıyor, testler geçiyor.
 yedek_klasoru=)`, `tests/test_sema.py`. Kullanıcının gerçek veritabanının salt okunur kopyasında
 denendi: aşama 1 olarak tanındı, 2-3-4 uygulandı, 350 oturum ve 2 kural korundu, önce yedek alındı.
 
-## 2. Ayarlar sayfası 🔲
+## 2. Ayarlar sayfası ✅
 
 **Neden:** Bugün her ayar değişikliği Not Defteri'nde TOML düzenlemek ve programı yeniden
 başlatmak demek. Yeni başlayan biri için en büyük sürtünme bu.
@@ -46,6 +46,12 @@ eski dosya yedeklenir.
 
 **Bitti sayılır:** Arayüzden yapılan değişiklik dosyada yorumları bozmadan görünüyor, program
 yeniden başlatılmadan yeni ayarla çalışıyor, yanlış değer (örn. eksi süre) kaydedilmiyor.
+
+**Sonuç:** `heatmap/ayar_duzenleyici.py` (alanlar, doğrulama, `tomlkit` ile yazma), `/api/ayarlar`,
+`api.Ortam` (ayara bağlı nesneler canlı yenilenir), `Takipci.ayarlari_uygula`, `main.ayarlari_yeniden_yukle`,
+arayüzde "Ayarlar" bölümü. Kullanıcının gerçek `config.toml`'unun kopyasında denendi: fark yalnızca
+değişen satırlar, yorumlar yerinde, önce yedek. `baslat.bat` artık `requirements.txt` değişince paket kurar.
+Kalan (ileride): okunabilir adlar / siteler / kategoriler tablolarını da arayüzden düzenlemek.
 
 ## 3. Günlük zaman çizelgesi 🔲
 

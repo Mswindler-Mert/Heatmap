@@ -7,6 +7,10 @@ Sürüm numarası `heatmap/__init__.py` içindeki `__version__` değeridir ve ar
 - Veritabanı şeması artık numaralı sürümlerle güncelleniyor; eski bir veritabanı açılınca eksik
   adımlar sırayla ve önce yedek alınarak uygulanıyor (`data/yedek/heatmap-gocmeden-once-*.db`).
 - Tarih aralığı sorguları için yeni dizin.
+- **Ayarlar sayfası:** günlük hedef, süreler, uygulama ve site listeleri, kart yazısı gibi ayarlar
+  arayüzden değiştirilebiliyor; `config.toml`'daki yorumlar korunuyor, eski hâli yedekleniyor ve
+  değişiklik yeniden başlatmadan uygulanıyor.
+- `baslat.bat`, `requirements.txt` değiştiğinde paketleri kendiliğinden kuruyor.
 
 ## 0.3.0 (2026-11-21)
 

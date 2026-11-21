@@ -27,7 +27,7 @@ diyor ama anlamı "çalışma / aktif süre".
 - Ortam: Windows 11, **Python 3.14.3**, komut **`py`** (`python` komutu yok), Git kurulu.
 - Çalıştırma: `baslat.bat` (tepsi ikonuyla) ya da `.venv\Scripts\python -m heatmap --tepsisiz --sessiz`.
 - Testler: önce `.venv\Scripts\python -m pip install -r requirements-dev.txt`, sonra
-  `.venv\Scripts\python -m unittest` (şu an 155 test, hepsi geçiyor). pytest yok, ekleme.
+  `.venv\Scripts\python -m unittest` (şu an 180 test, hepsi geçiyor). pytest yok, ekleme.
   GitHub Actions her push'ta Windows'ta aynı testleri çalıştırır.
 
 ### Mimari (tek süreç, üç thread)
@@ -346,9 +346,9 @@ Dosyalar: `ozet.py`, `depo.py` (`uygulama_dokumu`), `dedektorler/baslik.py` (`so
   istekte `X-Heatmap: 1` başlığı ister (özel başlık CORS ön kontrolünü tetikler; sunucu CORS
   izni vermediği için yabancı siteler bu isteği gönderemez). ⚠️ Yeni bir `POST` ucu ya da yeni
   bir istemci (dashboard, telefon) yazarken bu başlığı eklemeyi unutma.
-- **Arayüzden düzenleme:** "Diğer web"deki başlıklardan site kuralı, bilinmeyen süreçten ad
-  eşlemesi eklemek. ⚠️ Program `config.toml`'u yeniden yazarsa kullanıcının yorumları silinir
-  (`tomllib` yalnızca okur). Programın yazdığı eşlemeleri veritabanında ayrı bir tabloda tut
+- **Arayüzden düzenleme:** ✅ Ayarlar sayfası var (`heatmap/ayar_duzenleyici.py`, `tomlkit` yorumları
+  korur). Kalan: `[adlar]`, `[siteler]`, `[kategoriler]` tablolarını da düzenlemek (`ALANLAR`'a
+  yeni bir `tablo` türü gerekir). ⚠️ `config.toml`'a ASLA `tomllib`+elle yazma; `dosyaya_yaz` kullan. Programın yazdığı eşlemeleri veritabanında ayrı bir tabloda tut
   (öğrenilen kurallar gibi), ayar dosyasına dokunma.
 - ✅ **Kategori:** `[kategoriler]` (görünen ad → kategori), `Adlandirici.kategori` ve
   `kategorilere_grupla`, `/api/dokum?gruplama=kategori`, arayüzde "Kategori" seçeneği.

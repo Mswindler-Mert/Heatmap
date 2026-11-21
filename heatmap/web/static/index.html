@@ -189,6 +189,24 @@
       <div class="kart-baslik"><h2>Öğrenilen kurallar</h2></div>
       <div id="kurallar" class="kurallar"></div>
     </section>
+
+    <!-- 5) Ayarlar: alanlar /api/ayarlar'dan otomatik oluşturulur (bkz. heatmap/ayar_duzenleyici.py) -->
+    <section class="kart">
+      <details id="ayarlar-bolumu" class="ayarlar">
+        <summary><h2>Ayarlar</h2></summary>
+        <p class="soluk ipucu">
+          Değişiklikler <code>config/config.toml</code> dosyasına yazılır (yorumların korunur, eski hâlinin
+          kopyası <code>data/yedek/</code> içinde saklanır) ve yeniden başlatmadan uygulanır. Port, okunabilir
+          adlar, siteler ve kategoriler gibi ayarlar şimdilik yalnızca dosyadan değiştirilebilir.
+        </p>
+        <form id="ayar-formu" class="ayar-formu" novalidate></form>
+        <div class="ayar-dugmeler">
+          <button type="submit" form="ayar-formu" id="ayar-kaydet" class="dugme vurgu">Ayarları kaydet</button>
+          <button type="button" id="ayar-geri" class="dugme">Değişiklikleri geri al</button>
+          <span id="ayar-mesaj" class="soluk" role="status"></span>
+        </div>
+      </details>
+    </section>
   </main>
 
   <footer class="soluk">
