@@ -1,5 +1,5 @@
 """`py -m heatmap` komutu bu dosyayı çalıştırır."""
 
-from heatmap.main import main
+from heatmap.main import calistir
 
-main()
+calistir()  # main()'i çalıştırır; hata olursa günlüğe yazar ve uyarı penceresi gösterir

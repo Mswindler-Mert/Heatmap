@@ -10,7 +10,9 @@ import socket
 import sys
 import threading
 import time
+import traceback
 import webbrowser
+from datetime import datetime
 from pathlib import Path
 
 import uvicorn
@@ -29,11 +31,14 @@ from heatmap.web.api import uygulama_olustur
 from heatmap.yedek import YedekZamanlayici
 
 
+GUNLUK_DOSYASI = VERI_KLASORU / "heatmap.log"
+
+
 def _ciktiyi_dosyaya_yonlendir() -> None:
     """Konsolsuz (pythonw.exe ile) çalışırken print çıktıları kaybolmasın, dosyaya gitsin."""
     if sys.stdout is not None:
         return  # Normal terminalde çalışıyoruz, dokunma
-    gunluk = VERI_KLASORU / "heatmap.log"
+    gunluk = GUNLUK_DOSYASI
     # Dosya çok büyüdüyse baştan başla.
     if gunluk.exists() and gunluk.stat().st_size > 1_000_000:
         gunluk.unlink()
@@ -90,6 +95,42 @@ def dedektorleri_kur(ayarlar: dict, depo: Depo) -> list:
     if ayarlar["kamera"]["etkin"]:
         dedektorler.append(KameraDedektoru(ayarlar))
     return dedektorler
+
+
+def hata_penceresi(mesaj: str) -> None:
+    """Windows uyarı penceresi gösterir (konsolsuz çalışırken kullanıcı hatayı görsün diye)."""
+    import ctypes
+    MB_ICONERROR, MB_TOPMOST = 0x10, 0x40000
+    ctypes.windll.user32.MessageBoxW(None, mesaj, "Heatmap", MB_ICONERROR | MB_TOPMOST)
+
+
+def calistir(ana=None, pencere=hata_penceresi, gunluk=None) -> None:
+    """main()'i çalıştırır. Beklenmeyen bir hata olursa programı sessizce kapatmak yerine:
+    hatayı günlük dosyasına yazar ve konsolsuz çalışıyorsa bir uyarı penceresi gösterir.
+
+    ana / pencere / gunluk parametreleri testler içindir.
+    """
+    ana = ana or main
+    gunluk = gunluk or GUNLUK_DOSYASI
+    konsolsuz = sys.stdout is None or getattr(sys.stdout, "name", "") == str(gunluk)
+    try:
+        ana()
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except Exception as hata:  # Programın en dış katmanı: her türlü hatayı yakala
+        ayrinti = traceback.format_exc()
+        try:
+            gunluk.parent.mkdir(parents=True, exist_ok=True)
+            with open(gunluk, "a", encoding="utf-8") as dosya:
+                dosya.write(f"\n=== ÇÖKME {datetime.now():%Y-%m-%d %H:%M:%S} ===\n{ayrinti}\n")
+        except OSError:
+            pass
+        if konsolsuz or sys.stdout is None:
+            pencere(f"Heatmap başlatılamadı ya da beklenmedik biçimde kapandı.\n\n"
+                    f"{type(hata).__name__}: {hata}\n\nAyrıntılar: {gunluk}")
+        else:
+            print(ayrinti, file=sys.stderr)
+        raise SystemExit(1) from hata
 
 
 def main() -> None:
