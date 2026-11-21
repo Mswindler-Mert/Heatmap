@@ -320,6 +320,18 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
 
         return {"tamam": True, "ogrenilenler": ogrenilenler, "benzer_duzeltilen": benzer_sayisi}
 
+    @app.delete("/api/oturumlar/{oturum_id}/duzelt")
+    def duzeltmeyi_geri_al(oturum_id: int):
+        """Oturumdaki düzeltmeyi kaldırır; oturum yine programın kararıyla sayılır.
+
+        Düzeltme sırasında öğrenilen kurallar SİLİNMEZ (onlar "Öğrenilen kurallar" listesinden silinir).
+        """
+        oturum = depo.oturum_getir(oturum_id)
+        if oturum is None:
+            raise HTTPException(404, "Oturum bulunamadı")
+        depo.oturum_duzelt(oturum_id, None)
+        return {"tamam": True, "hukum": oturum["hukum"]}
+
     @app.delete("/api/kurallar/{kural_id}")
     def kural_sil(kural_id: int):
         if not depo.kural_sil(kural_id):

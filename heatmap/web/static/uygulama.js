@@ -370,6 +370,10 @@ async function oturumlariYenile(zorla) {
   if ($("filtre").value === "belirsiz") {
     oturumlar = oturumlar.filter((o) => o.etkin_hukum === "belirsiz");
   }
+  // 1 dakikadan kısa geçişler listeyi doldurmasın (süren oturum her zaman görünür).
+  const gizlenen = $("kisalari-gizle").checked
+    ? oturumlar.filter((o) => o.sure_sn < 60 && !o.suruyor).length : 0;
+  if (gizlenen) oturumlar = oturumlar.filter((o) => o.sure_sn >= 60 || o.suruyor);
 
   const kutu = $("oturumlar");
   kutu.replaceChildren();
@@ -377,9 +381,11 @@ async function oturumlariYenile(zorla) {
     kutu.append(el("div", "bos", $("filtre").value === "belirsiz"
       ? "Karar bekleyen oturum yok."
       : "Bu gün için kayıt yok."));
+    if (gizlenen) kutu.append(el("div", "soluk", `${gizlenen} kısa oturum gizlendi.`));
     return;
   }
   for (const o of oturumlar) kutu.append(oturumSatiri(o));
+  if (gizlenen) kutu.append(el("div", "soluk", `${gizlenen} kısa oturum gizlendi.`));
 }
 
 function oturumSatiri(o) {
@@ -398,7 +404,16 @@ function oturumSatiri(o) {
   const ust = el("div", "ust-satir");
   ust.append(rozet(o.etkin_hukum), el("span", "ad", o.uygulama || KAYNAK_ADI[o.kaynak] || ""));
   if (o.alan_adi) ust.append(el("span", "soluk", o.alan_adi));  // eklentiden gelen site adı
-  if (o.duzeltme) ust.append(el("span", "soluk", "(sen düzelttin)"));
+  if (o.duzeltme) {
+    ust.append(el("span", "soluk", "(sen düzelttin)"));
+    const geriAl = el("button", "dugme kucuk", "Geri al");
+    geriAl.title = "Düzeltmeyi kaldırır; öğrenilen kurallar kalır (onları aşağıdan silebilirsin).";
+    geriAl.addEventListener("click", async () => {
+      await apiGonder(`/api/oturumlar/${o.id}/duzelt`, "DELETE");
+      await hepsiniYenile(true);
+    });
+    ust.append(geriAl);
+  }
   bilgi.append(ust, el("div", "baslik-metin", o.baslik || ""), el("div", "soluk", o.aciklama || ""));
 
   // Düzeltme araçları
@@ -497,6 +512,7 @@ function gunKaydir(fark) {
 $("tarih").value = tarihMetni(new Date());
 $("tarih").addEventListener("change", () => oturumlariYenile(true));
 $("filtre").addEventListener("change", () => oturumlariYenile(true));
+$("kisalari-gizle").addEventListener("change", () => oturumlariYenile(true));
 $("dokum-aralik").addEventListener("change", dokumuYenile);
 $("kart-olustur").addEventListener("click", kartiOlustur);
 $("kart-kopyala").addEventListener("click", kartiKopyala);

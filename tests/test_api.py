@@ -122,6 +122,16 @@ class ApiTesti(unittest.TestCase):
         self.assertEqual(self.istemci.get("/api/kart?tur=bilinmeyen").status_code, 422)
 
     # --- Düzeltme ve öğrenme ----------------------------------------------
+    def test_duzeltme_geri_alinir_kural_kalir(self):
+        oid = self.oturum_ekle("Bilinmeyen.exe", "pencere", "x", 10)
+        self.depo.oturum_duzelt(oid, "ders")  # elle "çalışmaydı" denmiş gibi
+        self.depo.kural_ekle("surec", "Bilinmeyen.exe", "ders")
+        y = self.istemci.delete(f"/api/oturumlar/{oid}/duzelt", headers=BASLIK)
+        self.assertEqual(y.status_code, 200)
+        self.assertIsNone(self.depo.oturum_getir(oid)["duzeltme"])
+        self.assertEqual(len(self.istemci.get("/api/kurallar").json()), 1)
+        self.assertEqual(self.istemci.delete("/api/oturumlar/9999/duzelt", headers=BASLIK).status_code, 404)
+
     def test_duzeltme_site_kurali_ogrenir(self):
         oid = self.oturum_ekle("brave.exe", "baslik", "Bir sayfa", 10, alan_adi="geeksforgeeks.org")
         y = self.istemci.post(f"/api/oturumlar/{oid}/duzelt",

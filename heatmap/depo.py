@@ -135,7 +135,8 @@ class Depo:
             ).fetchall()
             return [dict(s) for s in satirlar]
 
-    def oturum_duzelt(self, oturum_id: int, hukum: str) -> None:
+    def oturum_duzelt(self, oturum_id: int, hukum: str | None) -> None:
+        """Oturumun hükmünü düzeltir. hukum=None düzeltmeyi geri alır (programın kararına döner)."""
         with self._baglan() as vt:
             vt.execute("UPDATE oturumlar SET duzeltme = ? WHERE id = ?", (hukum, oturum_id))
 
