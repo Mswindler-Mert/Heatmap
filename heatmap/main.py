@@ -278,7 +278,7 @@ def main() -> None:
         pass
     finally:
         # --- Düzgün kapanış: açık oturumu veritabanına yaz ---
-        mini_sayac.kapat()
+        mini_sayac.sonlandir()
         takipci.durdur()
         if yedekci:
             yedekci.durdur()

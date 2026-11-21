@@ -9,6 +9,7 @@ bugünkü çalışma süresi, hedef yüzdesi ve genel durum (çalışıyor/durdu
 """
 
 from collections.abc import Callable
+import gc
 import threading
 import time
 import webbrowser
@@ -97,47 +98,57 @@ class MiniSayac:
         self.adres = adres
         self._kilit = threading.Lock()
         self._thread: threading.Thread | None = None
-        self._acik = False
-        self._kapat_istendi = False
+        self._gorunur = False
+        self._sonlandir = False
         self._konum: tuple[int, int] | None = None  # Son bırakılan ekran konumu (x, y)
 
     @property
     def acik(self) -> bool:
         with self._kilit:
-            return self._acik
+            return self._gorunur
 
     def ac(self) -> bool:
-        """Mini sayacı açar (zaten açıksa dokunmaz). Açık durumunu döndürür."""
+        """Mini sayacı görünür yapar (Tkinter thread'ini ilk açılışta bir kez başlatır)."""
         with self._kilit:
-            if self._acik:
-                return True
-            self._kapat_istendi = False
-            self._acik = True
-            self._thread = threading.Thread(target=self._pencere_dongusu, name="mini-sayac", daemon=True)
-            self._thread.start()
+            self._sonlandir = False
+            self._gorunur = True
+            if self._thread is None or not self._thread.is_alive():
+                self._thread = threading.Thread(target=self._pencere_dongusu, name="mini-sayac", daemon=True)
+                self._thread.start()
             return True
 
     def kapat(self) -> bool:
-        """Mini sayacı kapatır (Heatmap çalışmaya devam eder)."""
+        """Mini sayacı gizler (Heatmap çalışmaya devam eder; tekrar açmak anında olur)."""
         with self._kilit:
-            self._kapat_istendi = True
+            self._gorunur = False
+        return False
+
+    def sonlandir(self) -> None:
+        """Program kapanırken Tkinter thread'ini tamamen kapatır."""
+        with self._kilit:
+            self._gorunur = False
+            self._sonlandir = True
             thread = self._thread
         if thread is not None and thread.is_alive() and threading.current_thread() is not thread:
-            thread.join(timeout=1.5)
-        return self.acik
+            thread.join(timeout=2.0)
 
     def degistir(self) -> bool:
-        """Açıksa kapatır, kapalıysa açar; yeni durumu döndürür."""
+        """Açıksa gizler, kapalıysa gösterir; yeni durumu döndürür."""
         return self.kapat() if self.acik else self.ac()
 
     def _pencere_dongusu(self) -> None:
         try:
-            import tkinter as tk
+            self._pencere_calistir()
         except Exception as hata:
-            print(f"UYARI: Mini sayaç açılamadı ({hata}).", flush=True)
+            print(f"UYARI: Mini sayaç hatası ({hata}).", flush=True)
+        finally:
+            # Tkinter nesnelerini kendi thread'inde temizle (Tcl_AsyncDelete hatasını önler).
+            gc.collect()
             with self._kilit:
-                self._acik = False
-            return
+                self._gorunur = False
+
+    def _pencere_calistir(self) -> None:
+        import tkinter as tk
 
         genislik, yukseklik = 248, 86
         kok = tk.Tk()
@@ -193,15 +204,15 @@ class MiniSayac:
         def duraklat_degistir():
             self.takipci.duraklat(not self.takipci.duraklatildi)
 
-        def pencereyi_kapat():
+        def pencereyi_gizle():
             with self._kilit:
-                self._kapat_istendi = True
+                self._gorunur = False
 
         dugme_stili = {"bg": RENK_ZEMIN, "fg": RENK_SOLUK, "activebackground": RENK_RAY,
                        "activeforeground": RENK_YAZI, "bd": 0, "highlightthickness": 0,
                        "cursor": "hand2", "font": ("Segoe UI", 10)}
 
-        kapat_dugme = tk.Button(ust, text="✕", command=pencereyi_kapat, **dugme_stili)
+        kapat_dugme = tk.Button(ust, text="✕", command=pencereyi_gizle, **dugme_stili)
         kapat_dugme.pack(side="right", padx=(2, 0))
 
         duraklat_dugme = tk.Button(ust, text="⏸", command=duraklat_degistir, **dugme_stili)
@@ -219,9 +230,9 @@ class MiniSayac:
         # Alt satır: durum (veya odak kronometresi) + kalan hedef
         alt = tk.Frame(ic, bg=RENK_ZEMIN)
         alt.pack(fill="x")
-        alt_sol = tk.Label(alt, text="bağlanıyor…", bg=RENK_ZEMIN, fg=RENK_SOLUK, font=("Segoe UI", 8.5))
+        alt_sol = tk.Label(alt, text="bağlanıyor…", bg=RENK_ZEMIN, fg=RENK_SOLUK, font=("Segoe UI", 9))
         alt_sol.pack(side="left")
-        alt_sag = tk.Label(alt, text="", bg=RENK_ZEMIN, fg=RENK_SOLUK, font=("Segoe UI", 8.5))
+        alt_sag = tk.Label(alt, text="", bg=RENK_ZEMIN, fg=RENK_SOLUK, font=("Segoe UI", 9))
         alt_sag.pack(side="right")
 
         # Sürükle-taşı ve çift tıkla arayüzü aç
@@ -244,29 +255,36 @@ class MiniSayac:
             eleman.bind("<B1-Motion>", tasi)
             eleman.bind("<Double-Button-1>", arayuzu_ac)
 
+        ekranda = {"durum": True}
+
         def guncelle():
-            if self._kapat_istendi:
+            if self._sonlandir:
                 kok.destroy()
                 return
-            try:
-                odak_sn = int(time.monotonic() - odak["baslangic"]) if odak["aktif"] else None
-                v = mini_gorunum_verisi(self.takipci.durum(), self.hedef_kaynagi(), odak_sn)
-                nokta_tuval.itemconfig(nokta_daire, fill=v["nokta_renk"])
-                sayac_etiket.configure(text=v["zaman"])
-                yuzde_etiket.configure(text=v["yuzde"], fg=v["cubuk_renk"])
-                cubuk.coords(cubuk_dolgu, 0, 0, round(cubuk_genislik * v["cubuk_oran"]), 5)
-                cubuk.itemconfig(cubuk_dolgu, fill=v["cubuk_renk"])
-                alt_sol.configure(text=v["alt_sol"], fg=RENK_MAVI if odak["aktif"] else RENK_SOLUK)
-                alt_sag.configure(text=v["alt_sag"])
-                duraklat_dugme.configure(text="▶" if v["duraklatildi"] else "⏸")
-            except Exception:
-                pass
-            kok.after(400, guncelle)
+            hedef_gorunur = self.acik
+            if hedef_gorunur and not ekranda["durum"]:
+                kok.deiconify()
+                kok.attributes("-topmost", True)
+                ekranda["durum"] = True
+            elif not hedef_gorunur and ekranda["durum"]:
+                kok.withdraw()
+                ekranda["durum"] = False
+
+            if ekranda["durum"]:
+                try:
+                    odak_sn = int(time.monotonic() - odak["baslangic"]) if odak["aktif"] else None
+                    v = mini_gorunum_verisi(self.takipci.durum(), self.hedef_kaynagi(), odak_sn)
+                    nokta_tuval.itemconfig(nokta_daire, fill=v["nokta_renk"])
+                    sayac_etiket.configure(text=v["zaman"])
+                    yuzde_etiket.configure(text=v["yuzde"], fg=v["cubuk_renk"])
+                    cubuk.coords(cubuk_dolgu, 0, 0, round(cubuk_genislik * v["cubuk_oran"]), 5)
+                    cubuk.itemconfig(cubuk_dolgu, fill=v["cubuk_renk"])
+                    alt_sol.configure(text=v["alt_sol"], fg=RENK_MAVI if odak["aktif"] else RENK_SOLUK)
+                    alt_sag.configure(text=v["alt_sag"])
+                    duraklat_dugme.configure(text="▶" if v["duraklatildi"] else "⏸")
+                except Exception:
+                    pass
+            kok.after(250, guncelle)
 
         kok.after(50, guncelle)
-        try:
-            kok.mainloop()
-        finally:
-            with self._kilit:
-                self._acik = False
-                self._kapat_istendi = False
+        kok.mainloop()
