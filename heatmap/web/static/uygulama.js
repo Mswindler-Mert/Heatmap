@@ -13,6 +13,7 @@ const HUKUM_ADI = {
 };
 const KAYNAK_ADI = { pencere: "Pencere", tarayici: "Tarayıcı", baslik: "Başlık", bosta: "Boşta", kamera: "Kamera", motor: "Motor" };
 const KURAL_TURU = { surec: "Uygulama", baslik: "Tam başlık", kelime: "Kelime", alan: "Site" };
+const HALKA_CEVRE = 2 * Math.PI * 66;  // SVG r=66 çember çevresi (~414.69)
 
 const $ = (id) => document.getElementById(id);
 
@@ -66,37 +67,126 @@ function rozet(hukum) {
   return el("span", `rozet ${hukum}`, HUKUM_ADI[hukum] || hukum);
 }
 
-// ---------- 1) Şu an ----------
+// ---------- Sol menü sekme yönetimi ----------
+
+let aktifSayfa = "ozet";
+let kartIlkAcildi = false;
+
+function sayfaAc(ad) {
+  aktifSayfa = ad;
+  for (const s of document.querySelectorAll(".sayfa")) {
+    s.classList.toggle("aktif", s.id === `sayfa-${ad}`);
+  }
+  for (const m of document.querySelectorAll(".menu-oge")) {
+    m.classList.toggle("aktif", m.dataset.sayfa === ad);
+  }
+  if (ad === "bekleyenler") {
+    bekleyenleriYenile().catch(() => {});
+  } else if (ad === "ayarlar" && !Object.keys(ayarOkuyucular).length) {
+    ayarlariYukle().catch(() => {});
+  } else if (ad === "kart" && !kartIlkAcildi) {
+    kartIlkAcildi = true;
+    kartiOlustur();
+  } else if (ad === "oturumlar") {
+    oturumlariYenile(true).catch(() => {});
+  }
+}
+
+for (const dugme of document.querySelectorAll(".menu-oge")) {
+  dugme.addEventListener("click", () => sayfaAc(dugme.dataset.sayfa));
+}
+$("kpi-bekleyen-kart").addEventListener("click", () => sayfaAc("bekleyenler"));
+
+// ---------- 1) Şu an ve hedef halkası ----------
 
 let duraklatildi = false;
+let sonBugunSn = 0;
+let gunlukHedefSn = 0;
+
+function hedefHalkasiniGuncelle() {
+  const dolgu = $("halka-dolgu");
+  const kutu = $("hedef-halka-kutu");
+  const hap = $("motivasyon-hap");
+  if (!gunlukHedefSn) {
+    dolgu.style.strokeDashoffset = String(HALKA_CEVRE);
+    $("halka-yuzde").textContent = "—";
+    $("halka-hedef").textContent = "hedef kapalı";
+    $("hedef-mesaj").textContent = "";
+    hap.hidden = true;
+    return;
+  }
+  const oran = sonBugunSn / gunlukHedefSn;
+  const yuzde = Math.round(oran * 100);
+  const sinirli = Math.min(1, Math.max(0, oran));
+  dolgu.style.strokeDashoffset = String(HALKA_CEVRE * (1 - sinirli));
+  kutu.classList.toggle("tamam", oran >= 1);
+  $("halka-yuzde").textContent = `%${yuzde}`;
+  $("halka-hedef").textContent = `hedef ${sureBicimi(gunlukHedefSn)}`;
+
+  if (sonBugunSn === 0) {
+    $("hedef-mesaj").textContent = "Başlamaya hazırsın — çalışma uygulamanı açınca sayaç otomatik başlar.";
+    hap.hidden = true;
+  } else if (oran < 0.5) {
+    const kalan = Math.max(0, gunlukHedefSn - sonBugunSn);
+    $("hedef-mesaj").textContent = `İyi başlangıç · Günlük hedefe ${sureBicimi(kalan)} kaldı.`;
+    hap.hidden = true;
+  } else if (oran < 1) {
+    const kalan = Math.max(0, gunlukHedefSn - sonBugunSn);
+    $("hedef-mesaj").textContent = `Harika gidiyorsun! Günlük hedefe sadece ${sureBicimi(kalan)} kaldı.`;
+    hap.textContent = `Hedefe %${yuzde} yaklaştın`;
+    hap.hidden = false;
+  } else {
+    const ekstra = sonBugunSn - gunlukHedefSn;
+    $("hedef-mesaj").textContent = ekstra >= 60
+      ? `Günlük hedef tamamlandı! (+${sureBicimi(ekstra)} ekstra)`
+      : "Günlük hedef tamamlandı!";
+    hap.textContent = "Günlük hedef tamamlandı";
+    hap.hidden = false;
+  }
+}
 
 async function durumuYenile() {
   let d;
   try {
     d = await api("/api/durum");
   } catch {
-    $("baglanti").textContent = "bağlantı yok (uygulama kapalı olabilir)";
+    $("baglanti").textContent = "Bağlantı yok (uygulama kapalı olabilir)";
+    $("mini-etiket").textContent = "Bağlantı yok";
+    $("mini-nokta").className = "canli-nokta";
     return;
   }
   $("baglanti").textContent = "";
   duraklatildi = d.duraklatildi;
   $("duraklat-dugme").textContent = duraklatildi ? "Takibe devam et" : "Takibi duraklat";
 
-  $("sayac").textContent = saatBicimi(d.bugun_ders_sn);
+  sonBugunSn = d.bugun_ders_sn;
+  const saat = saatBicimi(d.bugun_ders_sn);
+  $("sayac").textContent = saat;
+  $("mini-sayac").textContent = saat;
+  hedefHalkasiniGuncelle();
 
   const r = $("durum-rozet");
+  const nokta = $("mini-nokta");
   if (duraklatildi) {
     r.className = "rozet";
     r.textContent = "DURAKLATILDI";
+    nokta.className = "canli-nokta";
+    $("mini-etiket").textContent = "Takip duraklatıldı";
   } else if (d.calisiyor) {
     r.className = "rozet ders";
     r.textContent = "● SAYAÇ ÇALIŞIYOR";
+    nokta.className = "canli-nokta ders";
+    $("mini-etiket").textContent = (d.anlik && d.anlik.uygulama) || "Çalışma sayılıyor";
   } else if (d.hukum === "belirsiz") {
     r.className = "rozet belirsiz";
     r.textContent = "BELİRSİZ · sayılmıyor";
+    nokta.className = "canli-nokta belirsiz";
+    $("mini-etiket").textContent = "Belirsiz · sayılmıyor";
   } else {
     r.className = "rozet ders_degil";
     r.textContent = "SAYAÇ DURDU";
+    nokta.className = "canli-nokta ders_degil";
+    $("mini-etiket").textContent = "Sayaç durdu";
   }
 
   // Tolerans süresi dolmayı bekleyen değişiklik
@@ -119,33 +209,53 @@ async function durumuYenile() {
   }
 }
 
-// ---------- 2) Bu hafta ----------
+// ---------- 2) Bu hafta ve seri ----------
 
 async function haftayiYenile() {
-  const h = await api("/api/ozet/hafta");
-  // Çubuk yükseklikleri haftanın en uzun gününe göre oranlanır (en az 1 saatlik ölçek).
-  const enUzun = Math.max(3600, ...h.gunler.map((g) => g.ders_sn));
+  const [h, s] = await Promise.all([api("/api/ozet/hafta"), api("/api/seri")]);
+  gunlukHedefSn = s.hedef_sn || 0;
+  hedefHalkasiniGuncelle();
+
+  // Çubuk yükseklikleri haftanın en uzun gününe veya günlük hedefe göre oranlanır (en az 1 saat).
+  const enUzun = Math.max(3600, gunlukHedefSn, ...h.gunler.map((g) => g.ders_sn));
   const kutu = $("hafta");
   kutu.replaceChildren();
   for (const g of h.gunler) {
-    const gun = el("div", g.bugun ? "gun bugun" : "gun");
+    const siniflar = ["gun"];
+    if (g.bugun) siniflar.push("bugun");
+    if (gunlukHedefSn && g.ders_sn >= gunlukHedefSn) siniflar.push("hedef-tamam");
+    const gun = el("div", siniflar.join(" "));
     const cubuk = el("div", "cubuk");
-    cubuk.style.height = `${(g.ders_sn / enUzun) * 100}%`;
+    // Üstte ve altta etiket boşluğu olduğu için çubuk yüksekliğini %78 içine ölçekle
+    cubuk.style.height = `${Math.max(2, (g.ders_sn / enUzun) * 78)}%`;
     cubuk.title = `${g.tarih}: ${sureBicimi(g.ders_sn)}`;
     gun.append(el("div", "deger", g.ders_sn ? sureBicimi(g.ders_sn) : "–"), cubuk, el("div", "ad", g.gun_adi));
     kutu.append(gun);
   }
+
+  // Haftalık grafikte yatay kesikli hedef çizgisi
+  const hedefCizgi = $("hafta-hedef-cizgi");
+  if (gunlukHedefSn > 0) {
+    const oran = (gunlukHedefSn / enUzun) * 78;
+    // Alttaki gün adı (~24px) üstüne konumlandır
+    hedefCizgi.style.bottom = `calc(24px + ${oran}%)`;
+    $("hafta-hedef-etiket").textContent = `Hedef ${sureBicimi(gunlukHedefSn)}`;
+    hedefCizgi.hidden = false;
+  } else {
+    hedefCizgi.hidden = true;
+  }
+
   $("hafta-toplam").textContent = `Toplam: ${sureBicimi(h.toplam_sn)}`;
+  $("kpi-hafta").textContent = sureBicimi(h.toplam_sn);
+  const gecenGun = h.gunler.findIndex((g) => g.bugun) + 1 || 7;
+  $("kpi-hafta-ort").textContent = `Günlük ort: ${sureBicimi(Math.round(h.toplam_sn / gecenGun))}`;
 
   // Günlerin altında sağlık verisi (yalnızca hafta içinde en az bir kayıt varsa)
   const saglikVar = h.gunler.some((g) => g.adim != null || g.egzersiz_dk != null || g.uyku_dk != null);
   $("hafta-saglik").replaceChildren(...(saglikVar ? h.gunler.map(saglikHucresi) : []));
 
-  // Seri: günlük hedefe üst üste kaç gündür ulaşıldı
-  const s = await api("/api/seri");
-  $("seri").textContent = s.hedef_sn
-    ? `Seri: ${s.seri_gun} gün · Günlük hedef: ${sureBicimi(s.hedef_sn)} · `
-    : "";
+  $("seri").textContent = s.hedef_sn ? `Hedef: ${sureBicimi(s.hedef_sn)}` : "";
+  $("kpi-seri").textContent = `${s.seri_gun} gün`;
 }
 
 // ---------- Kamera (yalnızca modül etkinse) ----------
@@ -218,7 +328,7 @@ function sayiVeyaNull(id, carpan = 1) {
 }
 
 async function saglikKaydet(olay) {
-  olay.preventDefault();  // Formun sayfayı yeniden yüklemesini engelle
+  olay.preventDefault();
   try {
     await apiGonder("/api/saglik", "POST", {
       tarih: $("saglik-tarih").value,
@@ -246,14 +356,13 @@ async function saglikSil() {
 
 // ---------- Öğrenen tahmin ve karar bekleyenler ----------
 
-// "Tahmin: Çalışma %87" rozeti; üzerine gelince hangi kelimelerden çıkarıldığı görünür.
 function oneriRozeti(oneri) {
-  const rozet = el("span", `oneri ${oneri.hukum}`,
+  const rozetEl = el("span", `oneri ${oneri.hukum}`,
     `Tahmin: ${oneri.hukum === "ders" ? "çalışma" : "çalışma değil"} %${Math.round(oneri.olasilik * 100)}`);
-  rozet.title = oneri.kelimeler && oneri.kelimeler.length
+  rozetEl.title = oneri.kelimeler && oneri.kelimeler.length
     ? `Benzer başlıklardan öğrenildi; en etkili kelimeler: ${oneri.kelimeler.join(", ")}`
     : "Benzer başlıklardan öğrenildi";
-  return rozet;
+  return rozetEl;
 }
 
 async function tahminBilgisiniYenile() {
@@ -263,7 +372,7 @@ async function tahminBilgisiniYenile() {
   else if (!b.hazir) yazi = `Tahmin modeli için daha fazla karar gerekiyor (${b.ornek_sayisi}/${b.en_az_ornek} farklı başlık).`;
   else {
     yazi = `Tahmin modeli ${b.ornek_sayisi} farklı başlıktan öğrendi`;
-    if (b.dogruluk != null) yazi += `; denemede tahminlerin %${Math.round(b.dogruluk * 100)}'i doğru`;
+    if (b.dogruluk != null) yazi += `; çapraz doğrulamada tahminlerin %${Math.round(b.dogruluk * 100)}'i doğru`;
     yazi += ". Sen karar verdikçe gelişir.";
   }
   $("tahmin-bilgisi").textContent = yazi;
@@ -295,7 +404,7 @@ function bekleyenSatiri(k) {
   const karar = async (hukum) => {
     dersti.disabled = degildi.disabled = true;
     await apiGonder("/api/karar-bekleyenler", "POST", { tur: k.tur, deger: k.deger, hukum, ogren: ogren.checked });
-    satir.remove();  // Hemen kaybolsun; liste ve öneriler arkadan yenilenir
+    satir.remove();
     await Promise.all([bekleyenleriYenile(), hepsiniYenile(true)]);
   };
   dersti.addEventListener("click", () => karar("ders"));
@@ -306,10 +415,16 @@ function bekleyenSatiri(k) {
 
 async function bekleyenleriYenile() {
   const liste = await api("/api/karar-bekleyenler");
-  $("bekleyen-sayisi").textContent = liste.length ? `(${liste.length})` : "";
-  if ($("bekleyenler-bolumu").open) {
-    $("bekleyenler").replaceChildren(...(liste.length ? liste.map(bekleyenSatiri)
-      : [el("div", "bos", "Karar bekleyen başlık ya da uygulama yok.")]));
+  const sayi = liste.length;
+  $("bekleyen-sayisi").textContent = sayi ? `(${sayi})` : "";
+  $("kpi-bekleyen").textContent = String(sayi);
+  const menuRozet = $("menu-bekleyen-rozet");
+  menuRozet.textContent = String(sayi);
+  menuRozet.hidden = sayi === 0;
+
+  if (aktifSayfa === "bekleyenler") {
+    $("bekleyenler").replaceChildren(...(sayi ? liste.map(bekleyenSatiri)
+      : [el("div", "bos", "Harika! Karar bekleyen başlık ya da uygulama yok.")]));
     tahminBilgisiniYenile().catch(() => {});
   }
 }
@@ -322,8 +437,6 @@ async function isiHaritasiniYenile() {
   const v = await api("/api/isi-haritasi");
   const bugun = tarihMetni(new Date());
 
-  // Kareler: API günleri Pazartesi'den başlayarak sırayla verir; CSS ızgarası
-  // (grid-auto-flow: column) her 7 kareyi bir sütuna (haftaya) dizer.
   const izgara = $("isi-izgara");
   izgara.replaceChildren();
   for (const g of v.gunler) {
@@ -337,7 +450,6 @@ async function isiHaritasiniYenile() {
     izgara.append(kare);
   }
 
-  // Ay etiketleri: bir ayın ilk günü hangi haftadaysa etiket o sütunun üstüne yazılır.
   const haftaSayisi = v.gunler.length / 7;
   const etiketler = [];
   let oncekiAy = -1;
@@ -346,12 +458,10 @@ async function isiHaritasiniYenile() {
     etiketler.push(ay !== oncekiAy && hafta < haftaSayisi - 2 ? AY_KISA[ay] : "");
     oncekiAy = ay;
   }
-  // İlk sütundaki ay birkaç hafta sonra bitiyorsa iki etiket üst üste biner; ilkini at.
   const ikinci = etiketler.findIndex((e, i) => i > 0 && e);
   if (ikinci > 0 && ikinci < 3) etiketler[0] = "";
   $("isi-aylar").replaceChildren(...etiketler.map((e) => el("span", "", e)));
 
-  // Dar ekranda harita yatay kayar; en yeni haftalar (sağ uç) görünsün.
   const kaydirma = document.querySelector(".isi-kaydirma");
   kaydirma.scrollLeft = kaydirma.scrollWidth;
 
@@ -361,6 +471,11 @@ async function isiHaritasiniYenile() {
   $("isi-seri").textContent = v.hedef_sn
     ? `Hedef tutan gün: ${v.hedef_gunu} · Şu anki seri: ${v.simdiki_seri} gün · En uzun seri: ${v.en_uzun_seri} gün`
     : "";
+
+  // KPI kartlarını ısı haritası özetinden güncelle
+  $("kpi-en-uzun-seri").textContent = `En uzun: ${v.en_uzun_seri} gün`;
+  $("kpi-hedef-gunu").textContent = String(v.hedef_gunu);
+  $("kpi-aktif-gun").textContent = `${v.aktif_gun} aktif gün (son 12 ay)`;
 }
 
 // ---------- Paylaşım kartı ----------
@@ -372,14 +487,11 @@ function kartAdresi() {
 }
 
 function kartiOlustur() {
-  // Sondaki zaman damgası, tarayıcının eski resmi önbellekten göstermesini engeller.
   $("kart-resim").src = `${kartAdresi()}&t=${Date.now()}`;
   $("kart-indir").href = `${kartAdresi()}&indir=true`;
   $("kart-mesaj").textContent = "";
-  $("kart-onizleme").hidden = false;
 }
 
-// Kartı resim olarak panoya kopyalar: Instagram/WhatsApp masaüstünde Ctrl+V ile yapıştırılabilir.
 async function kartiKopyala() {
   try {
     const yanit = await fetch(kartAdresi());
@@ -387,17 +499,16 @@ async function kartiKopyala() {
     await navigator.clipboard.write([new ClipboardItem({ "image/png": resim })]);
     $("kart-mesaj").textContent = "Panoya kopyalandı.";
   } catch {
-    $("kart-mesaj").textContent = "Kopyalanamadı; tarayıcın izin vermiyor olabilir. PNG olarak indir'i kullan.";
+    $("kart-mesaj").textContent = "Kopyalanamadı; tarayıcın izin vermiyor olabilir. PNG indir'i kullan.";
   }
 }
 
-// ---------- Süre nereden geldi? (uygulama dökümü) ----------
+// ---------- Süre nereden geldi? (renk kodlu uygulama dökümü) ----------
 
 async function dokumuYenile() {
   const bugun = new Date();
   let ilk = bugun;
   if ($("dokum-aralik").value === "hafta") {
-    // Haftanın pazartesisi. getDay(): Pazar=0, Pazartesi=1 ... olduğu için (gün+6)%7 = pazartesiden uzaklık.
     ilk = new Date(bugun);
     ilk.setDate(bugun.getDate() - ((bugun.getDay() + 6) % 7));
   }
@@ -407,35 +518,30 @@ async function dokumuYenile() {
   const kutu = $("dokum");
   kutu.replaceChildren();
   if (!d.uygulamalar.length) {
-    kutu.append(el("div", "bos", "Bu aralıkta sayılan süre yok."));
+    kutu.append(el("div", "bos", "Bu aralıkta sayılan çalışma süresi henüz yok."));
     return;
   }
-  // Çubuklar en çok kullanılan uygulamaya göre oranlanır; yüzde ise toplam içindeki paydır.
   const enUzun = d.uygulamalar[0].sure_sn || 1;
-  for (const u of d.uygulamalar) {
+  d.uygulamalar.forEach((u, i) => {
     const satir = el("div", "dokum-satir");
-    // u.ad: okunabilir ad (ayar dosyasındaki [adlar] ve [siteler] bölümlerinden gelir)
     const ad = el("span", "ad", u.ad);
     ad.title = u.tur === "kategori" ? `${u.ad}: ${u.icerik.join(", ")}`
       : u.tur === "site" ? `${u.ad} (web sitesi)` : u.ad;
     const ray = el("div", "ray");
-    const dolgu = el("div", "dolgu");
+    const dolgu = el("div", `dolgu renk-${i % 6}`);
     dolgu.style.width = `${(u.sure_sn / enUzun) * 100}%`;
     ray.append(dolgu);
     satir.append(ad, ray, el("span", "deger soluk", `${sureBicimi(u.sure_sn)} · %${Math.round(u.oran * 100)}`));
     kutu.append(satir);
-  }
+  });
 }
 
-// ---------- 3) Oturumlar ve düzeltme ----------
+// ---------- 3) Oturumlar ve zaman çizelgesi ----------
 
-// Kullanıcı bir kutuya yazı yazarken liste yenilenip yazdığını silmesin.
 function kullaniciYaziyor() {
   const a = document.activeElement;
   return a && a.tagName === "INPUT" && a.type === "text";
 }
-
-// ---------- Günlük zaman çizelgesi ----------
 
 const HUKUM_YAZI = { ders: "Çalışma", ders_degil: "Çalışma değil", belirsiz: "Belirsiz" };
 
@@ -448,7 +554,6 @@ async function cizelgeyiYenile() {
   const d = await api(`/api/zaman-cizelgesi?tarih=${$("tarih").value}`);
   const serit = $("cizelge");
   const saatler = $("cizelge-saatler");
-  // Görünen aralık: günün kullanılan saatleri (en az 6 saat); boş günde 00:00-24:00.
   let bas = 0, son = 1440;
   if (d.parcalar.length) {
     bas = Math.max(0, Math.floor(d.parcalar[0].bas_dk / 60) * 60);
@@ -476,11 +581,10 @@ async function cizelgeyiYenile() {
       $("cizelge-secili").textContent = yazi;
     };
     parca.addEventListener("mouseenter", sec);
-    parca.addEventListener("click", sec);  // Dokunmatik ekran için
+    parca.addEventListener("click", sec);
     return parca;
   }));
 
-  // Saat etiketleri: aralığa göre 1, 2 ya da 3 saatte bir
   const adim = genislik <= 480 ? 60 : genislik <= 900 ? 120 : 180;
   const etiketler = [];
   for (let dk = bas; dk <= son; dk += adim) {
@@ -493,7 +597,7 @@ async function cizelgeyiYenile() {
   saatler.replaceChildren(...etiketler);
   $("cizelge-secili").textContent = d.parcalar.length
     ? `Çalışma ${sureBicimi(d.toplam_sn.ders || 0)} · belirsiz ${sureBicimi(d.toplam_sn.belirsiz || 0)} · ` +
-      "bir parçanın üzerine gel ya da dokun."
+      "ayrıntı için bir parçanın üzerine gel."
     : "Bu gün için kayıt yok.";
 }
 
@@ -505,7 +609,6 @@ async function oturumlariYenile(zorla) {
   if ($("filtre").value === "belirsiz") {
     oturumlar = oturumlar.filter((o) => o.etkin_hukum === "belirsiz");
   }
-  // 1 dakikadan kısa geçişler listeyi doldurmasın (süren oturum her zaman görünür).
   const gizlenen = $("kisalari-gizle").checked
     ? oturumlar.filter((o) => o.sure_sn < 60 && !o.suruyor).length : 0;
   if (gizlenen) oturumlar = oturumlar.filter((o) => o.sure_sn >= 60 || o.suruyor);
@@ -514,7 +617,7 @@ async function oturumlariYenile(zorla) {
   kutu.replaceChildren();
   if (!oturumlar.length) {
     kutu.append(el("div", "bos", $("filtre").value === "belirsiz"
-      ? "Karar bekleyen oturum yok."
+      ? "Bu gün için karar bekleyen oturum yok."
       : "Bu gün için kayıt yok."));
     if (gizlenen) kutu.append(el("div", "soluk", `${gizlenen} kısa oturum gizlendi.`));
     return;
@@ -524,9 +627,8 @@ async function oturumlariYenile(zorla) {
 }
 
 function oturumSatiri(o) {
-  const satir = el("div", "oturum");
+  const satir = el("div", `oturum h-${o.etkin_hukum}`);
 
-  // Sol sütun: saat aralığı ve süre
   const zaman = el("div", "zaman");
   const saat = (iso) => iso.slice(11, 16);
   zaman.append(
@@ -534,15 +636,14 @@ function oturumSatiri(o) {
     el("div", "soluk", sureBicimi(o.sure_sn)),
   );
 
-  // Sağ sütun: ne olduğu
   const bilgi = el("div");
   const ust = el("div", "ust-satir");
   ust.append(rozet(o.etkin_hukum), el("span", "ad", o.uygulama || KAYNAK_ADI[o.kaynak] || ""));
-  if (o.alan_adi) ust.append(el("span", "soluk", o.alan_adi));  // eklentiden gelen site adı
+  if (o.alan_adi) ust.append(el("span", "soluk", o.alan_adi));
   if (o.duzeltme) {
     ust.append(el("span", "soluk", "(sen düzelttin)"));
     const geriAl = el("button", "dugme kucuk", "Geri al");
-    geriAl.title = "Düzeltmeyi kaldırır; öğrenilen kurallar kalır (onları aşağıdan silebilirsin).";
+    geriAl.title = "Düzeltmeyi kaldırır; öğrenilen kurallar kalır (onları Karar Bekleyenler sekmesinden silebilirsin).";
     geriAl.addEventListener("click", async () => {
       await apiGonder(`/api/oturumlar/${o.id}/duzelt`, "DELETE");
       await hepsiniYenile(true);
@@ -552,14 +653,12 @@ function oturumSatiri(o) {
   if (o.oneri) ust.append(oneriRozeti(o.oneri));
   bilgi.append(ust, el("div", "baslik-metin", o.baslik || ""), el("div", "soluk", o.aciklama || ""));
 
-  // Düzeltme araçları
   const islemler = el("div", "islemler");
   const dersti = el("button", "dugme ders" + (o.duzeltme === "ders" ? " secili" : ""), "Çalışmaydı");
   const degildi = el("button", "dugme degil" + (o.duzeltme === "ders_degil" ? " secili" : ""), "Çalışma değildi");
   islemler.append(dersti, degildi);
   if (o.oneri) (o.oneri.hukum === "ders" ? dersti : degildi).classList.add("onerilen");
 
-  // Kural öğrenme sadece uygulama ve tarayıcı oturumlarında anlamlı (boşta kalma için değil).
   let ogrenKutusu = null;
   let kelimeKutusu = null;
   let siteKutusu = null;
@@ -567,15 +666,11 @@ function oturumSatiri(o) {
     const etiket = el("label");
     ogrenKutusu = el("input");
     ogrenKutusu.type = "checkbox";
-    // Programın zaten bir fikri varsa (belirsiz değilse) kalıcı kuralı varsayılan yapma:
-    // tek seferlik bir istisna olabilir.
     ogrenKutusu.checked = o.hukum === "belirsiz";
     etiket.append(ogrenKutusu, document.createTextNode("bundan sonra da böyle say"));
     islemler.append(etiket);
   }
   if (o.kaynak === "baslik" && o.alan_adi) {
-    // Eklenti site adını bildirdiyse: o sitedeki her şeyi aynı şekilde say (varsayılan kapalı;
-    // YouTube gibi sitelerde içerik videoya göre değiştiği için dikkatli kullanılmalı).
     const etiket = el("label");
     siteKutusu = el("input");
     siteKutusu.type = "checkbox";
@@ -629,11 +724,19 @@ async function kurallariYenile() {
   }
 }
 
-// ---------- Başlangıç ----------
+// ---------- Başlangıç ve olay bağlamaları ----------
 
 async function hepsiniYenile(zorla) {
   try {
-    await Promise.all([durumuYenile(), haftayiYenile(), isiHaritasiniYenile(), dokumuYenile(), oturumlariYenile(zorla), kurallariYenile()]);
+    await Promise.all([
+      durumuYenile(),
+      haftayiYenile(),
+      isiHaritasiniYenile(),
+      dokumuYenile(),
+      oturumlariYenile(zorla),
+      bekleyenleriYenile(),
+      kurallariYenile(),
+    ]);
   } catch (hata) {
     console.error(hata);
   }
@@ -650,16 +753,27 @@ $("tarih").value = tarihMetni(new Date());
 $("tarih").addEventListener("change", () => oturumlariYenile(true));
 $("filtre").addEventListener("change", () => oturumlariYenile(true));
 $("kisalari-gizle").addEventListener("change", () => oturumlariYenile(true));
+$("onceki-gun").addEventListener("click", () => gunKaydir(-1));
+$("sonraki-gun").addEventListener("click", () => gunKaydir(1));
+$("bugun-dugme").addEventListener("click", () => {
+  $("tarih").value = tarihMetni(new Date());
+  oturumlariYenile(true);
+});
+
 $("dokum-aralik").addEventListener("change", dokumuYenile);
 $("dokum-gruplama").addEventListener("change", dokumuYenile);
+
 $("kart-olustur").addEventListener("click", kartiOlustur);
 $("kart-kopyala").addEventListener("click", kartiKopyala);
-$("kart-tarih").value = $("kart-tarih").max = tarihMetni(new Date());  // Gelecek seçilemesin
+$("kart-tur").addEventListener("change", kartiOlustur);
+$("kart-tarih").addEventListener("change", kartiOlustur);
+$("kart-liste").addEventListener("change", kartiOlustur);
+$("kart-tarih").value = $("kart-tarih").max = tarihMetni(new Date());
 
 $("kamera-acik").addEventListener("change", kameraAcKapat);
 $("kamera-kalibre").addEventListener("click", kameraKalibre);
 kamerayiYenile().catch(() => {});
-setInterval(() => kamerayiYenile().catch(() => {}), 3000);  // Canlı açı (yalnızca ekranda, kaydedilmez)
+setInterval(() => kamerayiYenile().catch(() => {}), 3000);
 
 $("saglik-tarih").value = $("saglik-tarih").max = tarihMetni(new Date());
 $("saglik-tarih").addEventListener("change", saglikFormunuDoldur);
@@ -667,26 +781,23 @@ $("saglik-form").addEventListener("submit", saglikKaydet);
 $("saglik-sil").addEventListener("click", saglikSil);
 saglikFormunuDoldur();
 
-// Windows açılışında otomatik başlatma (gerçek durum kayıt defterinden okunur)
 api("/api/otomatik-baslatma").then((d) => { $("otomatik-baslatma").checked = d.acik; }).catch(() => {});
 $("otomatik-baslatma").addEventListener("change", async (olay) => {
   const d = await apiGonder("/api/otomatik-baslatma", "POST", { acik: olay.target.checked });
-  olay.target.checked = d.acik;  // İşlem başarısız olduysa kutu gerçek durumu göstersin
+  olay.target.checked = d.acik;
 });
-$("onceki-gun").addEventListener("click", () => gunKaydir(-1));
-$("sonraki-gun").addEventListener("click", () => gunKaydir(1));
+
 $("duraklat-dugme").addEventListener("click", async () => {
   await apiGonder("/api/duraklat", "POST", { duraklat: !duraklatildi });
   await durumuYenile();
 });
 
 hepsiniYenile(true);
-
 api("/api/surum").then((s) => { $("surum").textContent = `v${s.surum}`; }).catch(() => {});
 
 // ---------- Ayarlar (form, /api/ayarlar'daki alan tanımlarından oluşturulur) ----------
 
-let ayarOkuyucular = {};  // anahtar -> o alanın şu anki değerini veren fonksiyon
+let ayarOkuyucular = {};
 
 function ayarAlani(alan) {
   const kutu = el("div", "ayar-alan");
@@ -723,7 +834,6 @@ function ayarAlani(alan) {
     girdi.max = alan.en_cok;
     girdi.step = 1;
     girdi.value = alan.deger;
-    // Boş bırakılırsa null gönderilir; sunucu "Tam sayı olmalı" der.
     ayarOkuyucular[alan.anahtar] = () => (girdi.value.trim() === "" ? null : Number(girdi.value));
   } else {
     girdi = el("input");
@@ -790,7 +900,7 @@ async function ayarlariKaydet(olay) {
       ? `Kaydedildi ve uygulandı (${veri.degisen.length} ayar değişti).`
       : "Değişiklik yok.";
     await ayarlariYukle();
-    await hepsiniYenile(true);  // Hedef, adlar vb. değişmiş olabilir
+    await hepsiniYenile(true);
     ayarUyarilariniYenile(veri.uyarilar || []);
   } catch {
     $("ayar-mesaj").textContent = "Kaydedilemedi: Heatmap'e ulaşılamıyor.";
@@ -804,22 +914,13 @@ function ayarUyarilariniYenile(uyarilar) {
   $("ayar-uyari-listesi").replaceChildren(...uyarilar.map((u) => el("li", "", u)));
 }
 
-// Bölüm ilk açıldığında yükle (sayfa açılışını yavaşlatmasın)
-$("ayarlar-bolumu").addEventListener("toggle", () => {
-  if ($("ayarlar-bolumu").open && !Object.keys(ayarOkuyucular).length) ayarlariYukle().catch(() => {});
-});
 $("ayar-formu").addEventListener("submit", ayarlariKaydet);
-$("bekleyenler-bolumu").addEventListener("toggle", () => {
-  if ($("bekleyenler-bolumu").open) bekleyenleriYenile().catch(() => {});
-});
-bekleyenleriYenile().catch(() => {});  // Başlıktaki sayı için
 $("ayar-geri").addEventListener("click", () => {
   ayarHatalariniGoster({});
   $("ayar-mesaj").textContent = "";
   ayarlariYukle().catch(() => {});
 });
 
-// Ayar dosyası uyarıları (program açılırken bir kez hesaplanır)
 api("/api/ayar-uyarilari").then((uyarilar) => {
   $("ayar-uyarisi").hidden = !uyarilar.length;
   $("ayar-uyari-listesi").replaceChildren(...uyarilar.map((u) => el("li", "", u)));

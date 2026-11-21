@@ -4,6 +4,9 @@ Sürüm numarası `heatmap/__init__.py` içindeki `__version__` değeridir ve ar
 
 ## Yayımlanmamış
 
+- **Yenilenen sol menülü arayüz:** 5 net sekme (Özet, Oturumlar, Karar Bekleyenler, Paylaşım Kartı,
+  Ayarlar), günlük hedef için dairesel ilerleme halkası, 4'lü KPI özet kartları, haftalık grafikte
+  hedef çizgisi, renk kodlu uygulama dökümü ve canlı mini durum kutusu.
 - Veritabanı şeması artık numaralı sürümlerle güncelleniyor; eski bir veritabanı açılınca eksik
   adımlar sırayla ve önce yedek alınarak uygulanıyor (`data/yedek/heatmap-gocmeden-once-*.db`).
 - Tarih aralığı sorguları için yeni dizin.

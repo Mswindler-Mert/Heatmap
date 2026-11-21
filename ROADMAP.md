@@ -111,10 +111,21 @@ dashboard, kart, ayarlar, takip döngüsü çalıştı. ❓ Sürüm iş akışı
 
 ---
 
-## Sonraki ağır işler (sırada)
+## Faz 2: Arayüz, Motivasyon ve Kullanım Kolaylığı
 
-1. 🔲 `[adlar]`, `[siteler]`, `[kategoriler]` tablolarını da Ayarlar sayfasından düzenlemek.
-2. 🔲 Health Connect dışa aktarım içe aktarıcısı (kullanıcıdan gerçek bir dışa aktarım dosyası gelince).
-3. 🔲 Kamera: gerçek kamerayla ilk çalıştırma ve açı doğrulaması (kullanıcının katılımıyla).
-4. 🔲 Tahmin modeline video sesinin / eklenti alan adının ağırlığını ölçmek; yeterli veri birikince
-   otomatik kararın varsayılanını yeniden değerlendirmek.
+1. ✅ **Yenilenen sol menülü arayüz:** 5 net sekme (Özet, Oturumlar, Karar Bekleyenler, Paylaşım Kartı, Ayarlar), dairesel günlük hedef halkası, 4'lü KPI özet kartları, haftalık hedef çizgisi, renk kodlu döküm.
+2. 🔲 **Zinciri Kırma + Tıklanabilir Grafikler + En Verimli Saatler:**
+   - Barış Özcan'ın *Zinciri Kırma* yaklaşımıyla görsel zincir: hedefe ulaşınca sürükle-tak veya otomatik takılan halkalar, hak edilen kalkan halkası (7 ardışık halkada 1), bronz kurtarma halkası, kilometre taşı renkleri.
+   - Tıklanabilir ısı haritası ve haftalık çubuklar (tıklanan günün Oturumlar ekranını açar).
+   - 24 saatlik "En verimli saatlerin" grafiği.
+3. 🔲 **İsteğe Bağlı Kayan Mini Masaüstü Sayacı + Hedef Bildirimleri:**
+   - Her zaman üstte duran, sürüklenebilir, yarı saydam mini sayaç penceresi (tepsi ve arayüzden istenilen zaman aç/kapat; isteğe bağlı odak zamanlayıcısı).
+   - Günlük hedefe ulaşınca ve akşam zinciri kurtarmaya az kalınca sessiz Windows bildirimi.
+4. 🔲 **Karar Bekleyenler Hızlı Temizlik & Ayarlar Tablo Düzenleyici:**
+   - Tahminleri tek seferlik toplu uygulama düğmesi ve klavye kısayolları (`C`/`D`).
+   - `[adlar]`, `[siteler]`, `[kategoriler]` tablolarını da Ayarlar sayfasından düzenlemek.
+5. 🔲 **Ders / Proje Bazlı Takip:** VS Code proje adını yakalama + hızlı ders/proje etiketi ve dökümü.
+6. 🔲 **Brave/Chrome eklentisi:** Gerçek tarayıcıda kurulum ve doğrulama (kullanıcının katılımıyla).
+7. 🔲 **Kamera modülü:** Güvenlik/gizlilik doğrulamasıyla gerçek kamerayla ilk çalıştırma ve açı doğrulaması (kullanıcının katılımıyla).
+8. 🔲 **Görsel bütünlük ve ilk sürüm (`v0.4.0`):** `/dashboard` yenilemesi, paylaşım kartı temaları, lisans, güncel `Heatmap.exe`, README ekran görüntüleri ve GitHub Release.
+9. 🔲 **İleride:** Health Connect dışa aktarım içe aktarıcısı (gerçek dosya gelince) ve tahmin modeline ses/alan adı ağırlığı ekleme.

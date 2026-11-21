@@ -9,237 +9,434 @@
   <link rel="stylesheet" href="/static/stil.css">
 </head>
 <body>
-  <header class="ust">
-    <h1>Heatmap</h1>
-    <div class="ust-sag">
-      <span id="baglanti" class="soluk">bağlanıyor…</span>
-      <label class="anahtar" title="Bilgisayarı her açtığında Heatmap kendiliğinden başlar (tarayıcı açılmaz).">
-        <input id="otomatik-baslatma" type="checkbox">
-        Windows açılışında başlat
-      </label>
-      <button id="duraklat-dugme" class="dugme">Takibi duraklat</button>
-    </div>
-  </header>
-
-  <main>
-    <!-- Ayar dosyasında sorun varsa görünür (config.toml yazım hatası, yanlış türde değer) -->
-    <section id="ayar-uyarisi" class="kart uyari" hidden>
-      <strong>Ayar dosyasında sorun var</strong>
-      <ul id="ayar-uyari-listesi"></ul>
-      <span class="soluk">Tepsi menüsünden "Ayar dosyasını aç" ile düzeltip Heatmap'i yeniden başlat.</span>
-    </section>
-    <!-- 1) Şu an -->
-    <section class="kart simdi">
-      <div class="sayac-kutu">
-        <div class="etiket">Bugünkü aktif süre</div>
-        <div id="sayac" class="sayac">00:00:00</div>
-        <div id="durum-rozet" class="rozet">—</div>
-        <div id="bekleyen" class="soluk bekleyen"></div>
-      </div>
-      <div class="algilanan">
-        <div class="etiket">Şu an algılanan</div>
-        <div id="algilanan-uygulama" class="uygulama">—</div>
-        <div id="algilanan-baslik" class="baslik-metin"></div>
-        <div id="algilanan-aciklama" class="soluk"></div>
-        <div class="etiket ara">Modül sinyalleri</div>
-        <ul id="sinyaller" class="sinyaller"></ul>
-
-        <!-- Yalnızca kamera modülü ayarlardan etkinse görünür -->
-        <div id="kamera-ayar" class="kamera-ayar" hidden>
-          <label class="anahtar" title="Kapatınca kamera işçisi durur ve kamera ışığı söner.">
-            <input id="kamera-acik" type="checkbox"> Kamera açık
-          </label>
-          <span id="kamera-aci" class="soluk"></span>
-          <button id="kamera-kalibre" class="dugme kucuk"
-                  title="6 saniye boyunca ekrana normal bak; bu açı 'ekrana bakıyor' kabul edilir.">Kalibre et</button>
-          <span id="kamera-mesaj" class="soluk"></span>
+  <div class="kabuk">
+    <!-- Sol menü (Sidebar) -->
+    <aside class="kenar" aria-label="Ana menü">
+      <div class="marka">
+        <span class="marka-ikon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+            <rect x="2" y="2" width="5.5" height="5.5" rx="1.5" fill="#1f6f54"/>
+            <rect x="9.25" y="2" width="5.5" height="5.5" rx="1.5" fill="#2ea877"/>
+            <rect x="16.5" y="2" width="5.5" height="5.5" rx="1.5" fill="#3ecf8e"/>
+            <rect x="2" y="9.25" width="5.5" height="5.5" rx="1.5" fill="#2ea877"/>
+            <rect x="9.25" y="9.25" width="5.5" height="5.5" rx="1.5" fill="#3ecf8e"/>
+            <rect x="16.5" y="9.25" width="5.5" height="5.5" rx="1.5" fill="#6ee7b7"/>
+            <rect x="2" y="16.5" width="5.5" height="5.5" rx="1.5" fill="#183d32"/>
+            <rect x="9.25" y="16.5" width="5.5" height="5.5" rx="1.5" fill="#2ea877"/>
+            <rect x="16.5" y="16.5" width="5.5" height="5.5" rx="1.5" fill="#3ecf8e"/>
+          </svg>
+        </span>
+        <div>
+          <h1>Heatmap</h1>
+          <span id="surum" class="surum-etiket">v—</span>
         </div>
       </div>
-    </section>
 
-    <!-- 2) Bu hafta -->
-    <section class="kart">
-      <div class="kart-baslik">
-        <h2>Bu hafta</h2>
-        <span class="soluk"><span id="seri"></span><span id="hafta-toplam"></span></span>
+      <!-- Her sekmede görünen canlı mini durum kutusu -->
+      <div class="mini-durum" id="mini-durum">
+        <div class="mini-ust">
+          <span class="canli-nokta" id="mini-nokta"></span>
+          <span id="mini-sayac" class="mini-sayac">00:00:00</span>
+        </div>
+        <div id="mini-etiket" class="mini-etiket">bağlanıyor…</div>
+        <button id="duraklat-dugme" class="dugme tam" type="button">Takibi duraklat</button>
       </div>
-      <div id="hafta" class="hafta"></div>
-      <!-- Günlerin altında adım / egzersiz (kayıt varsa) -->
-      <div id="hafta-saglik" class="hafta-saglik"></div>
 
-      <!-- Sağlık verisini elle girme (Health Connect bağlanana kadar) -->
-      <details class="saglik-giris">
-        <summary>Adım / egzersiz / uyku ekle</summary>
-        <form id="saglik-form" class="saglik-form">
-          <label>Gün <input id="saglik-tarih" type="date" required></label>
-          <label>Adım <input id="saglik-adim" type="number" min="0" max="200000" step="1" placeholder="8200"></label>
-          <label>Egzersiz (dk) <input id="saglik-egzersiz" type="number" min="0" max="1440" step="1" placeholder="30"></label>
-          <label>Uyku (saat) <input id="saglik-uyku" type="number" min="0" max="24" step="0.25" placeholder="7.5"></label>
-          <div class="saglik-dugmeler">
-            <button type="submit" class="dugme vurgu">Kaydet</button>
-            <button type="button" id="saglik-sil" class="dugme">Bu günü sil</button>
-            <span id="saglik-mesaj" class="soluk"></span>
+      <!-- Sekme gezinme menüsü -->
+      <nav class="menu">
+        <button class="menu-oge aktif" data-sayfa="ozet" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          <span>Özet</span>
+        </button>
+        <button class="menu-oge" data-sayfa="oturumlar" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+          <span>Oturumlar</span>
+        </button>
+        <button class="menu-oge" data-sayfa="bekleyenler" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>Karar Bekleyenler</span>
+          <span id="menu-bekleyen-rozet" class="menu-rozet" hidden>0</span>
+        </button>
+        <button class="menu-oge" data-sayfa="kart" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          <span>Paylaşım Kartı</span>
+        </button>
+        <button class="menu-oge" data-sayfa="ayarlar" type="button">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Ayarlar</span>
+        </button>
+      </nav>
+
+      <!-- Kenar çubuğu alt kontrolleri -->
+      <div class="kenar-alt">
+        <label class="salter" title="Bilgisayarı her açtığında Heatmap kendiliğinden başlar (tarayıcı açılmaz).">
+          <input id="otomatik-baslatma" type="checkbox">
+          <span class="salter-ray"></span>
+          <span>Açılışta başlat</span>
+        </label>
+        <div id="baglanti" class="baglanti-uyari"></div>
+        <div class="alt-linkler">
+          <a href="/api/disa-aktar/gunluk.csv" title="Gün gün çalışma dakikası, adım, egzersiz, uyku">Günlük CSV</a>
+          <span>·</span>
+          <a href="/api/disa-aktar/oturumlar.csv" title="Her oturum bir satır; pencere başlıkları dahil değil">Oturum CSV</a>
+          <span>·</span>
+          <a href="/api/docs">API</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Ana içerik alanı -->
+    <main class="icerik">
+      <!-- Ayar dosyasında sorun varsa her sekmenin üstünde görünür -->
+      <section id="ayar-uyarisi" class="kart uyari" hidden>
+        <strong>Ayar dosyasında sorun var</strong>
+        <ul id="ayar-uyari-listesi"></ul>
+        <span class="soluk">Ayarlar sekmesinden veya tepsi menüsündeki "Ayar dosyasını aç" ile düzeltip Heatmap'i yeniden başlat.</span>
+      </section>
+
+      <!-- ================= 1) ÖZET SEKMESİ ================= -->
+      <div id="sayfa-ozet" class="sayfa aktif">
+        <div class="sayfa-ust">
+          <div>
+            <h2>Özet</h2>
+            <p class="soluk" id="ozet-alt-baslik">Bugünkü odak ve hedef durumun</p>
           </div>
-        </form>
-        <p class="soluk ipucu">Boş bıraktığın alan değişmez. Bu veri yalnızca bu bilgisayarda kalır;
-          paylaşım kartına ve masaüstü dashboard'una girmez.</p>
-      </details>
-    </section>
-
-    <!-- Isı haritası: son 12 ayın her günü bir kare -->
-    <section class="kart">
-      <div class="kart-baslik">
-        <h2>Son 12 ay</h2>
-        <span id="isi-ozet" class="soluk"></span>
-      </div>
-      <div class="isi-kaydirma">
-        <div class="isi">
-          <div class="isi-aylar" id="isi-aylar"></div>
-          <div class="isi-gun-adlari"><span></span><span>Pzt</span><span></span><span>Çar</span><span></span><span>Cum</span><span></span></div>
-          <div class="isi-izgara" id="isi-izgara"></div>
+          <div id="motivasyon-hap" class="motivasyon-hap" hidden></div>
         </div>
-      </div>
-      <div class="isi-alt">
-        <span id="isi-seri" class="soluk"></span>
-        <span class="isi-lejant soluk">Az
-          <i class="isi-kare s0"></i><i class="isi-kare s1"></i><i class="isi-kare s2"></i><i class="isi-kare s3"></i><i class="isi-kare s4"></i>
-          Hedef</span>
-      </div>
-    </section>
 
-    <!-- Sürenin uygulamalara dağılımı -->
-    <section class="kart">
-      <div class="kart-baslik">
-        <h2>Süre nereden geldi?</h2>
-        <div class="araclar">
-          <select id="dokum-gruplama" aria-label="Gruplama">
-            <option value="uygulama">Uygulama / site</option>
-            <option value="kategori">Kategori</option>
-          </select>
-          <select id="dokum-aralik" aria-label="Döküm aralığı">
-            <option value="bugun">Bugün</option>
-            <option value="hafta">Bu hafta</option>
-          </select>
+        <!-- Hero kart: Canlı sayaç + Günlük hedef halkası -->
+        <section class="kart hero" id="hero-kart">
+          <div class="hero-sol">
+            <div class="hero-ust-satir">
+              <span class="etiket">Bugünkü aktif süre</span>
+              <span id="durum-rozet" class="rozet">—</span>
+            </div>
+            <div id="sayac" class="sayac">00:00:00</div>
+            <div id="hedef-mesaj" class="hedef-mesaj"></div>
+            <div id="bekleyen" class="bekleyen-bilgi"></div>
+
+            <!-- Şu an algılanan pencere/uygulama -->
+            <div class="algilanan-kutu">
+              <div class="algilanan-satir">
+                <span class="etiket">Şu an</span>
+                <span id="algilanan-uygulama" class="uygulama">—</span>
+              </div>
+              <div id="algilanan-baslik" class="baslik-metin soluk"></div>
+              <div id="algilanan-aciklama" class="soluk kucuk-yazi"></div>
+            </div>
+
+            <!-- Teknik ayrıntılar varsayılan olarak gizli -->
+            <details class="teknik-cekmece">
+              <summary>Teknik ayrıntı (modül sinyalleri)</summary>
+              <ul id="sinyaller" class="sinyaller"></ul>
+              <!-- Yalnızca kamera modülü ayarlardan etkinse görünür -->
+              <div id="kamera-ayar" class="kamera-ayar" hidden>
+                <label class="salter" title="Kapatınca kamera işçisi durur ve kamera ışığı söner.">
+                  <input id="kamera-acik" type="checkbox">
+                  <span class="salter-ray"></span>
+                  <span>Kamera açık</span>
+                </label>
+                <span id="kamera-aci" class="soluk"></span>
+                <button id="kamera-kalibre" class="dugme kucuk" type="button"
+                        title="6 saniye boyunca ekrana normal bak; bu açı 'ekrana bakıyor' kabul edilir.">Kalibre et</button>
+                <span id="kamera-mesaj" class="soluk"></span>
+              </div>
+            </details>
+          </div>
+
+          <!-- Sağ taraf: Günlük hedef dairesel ilerleme halkası -->
+          <div class="hero-sag">
+            <div class="halka-kutu" id="hedef-halka-kutu">
+              <svg class="halka" viewBox="0 0 160 160" width="164" height="164" aria-hidden="true">
+                <defs>
+                  <linearGradient id="halka-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#3ecf8e"/>
+                    <stop offset="100%" stop-color="#38bdf8"/>
+                  </linearGradient>
+                  <linearGradient id="halka-tamam" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#3ecf8e"/>
+                    <stop offset="100%" stop-color="#fbbf24"/>
+                  </linearGradient>
+                </defs>
+                <circle class="halka-ray" cx="80" cy="80" r="66"/>
+                <circle class="halka-dolgu" id="halka-dolgu" cx="80" cy="80" r="66"
+                        stroke-dasharray="414.69" stroke-dashoffset="414.69"/>
+              </svg>
+              <div class="halka-orta">
+                <div id="halka-yuzde" class="halka-yuzde">%0</div>
+                <div id="halka-hedef" class="halka-hedef">hedef —</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4'lü KPI Özet Şeridi -->
+        <section class="kpi-izgara">
+          <div class="kpi-kart">
+            <div class="kpi-etiket">Güncel Seri</div>
+            <div class="kpi-deger yesil" id="kpi-seri">0 gün</div>
+            <div class="kpi-alt" id="kpi-en-uzun-seri">En uzun: —</div>
+          </div>
+          <div class="kpi-kart">
+            <div class="kpi-etiket">Bu Hafta</div>
+            <div class="kpi-deger mavi" id="kpi-hafta">0 dk</div>
+            <div class="kpi-alt" id="kpi-hafta-ort">Günlük ort: —</div>
+          </div>
+          <div class="kpi-kart">
+            <div class="kpi-etiket">Hedef Tutan Gün</div>
+            <div class="kpi-deger mor" id="kpi-hedef-gunu">0</div>
+            <div class="kpi-alt" id="kpi-aktif-gun">Son 12 ay</div>
+          </div>
+          <button class="kpi-kart tiklanabilir" id="kpi-bekleyen-kart" type="button">
+            <div class="kpi-etiket">Karar Bekleyen</div>
+            <div class="kpi-deger sari" id="kpi-bekleyen">0</div>
+            <div class="kpi-alt">İncelemek için tıkla →</div>
+          </button>
+        </section>
+
+        <!-- Orta 2 sütunlu alan: Haftalık grafik + Süre nereden geldi -->
+        <div class="iki-sutun">
+          <section class="kart">
+            <div class="kart-baslik">
+              <div>
+                <h3>Bu hafta</h3>
+                <span class="soluk" id="hafta-toplam"></span>
+              </div>
+              <span class="soluk" id="seri"></span>
+            </div>
+            <div class="hafta-cerceve">
+              <div id="hafta-hedef-cizgi" class="hafta-hedef-cizgi" hidden>
+                <span id="hafta-hedef-etiket">Hedef</span>
+              </div>
+              <div id="hafta" class="hafta"></div>
+            </div>
+            <div id="hafta-saglik" class="hafta-saglik"></div>
+          </section>
+
+          <section class="kart">
+            <div class="kart-baslik">
+              <h3>Süre nereden geldi?</h3>
+              <div class="araclar">
+                <select id="dokum-gruplama" aria-label="Gruplama">
+                  <option value="uygulama">Uygulama / site</option>
+                  <option value="kategori">Kategori</option>
+                </select>
+                <select id="dokum-aralik" aria-label="Döküm aralığı">
+                  <option value="bugun">Bugün</option>
+                  <option value="hafta">Bu hafta</option>
+                </select>
+              </div>
+            </div>
+            <div id="dokum" class="dokum"></div>
+          </section>
         </div>
+
+        <!-- Son 12 ay ısı haritası -->
+        <section class="kart">
+          <div class="kart-baslik">
+            <div>
+              <h3>Son 12 ay</h3>
+              <span id="isi-ozet" class="soluk"></span>
+            </div>
+            <span class="isi-lejant soluk">Az
+              <i class="isi-kare s0"></i><i class="isi-kare s1"></i><i class="isi-kare s2"></i><i class="isi-kare s3"></i><i class="isi-kare s4"></i>
+              Hedef</span>
+          </div>
+          <div class="isi-kaydirma">
+            <div class="isi">
+              <div class="isi-aylar" id="isi-aylar"></div>
+              <div class="isi-gun-adlari"><span></span><span>Pzt</span><span></span><span>Çar</span><span></span><span>Cum</span><span></span></div>
+              <div class="isi-izgara" id="isi-izgara"></div>
+            </div>
+          </div>
+          <div class="isi-alt">
+            <span id="isi-seri" class="soluk"></span>
+          </div>
+        </section>
       </div>
-      <div id="dokum" class="dokum"></div>
-    </section>
 
-    <!-- Paylaşım kartı -->
-    <section class="kart">
-      <div class="kart-baslik">
-        <h2>Paylaşım kartı</h2>
-        <div class="araclar">
-          <select id="kart-tur" aria-label="Kart türü">
-            <option value="gunluk">Günlük</option>
-            <option value="haftalik">Haftalık</option>
-            <option value="aylik">Aylık</option>
-            <option value="yillik">Yıllık (son 12 ay)</option>
-          </select>
-          <input id="kart-tarih" type="date" aria-label="Kartın tarihi" title="Geçmiş bir günün, haftanın ya da ayın kartı için tarih seç">
-          <select id="kart-liste" aria-label="Kartın altındaki liste"
-                  title="Kartın altındaki liste: uygulama/site adları, kategoriler ya da hiçbiri">
-            <option value="uygulama">Liste: uygulamalar</option>
-            <option value="kategori">Liste: kategoriler</option>
-            <option value="yok">Liste yok (yalnızca süre)</option>
-          </select>
-          <button id="kart-olustur" class="dugme vurgu">Paylaşım kartı oluştur</button>
+      <!-- ================= 2) OTURUMLAR SEKMESİ ================= -->
+      <div id="sayfa-oturumlar" class="sayfa">
+        <div class="sayfa-ust">
+          <div>
+            <h2>Oturumlar & Zaman Çizelgesi</h2>
+            <p class="soluk">Günün saat saat akışını incele, yanlış ya da belirsiz oturumları tek tıkla düzelt.</p>
+          </div>
+          <div class="araclar">
+            <button id="onceki-gun" class="dugme kucuk" type="button" aria-label="Önceki gün">◀</button>
+            <input id="tarih" type="date">
+            <button id="sonraki-gun" class="dugme kucuk" type="button" aria-label="Sonraki gün">▶</button>
+            <button id="bugun-dugme" class="dugme kucuk" type="button">Bugün</button>
+          </div>
         </div>
+
+        <!-- Günlük zaman çizelgesi -->
+        <section class="kart">
+          <div class="kart-baslik">
+            <h3>Günlük akış</h3>
+            <span class="cizelge-lejant">
+              <span><i class="cz ders"></i> Çalışma</span>
+              <span><i class="cz belirsiz"></i> Belirsiz</span>
+              <span><i class="cz ders_degil"></i> Çalışma değil</span>
+              <span><i class="cz bosta"></i> Başında değil</span>
+            </span>
+          </div>
+          <div class="cizelge-kutu">
+            <div id="cizelge" class="cizelge" role="img" aria-label="Günün zaman çizelgesi"></div>
+            <div id="cizelge-saatler" class="cizelge-saatler"></div>
+            <div class="cizelge-alt">
+              <span id="cizelge-secili" class="soluk">Bir parçanın üzerine gel ya da dokun.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Seçili günün oturum listesi -->
+        <section class="kart">
+          <div class="kart-baslik">
+            <h3>Kayıtlı oturumlar</h3>
+            <div class="araclar">
+              <select id="filtre" aria-label="Oturum filtresi">
+                <option value="hepsi">Hepsi</option>
+                <option value="belirsiz">Yalnızca karar bekleyenler</option>
+              </select>
+              <label class="salter" title="1 dakikadan kısa oturumlar listede gösterilmez (süreleri yine sayılır).">
+                <input id="kisalari-gizle" type="checkbox" checked>
+                <span class="salter-ray"></span>
+                <span>Kısaları gizle</span>
+              </label>
+            </div>
+          </div>
+          <p class="soluk ipucu">
+            Program emin olamadığı süreyi saymaz. “Çalışmaydı” veya “Çalışma değildi” diye işaretlediğinde
+            “bundan sonra da böyle say” seçiliyse aynı uygulama/başlık sonraki sefer otomatik tanınır.
+          </p>
+          <div id="oturumlar" class="oturumlar"></div>
+        </section>
       </div>
-      <p class="soluk ipucu">
-        Instagram hikâyesi boyutunda (1080×1920) bir özet görseli üretir. Kartta pencere başlıkları
-        ve video adları yer almaz; yalnızca uygulama ve site adları görünür.
-      </p>
-      <div id="kart-onizleme" class="kart-onizleme" hidden>
-        <img id="kart-resim" alt="Paylaşım kartı önizlemesi">
-        <div class="kart-dugmeler">
-          <a id="kart-indir" class="dugme vurgu" href="#">PNG olarak indir</a>
-          <button id="kart-kopyala" class="dugme" type="button">Panoya kopyala</button>
-          <span id="kart-mesaj" class="soluk"></span>
+
+      <!-- ================= 3) KARAR BEKLEYENLER SEKMESİ ================= -->
+      <div id="sayfa-bekleyenler" class="sayfa">
+        <div class="sayfa-ust">
+          <div>
+            <h2>Karar Bekleyenler <span id="bekleyen-sayisi" class="soluk"></span></h2>
+            <p class="soluk">Tüm günlerde hâlâ belirsiz duran başlık ve uygulamalar, en çok süre alandan başlayarak.</p>
+          </div>
         </div>
+
+        <section class="kart">
+          <div class="bilgi-seridi" id="tahmin-bilgisi">Tahmin modeli kontrol ediliyor…</div>
+          <div id="bekleyenler" class="bekleyenler"></div>
+        </section>
+
+        <section class="kart">
+          <div class="kart-baslik">
+            <div>
+              <h3>Öğrenilen kurallar</h3>
+              <span class="soluk">Düzeltmelerinden otomatik kaydedilen kalıcı kurallar</span>
+            </div>
+          </div>
+          <div id="kurallar" class="kurallar"></div>
+        </section>
       </div>
-    </section>
 
-    <!-- 3) Oturumlar ve düzeltme -->
-    <section class="kart">
-      <div class="kart-baslik">
-        <h2>Oturumlar</h2>
-        <div class="araclar">
-          <button id="onceki-gun" class="dugme kucuk" aria-label="Önceki gün">◀</button>
-          <input id="tarih" type="date">
-          <button id="sonraki-gun" class="dugme kucuk" aria-label="Sonraki gün">▶</button>
-          <select id="filtre">
-            <option value="belirsiz">Karar bekleyenler</option>
-            <option value="hepsi">Hepsi</option>
-          </select>
-          <label class="anahtar" title="1 dakikadan kısa oturumlar listede gösterilmez (süreleri yine sayılır).">
-            <input id="kisalari-gizle" type="checkbox" checked> Kısaları gizle
-          </label>
+      <!-- ================= 4) PAYLAŞIM KARTI SEKMESİ ================= -->
+      <div id="sayfa-kart" class="sayfa">
+        <div class="sayfa-ust">
+          <div>
+            <h2>Paylaşım Kartı</h2>
+            <p class="soluk">Instagram hikâyesi boyutunda (1080×1920), pencere başlıklarını gizleyen özet görseli.</p>
+          </div>
         </div>
+
+        <section class="kart kart-atolye">
+          <div class="kart-kontroller">
+            <div class="form-alan">
+              <label for="kart-tur">Kart türü</label>
+              <select id="kart-tur">
+                <option value="gunluk">Günlük</option>
+                <option value="haftalik">Haftalık</option>
+                <option value="aylik">Aylık (takvim)</option>
+                <option value="yillik">Yıllık (son 12 ay)</option>
+              </select>
+            </div>
+            <div class="form-alan">
+              <label for="kart-tarih">Tarih</label>
+              <input id="kart-tarih" type="date" title="Geçmiş bir günün, haftanın ya da ayın kartı için tarih seç">
+            </div>
+            <div class="form-alan">
+              <label for="kart-liste">Alttaki liste</label>
+              <select id="kart-liste" title="Kartın altındaki liste: uygulama/site adları, kategoriler ya da hiçbiri">
+                <option value="uygulama">Uygulama ve siteler</option>
+                <option value="kategori">Kategoriler</option>
+                <option value="yok">Liste yok (yalnızca süre)</option>
+              </select>
+            </div>
+
+            <div class="kart-eylemler">
+              <button id="kart-olustur" class="dugme vurgu tam" type="button">Önizlemeyi yenile</button>
+              <div class="kart-alt-dugmeler">
+                <a id="kart-indir" class="dugme tam" href="#">PNG indir</a>
+                <button id="kart-kopyala" class="dugme tam" type="button">Panoya kopyala</button>
+              </div>
+              <div id="kart-mesaj" class="soluk"></div>
+            </div>
+
+            <p class="soluk kucuk-yazi">
+              Gizlilik güvencesi: Kartta hiçbir pencere başlığı veya video adı yer almaz; yalnızca okunabilir uygulama/site adları görünür.
+            </p>
+          </div>
+
+          <div id="kart-onizleme" class="kart-onizleme">
+            <img id="kart-resim" alt="Paylaşım kartı önizlemesi">
+          </div>
+        </section>
       </div>
-      <!-- Günün saat saat şeridi (seçili tarih için) -->
-      <div class="cizelge-kutu">
-        <div id="cizelge" class="cizelge" role="img" aria-label="Günün zaman çizelgesi"></div>
-        <div id="cizelge-saatler" class="cizelge-saatler"></div>
-        <div class="cizelge-alt">
-          <span id="cizelge-secili" class="soluk">Bir parçanın üzerine gel ya da dokun.</span>
-          <span class="cizelge-lejant">
-            <span><i class="cz ders"></i> Çalışma</span> <span><i class="cz belirsiz"></i> Belirsiz</span>
-            <span><i class="cz ders_degil"></i> Çalışma değil</span> <span><i class="cz bosta"></i> Başında değil</span>
-          </span>
+
+      <!-- ================= 5) AYARLAR SEKMESİ ================= -->
+      <div id="sayfa-ayarlar" class="sayfa">
+        <div class="sayfa-ust">
+          <div>
+            <h2>Ayarlar & Sağlık Verisi</h2>
+            <p class="soluk">Değişiklikler <code>config/config.toml</code> dosyasına yorumları bozmadan kaydedilir ve anında uygulanır.</p>
+          </div>
+          <div class="araclar">
+            <span id="ayar-mesaj" class="soluk" role="status"></span>
+            <button type="button" id="ayar-geri" class="dugme">Geri al</button>
+            <button type="submit" form="ayar-formu" id="ayar-kaydet" class="dugme vurgu">Ayarları kaydet</button>
+          </div>
         </div>
+
+        <!-- Sağlık verisi elle giriş kartı -->
+        <section class="kart">
+          <div class="kart-baslik">
+            <div>
+              <h3>Sağlık verisi (Adım / Egzersiz / Uyku)</h3>
+              <span class="soluk">Haftalık grafiğin altında görünür; yalnızca bu bilgisayarda kalır.</span>
+            </div>
+          </div>
+          <form id="saglik-form" class="saglik-form">
+            <label>Gün <input id="saglik-tarih" type="date" required></label>
+            <label>Adım <input id="saglik-adim" type="number" min="0" max="200000" step="1" placeholder="8200"></label>
+            <label>Egzersiz (dk) <input id="saglik-egzersiz" type="number" min="0" max="1440" step="1" placeholder="30"></label>
+            <label>Uyku (saat) <input id="saglik-uyku" type="number" min="0" max="24" step="0.25" placeholder="7.5"></label>
+            <div class="saglik-dugmeler">
+              <button type="submit" class="dugme vurgu">Kaydet</button>
+              <button type="button" id="saglik-sil" class="dugme">Bu günü sil</button>
+              <span id="saglik-mesaj" class="soluk"></span>
+            </div>
+          </form>
+        </section>
+
+        <!-- Ana ayarlar formu (/api/ayarlar'dan dinamik dolar) -->
+        <section class="kart">
+          <form id="ayar-formu" class="ayar-formu" novalidate></form>
+          <p class="soluk kucuk-yazi" style="margin-top: 14px;">
+            Eski ayar dosyasının yedeği <code>data/yedek/</code> altında saklanır. Port, okunabilir adlar, siteler ve kategoriler şimdilik dosyadan düzenlenir.
+          </p>
+        </section>
       </div>
-      <p class="soluk ipucu">
-        Program karar veremediği süreyi saymaz. Aşağıdan “Çalışmaydı” ya da “Çalışma değildi” diye işaretle;
-        “bundan sonra da böyle say” seçiliyse aynı uygulama/başlık bir dahaki sefere otomatik tanınır.
-      </p>
-      <div id="oturumlar" class="oturumlar"></div>
-    </section>
-
-    <!-- Bütün günlerde karar bekleyen başlıklar/uygulamalar (öğrenen tahminin önerileriyle) -->
-    <section class="kart">
-      <details id="bekleyenler-bolumu" class="acilir">
-        <summary><h2>Karar bekleyenler <span id="bekleyen-sayisi" class="soluk"></span></h2></summary>
-        <p class="soluk ipucu">
-          Bütün günlerde hâlâ "belirsiz" olan başlıklar ve uygulamalar, en çok zaman alandan başlayarak.
-          Bir karar, o başlığın/uygulamanın BÜTÜN belirsiz oturumlarına uygulanır.
-          <span id="tahmin-bilgisi"></span>
-        </p>
-        <div id="bekleyenler" class="bekleyenler"></div>
-      </details>
-    </section>
-
-    <!-- 4) Öğrenilen kurallar -->
-    <section class="kart">
-      <div class="kart-baslik"><h2>Öğrenilen kurallar</h2></div>
-      <div id="kurallar" class="kurallar"></div>
-    </section>
-
-    <!-- 5) Ayarlar: alanlar /api/ayarlar'dan otomatik oluşturulur (bkz. heatmap/ayar_duzenleyici.py) -->
-    <section class="kart">
-      <details id="ayarlar-bolumu" class="ayarlar">
-        <summary><h2>Ayarlar</h2></summary>
-        <p class="soluk ipucu">
-          Değişiklikler <code>config/config.toml</code> dosyasına yazılır (yorumların korunur, eski hâlinin
-          kopyası <code>data/yedek/</code> içinde saklanır) ve yeniden başlatmadan uygulanır. Port, okunabilir
-          adlar, siteler ve kategoriler gibi ayarlar şimdilik yalnızca dosyadan değiştirilebilir.
-        </p>
-        <form id="ayar-formu" class="ayar-formu" novalidate></form>
-        <div class="ayar-dugmeler">
-          <button type="submit" form="ayar-formu" id="ayar-kaydet" class="dugme vurgu">Ayarları kaydet</button>
-          <button type="button" id="ayar-geri" class="dugme">Değişiklikleri geri al</button>
-          <span id="ayar-mesaj" class="soluk" role="status"></span>
-        </div>
-      </details>
-    </section>
-  </main>
-
-  <footer class="soluk">
-    Heatmap <span id="surum"></span> · Her şey bu bilgisayarda çalışır ve saklanır · <a href="/api/docs">JSON API</a> ·
-    Dışa aktar (son 365 gün, Excel için CSV):
-    <a href="/api/disa-aktar/gunluk.csv" title="Gün gün çalışma dakikası, adım, egzersiz, uyku">günlük özet</a> ·
-    <a href="/api/disa-aktar/oturumlar.csv" title="Her oturum bir satır; pencere başlıkları dahil değil">oturumlar</a>
-  </footer>
+    </main>
+  </div>
 
   <script src="/static/uygulama.js"></script>
 </body>
