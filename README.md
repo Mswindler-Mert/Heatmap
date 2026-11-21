@@ -247,6 +247,20 @@ sonuç depo sayfasındaki **Actions** sekmesinde ve README'nin başındaki rozet
 Yeni bir tespit modülü eklemek için `heatmap/sinyal.py` içindeki `Dedektor` sınıfından türetin,
 `oku()` metodunu yazın ve `main.py` içindeki `dedektorleri_kur()` fonksiyonuna ekleyin.
 
+## Sorun giderme
+
+| Belirti | Ne yapmalı |
+|---|---|
+| `baslat.bat`'a tıkladım, hiçbir şey olmadı | Tepsi ikonuna bak (saatin yanındaki ok ▲ altında gizlenmiş olabilir). Yoksa `data/heatmap.log` dosyasının sonuna bak; çökme varsa "ÇÖKME" başlığıyla yazılır. |
+| "Heatmap başlatılamadı" penceresi çıktı | Pencerede hatanın adı yazar; ayrıntısı `data/heatmap.log` içinde. "İçe aktarma hatası" ise `.venv` klasörünü silip `baslat.bat`'ı yeniden çalıştır. |
+| Arayüzün üstünde sarı "Ayar dosyasında sorun var" kutusu | Kutuda hangi ayarın ve hangi satırın sorunlu olduğu yazar. Tepsiden "Ayar dosyasını aç" ile düzelt, Heatmap'i yeniden başlat. |
+| Ayarı değiştirdim ama bir şey değişmedi | Ayarlar yalnızca açılışta okunur: tepsiden **Çıkış**, sonra `baslat.bat`. |
+| Bir uygulama hep "belirsiz" çıkıyor | Düzeltme ekranında "Çalışmaydı / Çalışma değildi" de ve "bundan sonra da böyle say"ı işaretle; ya da süreç adını `config.toml`'daki listeye ekle. |
+| "Modül sinyalleri"nde Tarayıcı satırı "Eklentiden haber yok" diyor | Eklenti kurulu mu (`brave://extensions`)? Heatmap'in portu 8765 değilse eklentideki adresi de değiştir ([eklenti/README.md](eklenti/README.md)). |
+| Paylaşım kartı "Panoya kopyala" çalışmıyor | Tarayıcı izin vermiyor olabilir; "PNG olarak indir"i kullan. |
+| Kamera "bilinmiyor" diyor | Kamerayı başka bir uygulama (Teams, Zoom) kullanıyor olabilir ya da kamera işçisi kurulmamış ([kamera_isci/README.md](kamera_isci/README.md)). |
+| Bir şey bozuldu, verilerim gitti mi? | Her gün `data/yedek/` altına yedek alınır; "Yedek" bölümündeki adımlarla geri dönebilirsin. |
+
 ## Bilinen sınırlar
 
 - Eklenti kurulu değilse site ayrımı sekme başlığına dayanır; başlığında site adı geçmeyen
