@@ -275,8 +275,10 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
         # liste: kartın altındaki liste uygulamalardan mı, kategorilerden mi oluşsun, yoksa hiç olmasın mı.
         # (uygulamalar=false eski adres biçimi; liste=yok ile aynı anlama gelir.)
         goster = uygulamalar and liste != "yok"
-        png = kart_ciz(kart_verisi(depo, adlandirici, hedef_sn, tur, tarih, bugun, goster,
-                                   kategoriye_gore=liste == "kategori"))
+        veri = kart_verisi(depo, adlandirici, hedef_sn, tur, tarih, bugun, goster,
+                           kategoriye_gore=liste == "kategori")
+        veri["ust_metin"] = ayarlar.get("kart", {}).get("ust_metin", "Heatmap")
+        png = kart_ciz(veri)
         basliklar = {"Cache-Control": "no-store"}  # Her istekte güncel kart üretilsin
         if indir:
             basliklar["Content-Disposition"] = f'attachment; filename="heatmap-{tur}-{tarih.isoformat()}.png"'

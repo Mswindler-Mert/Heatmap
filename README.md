@@ -143,6 +143,7 @@ sonra uygulamayı yeniden başlatın.
 | `[tarayici]` | Tarayıcı eklentisi modülü |
 | `[kategoriler]` | Kategori adı → içindeki uygulama/site adları (dökümde gruplama için) |
 | `[hedef]` | Günlük hedef (dakika); seri hesabında kullanılır |
+| `[kart]` | Paylaşım kartının sol üstündeki yazı (`ust_metin`) |
 | `[yedek]` | Günlük otomatik yedek ve kaç gün saklanacağı |
 | `[kamera]` | Kamera modülü: eşik süreleri, kalibrasyon, kamerasız deneme senaryosu |
 

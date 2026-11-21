@@ -261,6 +261,11 @@ def _aralikli_yazi(cizim, x: float, y: float, metin: str, yazi, renk, aralik: in
         x += cizim.textlength(harf, font=yazi) + aralik
 
 
+def buyuk_harf(metin: str) -> str:
+    """Türkçe kurallarıyla büyük harf: "çalışma" -> "ÇALIŞMA" (Python'un upper()'ı "i"yi "I" yapar)."""
+    return metin.replace("i", "İ").replace("ı", "I").upper()
+
+
 def _sigdir(cizim, metin: str, yazi, en_fazla: float) -> str:
     """Metin `en_fazla` pikselden genişse sonunu "…" ile keser."""
     if cizim.textlength(metin, font=yazi) <= en_fazla:
@@ -296,7 +301,9 @@ def _ust_bolum(c, veri: dict) -> None:
     # Küçük logo (tepsi ikonundaki halka) + uygulama adı
     c.ellipse((KENAR, Y_UST, KENAR + 34, Y_UST + 34), fill=YESIL)
     c.ellipse((KENAR + 10, Y_UST + 10, KENAR + 24, Y_UST + 24), fill=(13, 16, 22))
-    _aralikli_yazi(c, KENAR + 50, Y_UST - 1, "HEATMAP", _yazi(27, "yari"), YAZI, aralik=5)
+    # Sol üstteki metin ayar dosyasından değiştirilebilir ([kart] ust_metin); en fazla ~22 harf sığar.
+    ust_metin = buyuk_harf((veri.get("ust_metin") or "Heatmap").strip())[:22]
+    _aralikli_yazi(c, KENAR + 50, Y_UST - 1, ust_metin, _yazi(27, "yari"), YAZI, aralik=5)
 
     etiket = TUR_ETIKETI[veri["tur"]]
     yazi = _yazi(25, "yari")

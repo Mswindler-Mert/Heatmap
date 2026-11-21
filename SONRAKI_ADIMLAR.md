@@ -400,7 +400,7 @@ Dosyalar: `kart.py`, `ozet.py` (`seri_hesapla`, `GUN_ADLARI`), `web/api.py` (`/a
 - Seri, geçmiş tarihli kartta o tarihe göre hesaplanır ama "o gün henüz bitmedi" kuralı o güne de
   uygulanır (küçük bir tutarsızlık; önemli değil).
 - **Seçenekler:** uygulama listesini gizle (yalnızca süre paylaş), renk teması, üstteki ad
-  ("HEATMAP" yerine kullanıcının seçtiği metin; `[kart] baslik`).
+  (✅ üstteki ad: `[kart] ust_metin`, `kart.buyuk_harf` Türkçe büyük harf yapar).
 - **Panoya kopyala** (`navigator.clipboard.write` + `ClipboardItem`) ve telefona aktarma kolaylığı.
 - Uygulamanın adı kartta "HEATMAP" yazıyor (2026-11 ad değişikliği). Eski veritabanı `ders_takip.db` ilk açılışta `heatmap.db`ye taşınır (`main.eski_veritabanini_tasi`).
 

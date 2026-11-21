@@ -95,6 +95,13 @@ class KartTesti(unittest.TestCase):
         self.assertNotIn(GIZLI, json.dumps(v, ensure_ascii=False))
         self.assertEqual(Image.open(io.BytesIO(kart_ciz(v))).size, (1080, 1920))
 
+    def test_turkce_buyuk_harf_ve_ust_metin(self):
+        from heatmap.kart import buyuk_harf
+        self.assertEqual(buyuk_harf("Mert'in çalışması"), "MERT'İN ÇALIŞMASI")
+        v = self.veri("gunluk")
+        v["ust_metin"] = "Çok uzun bir üst metin denemesi burada"
+        self.assertEqual(Image.open(io.BytesIO(kart_ciz(v))).size, (1080, 1920))  # uzun metin çökertmez
+
     def test_aylik_veri(self):
         v = self.veri("aylik")
         self.assertEqual(v["tarih_metni"], "Kasım 2026")

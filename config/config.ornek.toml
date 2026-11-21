@@ -223,6 +223,12 @@ video_isaretleri = ["YouTube", "Udemy", "Coursera"]
 gunluk_dk = 120
 
 # ---------------------------------------------------------------------
+#  Paylaşım kartı
+# ---------------------------------------------------------------------
+[kart]
+ust_metin = "Heatmap"      # Kartın sol üstündeki yazı (örn. adın); büyük harfle, en fazla 22 harf
+
+# ---------------------------------------------------------------------
 #  Otomatik yedek: her gün data/yedek/heatmap-YYYY-AA-GG.db oluşturulur.
 #  Geri dönmek için: Heatmap'i kapat, istediğin yedeği data/heatmap.db adıyla kopyala.
 # ---------------------------------------------------------------------
