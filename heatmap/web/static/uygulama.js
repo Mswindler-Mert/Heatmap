@@ -547,6 +547,8 @@ $("duraklat-dugme").addEventListener("click", async () => {
 
 hepsiniYenile(true);
 
+api("/api/surum").then((s) => { $("surum").textContent = `v${s.surum}`; }).catch(() => {});
+
 // Ayar dosyası uyarıları (program açılırken bir kez hesaplanır)
 api("/api/ayar-uyarilari").then((uyarilar) => {
   $("ayar-uyarisi").hidden = !uyarilar.length;

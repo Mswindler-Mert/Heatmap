@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from heatmap import otomatik_baslatma
+from heatmap import __version__, otomatik_baslatma
 from heatmap.ayarlar import UYARILAR
 from heatmap.dedektorler.kamera import KameraDedektoru
 from heatmap.disa_aktar import gunluk_csv, oturumlar_csv
@@ -95,7 +95,8 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
     hedef_sn = int(ayarlar.get("hedef", {}).get("gunluk_dk", 0) * 60)  # Günlük hedef (saniye)
 
     # Başlık "Takip Paneli" ile başlıyor ki API dokümantasyon sekmesi de yok sayılsın.
-    app = FastAPI(title="Takip Paneli API", docs_url="/api/docs", openapi_url="/api/openapi.json")
+    app = FastAPI(title="Takip Paneli API", version=__version__,
+                  docs_url="/api/docs", openapi_url="/api/openapi.json")
 
     # Güvenlik: sadece bu bilgisayardan, 127.0.0.1/localhost adresiyle gelen
     # istekleri kabul et. (Kötü niyetli bir web sitesinin tarayıcın üzerinden
@@ -120,6 +121,11 @@ def uygulama_olustur(takipci: Takipci, depo: Depo, ayarlar: dict,
     def durum():
         """Şu an ne algılanıyor, sayaç çalışıyor mu, bugünkü toplam."""
         return takipci.durum()
+
+    @app.get("/api/surum")
+    def surum():
+        """Çalışan Heatmap sürümü (CHANGELOG.md'deki numara)."""
+        return {"surum": __version__}
 
     @app.get("/api/ayar-uyarilari")
     def ayar_uyarilari():

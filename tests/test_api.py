@@ -14,6 +14,8 @@ import time
 import unittest
 from datetime import date, datetime, timedelta
 
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 from PIL import Image
 
@@ -60,6 +62,12 @@ class ApiTesti(unittest.TestCase):
         self.assertEqual(self.istemci.post("/api/duraklat", json={"duraklat": True}).status_code, 403)
         self.assertEqual(self.istemci.post("/api/duraklat", json={"duraklat": True}, headers=BASLIK).status_code, 200)
         self.assertEqual(self.istemci.delete("/api/kurallar/1").status_code, 403)
+
+    def test_surum(self):
+        from heatmap import __version__
+        self.assertEqual(self.istemci.get("/api/surum").json(), {"surum": __version__})
+        changelog = (Path(__file__).parent.parent / "CHANGELOG.md").read_text(encoding="utf-8")
+        self.assertIn(f"## {__version__}", changelog, "CHANGELOG.md'de bu sürümün başlığı yok")
 
     def test_ayar_uyarilari(self):
         self.assertEqual(self.istemci.get("/api/ayar-uyarilari").json(), [])

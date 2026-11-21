@@ -156,6 +156,7 @@ Sunucu yalnızca `127.0.0.1` üzerinde dinler. Etkileşimli dokümantasyon:
 
 | Uç | Açıklama |
 |---|---|
+| `GET /api/surum` | Çalışan sürüm |
 | `GET /api/durum` | Şu an algılanan durum, sayaç, bugünkü toplam |
 | `GET /api/ozet/bugun` | Bugünkü ders süresi |
 | `GET /api/ozet/hafta` | Bu haftanın gün gün süreleri |
@@ -256,4 +257,4 @@ Yeni bir tespit modülü eklemek için `heatmap/sinyal.py` içindeki `Dedektor` 
 - Microsoft Store uygulamaları (Ayarlar, Hesap Makinesi...) önde olduklarında gerçek adlarıyla
   tanınır; nadiren (uygulama yeni açılırken) `ApplicationFrameHost.exe` olarak görünebilirler.
 
-Planlanan işler için [SONRAKI_ADIMLAR.md](SONRAKI_ADIMLAR.md) dosyasına bakın.
+Sürümlerde neyin değiştiği: [CHANGELOG.md](CHANGELOG.md). Planlanan işler için [SONRAKI_ADIMLAR.md](SONRAKI_ADIMLAR.md) dosyasına bakın.

@@ -56,6 +56,12 @@ tepsi.py (pystray, ana thread)
 | `web/api.py` | `uygulama_olustur(takipci, depo, ayarlar)` |
 | `main.py` | Parçaları kurar; `dedektorleri_kur()` modül sırasını belirler |
 
+### Sürüm
+
+`heatmap/__init__.py` içindeki `__version__` (şu an 0.3.0) ve `CHANGELOG.md`. Kullanıcıya görünen bir
+değişiklik yapınca CHANGELOG'a yaz; sürümü yükseltince CHANGELOG'a aynı numaralı başlığı ekle
+(`tests/test_api.py::test_surum` bunu denetler). Git etiketi (tag) henüz yok.
+
 ### Genel tuzaklar (hepsi yaşandı ya da bilinçli karar)
 
 - ⚠️ **Zaman parametredir.** Motor ve `Takipci.tik(simdi)` saati kendisi okumaz; testler bu sayede
